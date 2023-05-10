@@ -1,0 +1,12 @@
+{'Role': 'Client #1', 'Round': 0, 'Results_raw': {'train_total': 16192, 'train_acc': 0.7015192687747036, 'train_correct': 11359.0, 'train_avg_loss': 0.7596857045950155, 'train_loss': 12300.83092880249}}
+{'Role': 'Server #', 'Round': 1, 'Results_raw': {'test_total': 10000, 'test_acc': 0.2908, 'test_correct': 2908.0, 'test_avg_loss': 4.72491302986145, 'test_loss': 47249.1302986145}}
+{'Role': 'Client #4', 'Round': 1, 'Results_raw': {'train_total': 495, 'train_acc': 0.35353535353535354, 'train_correct': 175.0, 'train_avg_loss': 2.806971162979049, 'train_loss': 1389.4507256746292}}
+{'Role': 'Server #', 'Round': 2, 'Results_raw': {'test_total': 10000, 'test_acc': 0.2274, 'test_correct': 2274.0, 'test_avg_loss': 5.0526294486999515, 'test_loss': 50526.29448699951}}
+{'Role': 'Client #5', 'Round': 2, 'Results_raw': {'train_total': 10818, 'train_acc': 0.7061379182843409, 'train_correct': 7639.0, 'train_avg_loss': 0.7891413174565475, 'train_loss': 8536.93077224493}}
+{'Role': 'Server #', 'Round': 3, 'Results_raw': {'test_total': 10000, 'test_acc': 0.1691, 'test_correct': 1691.0, 'test_avg_loss': 5.975350078439712, 'test_loss': 59753.500784397125}}
+{'Role': 'Client #1', 'Round': 3, 'Results_raw': {'train_total': 16192, 'train_acc': 0.7886610671936759, 'train_correct': 12770.0, 'train_avg_loss': 0.6226108506498601, 'train_loss': 10081.314893722534}}
+{'Role': 'Server #', 'Round': 4, 'Results_raw': {'test_total': 10000, 'test_acc': 0.2962, 'test_correct': 2962.0, 'test_avg_loss': 4.653316506767273, 'test_loss': 46533.16506767273}}
+{'Role': 'Client #2', 'Round': 4, 'Results_raw': {'train_total': 9268, 'train_acc': 0.7383470004315926, 'train_correct': 6843.0, 'train_avg_loss': 0.7766231101007878, 'train_loss': 7197.742984414101}}
+{'Role': 'Server #', 'Round': 5, 'Results_raw': {'test_total': 10000, 'test_acc': 0.2748, 'test_correct': 2748.0, 'test_avg_loss': 4.070677373123169, 'test_loss': 40706.77373123169}}
+{'Role': 'Client #5', 'Round': 5, 'Results_raw': {'train_total': 10818, 'train_acc': 0.7645590682196339, 'train_correct': 8271.0, 'train_avg_loss': 0.7127696708778639, 'train_loss': 7710.742299556732}}
+{'Role': 'Server #', 'Round': 6, 'Results_raw': {'test_total': 10000, 'test_acc': 0.2051, 'test_correct': 2051.0, 'test_avg_loss': 5.066490043258667, 'test_loss': 50664.90043258667}}

@@ -1,0 +1,32 @@
+client_1:
+  model:
+    type: resnet18_proto
+    out_channels: 10
+    stride: [1,4]
+    dropout: 0.0
+  criterion:
+    type: CrossEntropyLoss
+  train:
+    local_update_steps: 1
+    batch_or_epoch: epoch
+    optimizer:
+      type: SGD
+      lr: 0.01
+      weight_decay: 0.0
+      momentum: 0.5
+client_2:
+  model:
+    type: resnet18_proto
+    out_channels: 10
+    stride: [2,2]
+    dropout: 0.0
+  criterion:
+    type: CrossEntropyLoss
+  train:
+    local_update_steps: 1
+    batch_or_epoch: epoch
+    optimizer:
+      type: SGD
+      lr: 0.01
+      weight_decay: 0.0
+      momentum: 0.5

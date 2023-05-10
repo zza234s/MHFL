@@ -1,0 +1,7 @@
+{'Role': 'Client #1', 'Round': 0, 'Results_raw': {'test_avg_loss': 1.1669612907000304, 'test_correct': 2877.0, 'test_acc': 0.605811749842072, 'test_total': 4749, 'test_loss': 5541.899169534445}}
+{'Role': 'Client #2', 'Round': 0, 'Results_raw': {'test_avg_loss': 0.6763859566791585, 'test_correct': 992.0, 'test_acc': 0.7774294670846394, 'test_total': 1276, 'test_loss': 863.0684807226062}}
+{'Role': 'Client #3', 'Round': 0, 'Results_raw': {'test_avg_loss': 1.264564532251478, 'test_correct': 1970.0, 'test_acc': 0.49559748427672956, 'test_total': 3975, 'test_loss': 5026.644015699625}}
+{'Role': 'Server #', 'Round': 0, 'Results_raw': {'test_avg_loss': [1.1669612907000304, 0.6763859566791585, 1.264564532251478], 'test_correct': [2877.0, 992.0, 1970.0], 'test_acc': [0.605811749842072, 0.7774294670846394, 0.49559748427672956], 'test_total': [4749.0, 1276.0, 3975.0], 'test_loss': [5541.899169534445, 863.0684807226062, 5026.644015699625]}}
+{'Role': 'Client #1', 'Round': 1, 'Results_raw': {'test_avg_loss': 3.425867864557331, 'test_correct': 1582.0, 'test_acc': 0.33312276268688146, 'test_total': 4749, 'test_loss': 16269.446488782763}}
+{'Role': 'Client #2', 'Round': 1, 'Results_raw': {'test_avg_loss': 0.5927550365165208, 'test_correct': 1019.0, 'test_acc': 0.79858934169279, 'test_total': 1276, 'test_loss': 756.3554265950806}}
+{'Role': 'Client #3', 'Round': 1, 'Results_raw': {'test_avg_loss': 1.025627206346524, 'test_correct': 2277.0, 'test_acc': 0.5728301886792453, 'test_total': 3975, 'test_loss': 4076.8681452274323}}
