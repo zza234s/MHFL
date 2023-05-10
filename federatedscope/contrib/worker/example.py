@@ -13,8 +13,6 @@ class MyServer(Server):
                                ['model_para', 'evaluate', 'finish'])
         self.register_handlers('metrics', self.callback_funcs_for_metrics,
                                ['converged'])
-
-
 class MyClient(Client):
     def _register_default_handlers(self):
         self.register_handlers('assign_client_id',

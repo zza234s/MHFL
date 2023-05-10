@@ -29,5 +29,14 @@ def extend_Model_heterogeneity_cfg(cfg):
     cfg.fml.meme_model.out_channels = 1
     cfg.fml.meme_model.layer = 2
 
+    # ---------------------------------------------------------------------- #
+    # FedHeNN related options
+    # ---------------------------------------------------------------------- #
+    cfg.fedhenn = CN()
+    cfg.fedhenn.n_0 = 0.01
+
+
+
+
 
 register_config("model_heterogeneity", extend_Model_heterogeneity_cfg)
