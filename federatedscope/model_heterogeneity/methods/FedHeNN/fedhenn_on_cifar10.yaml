@@ -6,7 +6,7 @@ seed: 12345
 check_completeness: True
 federate:
   mode: standalone
-  method: fedproto
+  method: fedhenn
   client_num: 2
   total_round_num: 110
   sample_client_rate: 1.0
@@ -34,7 +34,7 @@ train:
 criterion:
   type: CrossEntropyLoss
 trainer:
-  type: fedproto_trainer
+  type: cvtrainer #TODO: 实现对应的trainer()
 eval:
   freq: 1
   metrics: ['acc', 'correct']

@@ -145,6 +145,7 @@ class FedprotoClient(Client):
                                self.callback_funcs_for_model_para,
                                ['model_para', 'ss_model_para'])
 
+
     def callback_funcs_for_model_para(self, message: Message):
         round = message.state
         sender = message.sender
@@ -154,7 +155,7 @@ class FedprotoClient(Client):
         self.trainer.update(content)
         self.state = round
 
-        sample_size, model_para, results, = self.trainer.train()
+        sample_size, model_para, results, agg_protos = self.trainer.train()
 
         self.comm_manager.send(
             Message(msg_type='model_para',

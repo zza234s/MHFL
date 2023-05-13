@@ -10,40 +10,34 @@ import torch
 import torch.nn as nn
 import numpy as np
 
-
-
-
-
-
-def proximal_term(cfg, local_model, device, train=True):
-    delta_list = []
-    global_prev_K_value = torch.tensor(
-        np.asarray(json.loads(cfg["K_final"])), requires_grad=True, dtype=torch.float32
-    )
-    trainloader_RAD, testloader_RAD, num_examples_RAD = load_mnist_data_partition(
-        batch_size=32,
-        partitions=5,
-        RAD=True,
-        subsample_RAD=True,
-        use_cuda=False,
-        input_seed=int(cfg["epoch_global"]),
-    )
-    if train:
-        dataloader_RAD = trainloader_RAD
-    else:
-        dataloader_RAD = testloader_RAD
-    for images_RAD, labels_RAD in dataloader_RAD:
-        images_RAD, labels_RAD = images_RAD.to(device), labels_RAD.to(device)
-        intermediate_activation_local, _ = local_model(images_RAD)
-        cka_from_examples = cka_torch(
-            global_prev_K_value,
-            gram_linear_torch(intermediate_activation_local),
-        )
-        delta_list.append(cka_from_examples)
-    # print(gram_linear_torch(intermediate_activation_local).shape)
-    # print(f"k_global:{global_prev_K_value.shape}")
-    return Variable(torch.mean(torch.FloatTensor(delta_list)), requires_grad=True)
-
+# def proximal_term(cfg, local_model, device, train=True):
+#     delta_list = []
+#     global_prev_K_value = torch.tensor(
+#         np.asarray(json.loads(cfg["K_final"])), requires_grad=True, dtype=torch.float32
+#     )
+#     trainloader_RAD, testloader_RAD, num_examples_RAD = load_mnist_data_partition(
+#         batch_size=32,
+#         partitions=5,
+#         RAD=True,
+#         subsample_RAD=True,
+#         use_cuda=False,
+#         input_seed=int(cfg["epoch_global"]),
+#     )
+#     if train:
+#         dataloader_RAD = trainloader_RAD
+#     else:
+#         dataloader_RAD = testloader_RAD
+#     for images_RAD, labels_RAD in dataloader_RAD:
+#         images_RAD, labels_RAD = images_RAD.to(device), labels_RAD.to(device)
+#         intermediate_activation_local, _ = local_model(images_RAD)
+#         cka_from_examples = cka_torch(
+#             global_prev_K_value,
+#             gram_linear_torch(intermediate_activation_local),
+#         )
+#         delta_list.append(cka_from_examples)
+#     # print(gram_linear_torch(intermediate_activation_local).shape)
+#     # print(f"k_global:{global_prev_K_value.shape}")
+#     return Variable(torch.mean(torch.FloatTensor(delta_list)), requires_grad=True)
 
 class FedHeNN_Trainer(GeneralTorchTrainer):
     def __init__(self,

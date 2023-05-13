@@ -46,7 +46,7 @@ attack:
 backend: torch
 cfg_file: ''
 check_completeness: false
-client_cfg_file: ./fedproto_per_client.yaml
+client_cfg_file: ./fedproto_per_client_on_cifa10.yaml
 criterion:
   type: CrossEntropyLoss
 data:

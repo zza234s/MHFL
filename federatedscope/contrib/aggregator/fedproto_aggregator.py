@@ -3,6 +3,7 @@ import torch
 from federatedscope.core.aggregators import Aggregator
 from federatedscope.core.auxiliaries.utils import param2tensor
 
+#TODO:该class未用到，待删除
 class PrototypeAggregator(Aggregator):
 
     def __init__(self, model=None, device='cpu', config=None):

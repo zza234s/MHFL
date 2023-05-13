@@ -1,0 +1,30 @@
+client_1:
+  model:
+    type: CNN_fedhenn_cifar_net0
+    out_channels: 10
+    hidden: 128
+  criterion:
+    type: CrossEntropyLoss
+  train:
+    local_update_steps: 1
+    batch_or_epoch: epoch
+    optimizer:
+      type: SGD
+      lr: 0.01
+      weight_decay: 0.0
+      momentum: 0.5
+client_2:
+  model:
+    type: CNN_fedhenn_cifar_net1
+    out_channels: 10
+    hidden: 512
+  criterion:
+    type: CrossEntropyLoss
+  train:
+    local_update_steps: 1
+    batch_or_epoch: epoch
+    optimizer:
+      type: SGD
+      lr: 0.01
+      weight_decay: 0.0
+      momentum: 0.5
