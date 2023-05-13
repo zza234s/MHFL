@@ -34,7 +34,7 @@ train:
 criterion:
   type: CrossEntropyLoss
 trainer:
-  type: cvtrainer #TODO: 实现对应的trainer()
+  type: fedhenn_trainer
 eval:
   freq: 1
   metrics: ['acc', 'correct']

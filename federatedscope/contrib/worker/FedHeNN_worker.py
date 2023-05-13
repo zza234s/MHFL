@@ -50,25 +50,33 @@ class FedHeNN_server(Server):
     def check_and_move_on(self,
                           check_eval_result=False,
                           min_received_num=None):
-
         min_received_num = len(self.comm_manager.get_neighbors().keys())
-        move_on_flag = True
+        # move_on_flag = True
+
+        if check_eval_result and self._cfg.federate.mode.lower(
+        ) == "standalone":
+            # in evaluation stage and standalone simulation mode, we assume
+            # strong synchronization that receives responses from all clients
+            min_received_num = len(self.comm_manager.get_neighbors().keys())
+
+        move_on_flag = True  # To record whether moving to a new training
 
         # round or finishing the evaluation
         if self.check_buffer(self.state, min_received_num, check_eval_result):
             if not check_eval_result:
                 # Receiving enough feedback in the training process
-
-                # update global protos
                 #################################################################
-                RAD_dataloader = self.generated_RAD()
-                global_K = self.get_global_K(RAD_dataloader)
-                local_protos_list = dict()
+                # update model parameters
                 msg_list = self.msg_buffer['train'][self.state]
-                aggregated_num = len(msg_list)
-                for key, values in msg_list.items():
-                    local_protos_list[key] = values[1]
-                global_protos = self._proto_aggregation(local_protos_list)
+                for client_id, (sample_size, model_para) in msg_list.items():
+                    temp_model = copy.deepcopy(self.personalized_models[client_id])
+                    merged_param = merge_param_dict(temp_model.state_dict().copy(), model_para)
+                    temp_model.load_state_dict(merged_param, strict=True)
+                    self.personalized_models[client_id] = temp_model
+
+                RAD_dataloader = self.generated_RAD()
+                global_K = self.get_global_K(RAD_dataloader).detach()
+
                 #################################################################
 
                 self.state += 1
@@ -89,7 +97,8 @@ class FedHeNN_server(Server):
                     self.msg_buffer['train'][self.state] = dict()
                     self.staled_msg_buffer.clear()
                     # Start a new training round
-                    self._start_new_training_round(global_protos)
+                    self._broadcast_custom_message(msg_type='model_para',
+                                                   content=[global_K, RAD_dataloader])
                 else:
                     # Final Evaluate
                     logger.info('Server: Training is finished! Starting '
@@ -145,9 +154,6 @@ class FedHeNN_server(Server):
                                      dim=0)  # 每个client的kernel_matric求平均：FedHeNN, each entry of the weight vector for aggregating the representations w is set to 1/N
         return global_K_values
 
-    def _start_new_training_round(self, global_protos):
-        self._broadcast_custom_message(msg_type='global_proto', content=global_protos)
-
     def eval(self):
         self._broadcast_custom_message(msg_type='evaluate', content=None, filter_unseen_clients=False)
 
@@ -197,9 +203,9 @@ class FedHeNN_server(Server):
             RAD_dataloader = self.generated_RAD()
             global_K_prev = self.get_global_K(RAD_dataloader)
 
-            #TODO: 检查下直接把server端生成的dataloader传给clients会不会产生奇怪的问题
+            # TODO: 检查下直接把server端生成的dataloader传给clients会不会产生奇怪的问题
             self._broadcast_custom_message(msg_type='model_para',
-                                           content=[global_K_prev,RAD_dataloader])
+                                           content=[global_K_prev, RAD_dataloader])
 
             logger.info(
                 '----------- Starting training (Round #{:d}) -------------'.
@@ -234,7 +240,6 @@ class FedHeNN_server(Server):
             # restore the state of the unseen clients within sampler
             self.sampler.change_state(self.unseen_clients_id, 'seen')
 
-
 class FedHeNN_client(Client):
     def __init__(self,
                  ID=-1,
@@ -250,13 +255,25 @@ class FedHeNN_client(Client):
                  **kwargs):
         super(FedHeNN_client, self).__init__(ID, server_id, state, config, data, model, device,
                                              strategy, is_unseen_client, *args, **kwargs)
-        self.trainer.ctx.global_protos = []
-        self.register_handlers('global_proto',
-                               self.callback_funcs_for_model_para,
-                               ['model_para', 'ss_model_para'])
-        # self.register_handlers('ask_initial_model_parameter',
-        #                        self.callback_funcs_for_ask_initial_model_parameter,
-        #                        ['initial_model'])
+
+    def callback_funcs_for_model_para(self, message: Message):
+        round = message.state
+        sender = message.sender
+        content = message.content
+        self.state = round
+
+        # 把接收到的数据放入tainer的环境变量中供trainer调用
+        self.trainer.ctx.global_K = content[0]
+        self.trainer.ctx.RAD_dataloader = content[1]
+
+        sample_size, model_para, results = self.trainer.train()
+
+        self.comm_manager.send(
+            Message(msg_type='model_para',
+                    sender=self.ID,
+                    receiver=[sender],
+                    state=self.state,
+                    content=(sample_size, model_para)))
 
     def join_in(self):
         """
@@ -270,23 +287,6 @@ class FedHeNN_client(Client):
                     receiver=[self.server_id],
                     timestamp=0,
                     content=[self.local_address, local_init_model]))
-
-    # def callback_funcs_for_ask_initial_model_parameter(self, message: Message):
-    #     """
-    #     在FedHeNN中，server端需要拥有每个client的本地模型及权重
-    #     本函数在FL初始阶段调用，目的在于将client的本地模型发送至server
-    #     """
-    #     round = message.state
-    #     self.state = round
-    #     local_init_model = copy.deepcopy(self.model.cpu())
-    #     sender = message.sender
-    #     logger.info(f'client #{self.ID} send initial personalized model to the serve #{sender}r')
-    #     self.comm_manager.send(
-    #         Message(msg_type='initial_personalized_model',
-    #                 sender=self.ID,
-    #                 receiver=[sender],
-    #                 state=self.state,
-    #                 content=(local_init_model)))
 
 
 def call_my_worker(method):
