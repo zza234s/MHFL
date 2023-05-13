@@ -14,8 +14,16 @@ class FedprotoServer(Server):
                           check_eval_result=False,
                           min_received_num=None):
 
+
         #TODO: 需要完善当采样率不等于0时的实现
         min_received_num = len(self.comm_manager.get_neighbors().keys())
+
+        if check_eval_result and self._cfg.federate.mode.lower(
+        ) == "standalone":
+            # in evaluation stage and standalone simulation mode, we assume
+            # strong synchronization that receives responses from all clients
+            min_received_num = len(self.comm_manager.get_neighbors().keys())
+
         move_on_flag = True
 
         # round or finishing the evaluation
@@ -127,6 +135,7 @@ class FedprotoServer(Server):
 
 
 class FedprotoClient(Client):
+    #TODO: test (use global proto)
     def __init__(self,
                  ID=-1,
                  server_id=None,
