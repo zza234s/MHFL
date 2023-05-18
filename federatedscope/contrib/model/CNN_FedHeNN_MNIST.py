@@ -4,7 +4,6 @@ import torch.nn.functional as F
 from federatedscope.register import register_model
 from torchsummary import summary
 import copy
-
 class Net0(nn.Module):
     def __init__(self):
         super(Net0, self).__init__()

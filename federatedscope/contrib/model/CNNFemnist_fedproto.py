@@ -5,7 +5,6 @@ from federatedscope.register import register_model
 来源于fedproto源码：
 论文中控制fedproto_femnist_channel_temp变量来为每个client设置不同的模型
 '''
-
 class CNNFemnist(nn.Module):
     def __init__(self, args):
         super(CNNFemnist, self).__init__()

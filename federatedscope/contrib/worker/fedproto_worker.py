@@ -13,8 +13,6 @@ class FedprotoServer(Server):
     def check_and_move_on(self,
                           check_eval_result=False,
                           min_received_num=None):
-
-
         #TODO: 需要完善当采样率不等于0时的实现
         min_received_num = len(self.comm_manager.get_neighbors().keys())
 
