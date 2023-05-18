@@ -1,6 +1,6 @@
 import math
 import numpy as np
-
+import torch
 
 def centering(K):
     n = K.shape[0]
@@ -10,6 +10,19 @@ def centering(K):
 
     return np.dot(np.dot(H, K), H)  # HKH are the same with KH, KH is the first centering, H(KH) do the second time, results are the sme with one time centering
     # return np.dot(H, K)  # KH
+# def linear_CKA_ours(X, Y):
+
+
+
+# def centering_torch(K):
+#     device = K.device
+#     n = K.shape[0]
+#     unit = torch.ones([n, n]).to(device)
+#     I = torch.eye(n).to(device)
+#     H = I - unit / n
+#
+#     return torch.matmul(torch.matmul(H, K), H)  # HKH are the same with KH, KH is the first centering, H(KH) do the second time, results are the same with one-time centering
+#     # return torch.matmul(H, K)  # KH
 
 
 def rbf(X, sigma=None):
@@ -47,6 +60,7 @@ def kernel_CKA(X, Y, sigma=None):
     var2 = np.sqrt(kernel_HSIC(Y, Y, sigma))
 
     return hsic / (var1 * var2)
+
 
 
 # if __name__=='__main__':
