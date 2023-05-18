@@ -15,7 +15,6 @@ from federatedscope.core.auxiliaries.feat_engr_builder import \
 
 logger = logging.getLogger(__name__)
 
-
 class BaseRunner(object):
     """
     This class is a base class to construct an FL course, which includes \
@@ -259,7 +258,7 @@ class BaseRunner(object):
                         G.add_edge(handler_key, msg_out_key)
             pos = nx.multipartite_layout(G)
             plt.figure(figsize=(20, 15))
-            nx.draw(G,
+            nx.draw_networkx(G,
                     pos,
                     with_labels=True,
                     node_color='white',
