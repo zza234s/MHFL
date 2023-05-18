@@ -1,0 +1,45 @@
+use_gpu: True
+device: 0
+early_stop:
+  patience: 10
+seed: 12345
+federate:
+  method: fsfl
+  mode: standalone
+  total_round_num: 100
+  sample_client_rate: 1.0
+  client_num: 2
+  make_global_eval: False
+MHFL:
+  task: CV
+  public_dataset: mnist
+  public_train:
+    batch_size: 127
+    epochs: 40
+    optimizer:
+      type: Adam
+      lr: 0.01
+      weight_decay: 0.0
+data:
+  root: data/
+  type: femnist
+  splits: [ 0.6,0.2,0.2 ]
+  subsample: 0.05
+  transform: [ [ 'ToTensor' ], [ 'Normalize', { 'mean': [ 0.9637 ], 'std': [ 0.1592 ] } ] ]
+dataloader:
+  batch_size: 64
+train:
+  local_update_steps: 1
+  batch_or_epoch: epoch
+  optimizer:
+    lr: 0.01
+    weight_decay: 0.0
+grad:
+  grad_clip: 5.0
+criterion:
+  type: CrossEntropyLoss
+trainer:
+  type: cvtrainer
+eval:
+  freq: 1
+  metrics: ['acc', 'correct']

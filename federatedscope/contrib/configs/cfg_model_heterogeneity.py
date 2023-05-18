@@ -7,12 +7,21 @@ def extend_model_heterogeneous_cfg(cfg):
     '''模型异构联邦学习用到的通用参数'''
     # MHFL: model_heterogeneous federated learning
     cfg.MHFL = CN()
-    cfg.MHFL.task = 'CV'  #choice:['CV','NLP']
+    cfg.MHFL.task = 'CV'  # choice:['CV','NLP']
 
-    cfg.MHFL.public_train=CN()
+    cfg.MHFL.public_train = CN()  # 在公共数据集上训练相关的参数
+    cfg.MHFL.public_dataset = 'mnist'
 
-    cfg.MHFL.public_batch_size = 128 #训练、测试公共数据集的batch_size
 
+
+    cfg.MHFL.public_train.batch_size = 128  # 训练、测试公共数据集的batch_size
+    cfg.MHFL.public_train.epochs = 40
+    #public training optimizer相关
+    cfg.MHFL.public_train.optimizer = CN()
+    cfg.MHFL.public_train.optimizer.type ='Adam'
+    cfg.MHFL.public_train.optimizer.lr = 0.001
+    cfg.MHFL.public_train.optimizer.weight_decay = 0.
+    # cfg.MHFL.public_train.optimizer.momentum = 1e-4
 
 
     '''benchmark中各方法所需的参数'''
