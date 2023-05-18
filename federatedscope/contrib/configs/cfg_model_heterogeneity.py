@@ -2,16 +2,28 @@ from federatedscope.core.configs.config import CN
 from federatedscope.core.configs.yacs_config import Argument
 from federatedscope.register import register_config
 
-def extend_Model_heterogeneity_cfg(cfg):
-    cfg.client_cfg_file = './per_client.yaml'
+
+def extend_model_heterogeneous_cfg(cfg):
+    '''模型异构联邦学习用到的通用参数'''
+    # MHFL: model_heterogeneous federated learning
+    cfg.MHFL = CN()
+    cfg.MHFL.task = 'CV'  #choice:['CV','NLP']
+
+    cfg.MHFL.public_train=CN()
+
+    cfg.MHFL.public_batch_size = 128 #训练、测试公共数据集的batch_size
+
+
+
+    '''benchmark中各方法所需的参数'''
     # ---------------------------------------------------------------------- #
     # fedproto related options
     # ---------------------------------------------------------------------- #
     cfg.fedproto = CN()
 
     # Model related options
-    cfg.model.stride = [1,4]
-    cfg.model.fedproto_femnist_channel_temp =18
+    cfg.model.stride = [1, 4]
+    cfg.model.fedproto_femnist_channel_temp = 18
 
     # ---------------------------------------------------------------------- #
     # FML related options
@@ -35,8 +47,14 @@ def extend_Model_heterogeneity_cfg(cfg):
     cfg.fedhenn = CN()
     cfg.fedhenn.n_0 = 0.01
 
+    # ---------------------------------------------------------------------- #
+    # FSFL related options
+    # ---------------------------------------------------------------------- #
+    cfg.fsfl = CN()
+
+    # model related options
+    cfg.model.fsfl_cnn_layer1_out_channels = 128
+    cfg.model.fsfl_cnn_layer2_out_channels = 512
 
 
-
-
-register_config("model_heterogeneity", extend_Model_heterogeneity_cfg)
+register_config("model_heterogeneity", extend_model_heterogeneous_cfg)
