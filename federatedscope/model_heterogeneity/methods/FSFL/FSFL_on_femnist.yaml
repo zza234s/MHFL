@@ -15,7 +15,6 @@ MHFL:
   public_dataset: mnist
   public_train:
     batch_size: 127
-    epochs: 40
     optimizer:
       type: Adam
       lr: 0.01
@@ -34,8 +33,6 @@ train:
   optimizer:
     lr: 0.01
     weight_decay: 0.0
-grad:
-  grad_clip: 5.0
 criterion:
   type: CrossEntropyLoss
 trainer:
@@ -43,3 +40,10 @@ trainer:
 eval:
   freq: 1
   metrics: ['acc', 'correct']
+fsfl:
+  pre_training_epochs: 1
+  domain_identifier_epochs: 4
+  DI_optimizer:
+    type: Adam
+    lr: 0.001
+    weight_decay: 1e-4

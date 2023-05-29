@@ -24,7 +24,7 @@ class CNN_2layer_fc_model(nn.Module):
                                        nn.ReLU()
                                        # nn.Dropout(keep_prob=dropout_rate)
                                        )
-        self.FC1 = nn.Linear(169 * n_two, 16)
+        self.FC1 = nn.Linear(169 * n_two, 62)
 
     def forward(self, x, GAN=False):
         x = self.CNN1(x)

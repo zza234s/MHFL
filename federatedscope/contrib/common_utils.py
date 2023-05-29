@@ -85,3 +85,8 @@ class EarlyStopMonitor(object):
         self.epoch_count += 1
 
         return self.num_round >= self.max_round
+    def reset(self):
+        self.num_round = 0
+        self.epoch_count = 0
+        self.best_epoch = 0
+        self.last_best = None
