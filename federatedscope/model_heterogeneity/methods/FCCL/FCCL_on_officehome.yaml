@@ -1,5 +1,5 @@
 use_gpu: True
-device: 0
+device: 4
 early_stop:
   patience: 10
 seed: 12345
@@ -12,22 +12,22 @@ federate:
   make_global_eval: False
 MHFL:
   task: CV
-  public_dataset: pub_cifar100
+  public_dataset: MyCifar100
+  public_path: ./data
   public_train:
-    batch_size: 256
-    epochs: 10
+    batch_size: 256  #TODO:应该是512
+    epochs: 50
     optimizer:
       type: Adam
       lr: 0.001
       weight_decay: 0.0
 data:
-  root: data/
-  type: fl_officehome
+  root: ./data/
+  type: officehome
   splits: [ 0.6,0.2,0.2 ]
-  subsample: 0.05
   transform: [ [ 'ToTensor' ], [ 'Normalize', { 'mean': [ 0.9637 ], 'std': [ 0.1592 ] } ] ]
 dataloader:
-  batch_size: 128
+  batch_size: 256  #TODO:应该是512
 train:
   local_update_steps: 1
   batch_or_epoch: epoch
@@ -39,7 +39,12 @@ grad:
 criterion:
   type: CrossEntropyLoss
 trainer:
-  type: cvtrainer
+  type: fccl_trainer
 eval:
   freq: 1
   metrics: ['acc', 'correct']
+  best_res_update_round_wise_key: test_loss
+fccl:
+  structure: homogeneity
+  beta: 0.1
+  off_diag_weight: 0.0051

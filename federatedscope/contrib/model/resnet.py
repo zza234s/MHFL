@@ -1,3 +1,4 @@
+#TODO:只是复制了代码还没注册
 from federatedscope.register import register_model
 '''Pre-activation ResNet in PyTorch.
 
@@ -256,40 +257,49 @@ class ResNet(nn.Module):
         out = self.linear(out)
         return out
 
-
-def ResNet18():
-    return ResNet(BasicBlock, [2, 2, 2, 2])
-
-
-def ResNet34():
-    return ResNet(BasicBlock, [3, 4, 6, 3])
+def ResNet12(num_classes):
+    return ResNet(BasicBlock, [2, 1, 1, 1], num_classes)
 
 
-def ResNet50():
-    return ResNet(Bottleneck, [3, 4, 6, 3])
+def ResNet18(num_classes):
+    return ResNet(BasicBlock, [2, 2, 2, 2], num_classes)
+
+
+def ResNet34(num_classes):
+    return ResNet(BasicBlock, [3, 4, 6, 3],num_classes)
+
+
+def ResNet50(num_classes):
+    return ResNet(Bottleneck, [3, 4, 6, 3],num_classes)
 
 
 def ResNet101():
-    return ResNet(Bottleneck, [3, 4, 23, 3])
+    return ResNet(Bottleneck, [3, 4, 23, 3],num_classes)
 
 
-def ResNet152():
-    return ResNet(Bottleneck, [3, 8, 36, 3])
+def ResNet152(num_classes):
+    return ResNet(Bottleneck, [3, 8, 36, 3],num_classes)
 
 
 def preact_resnet(model_config):
     if '18' in model_config.type:
         net = PreActResNet18()
+    elif '34' in model_config.type:
+        net = PreActResNet34()
     elif '50' in model_config.type:
         net = PreActResNet50()
     return net
 
 
 def resnet(model_config):
-    if '18' in model_config.type:
-        net = ResNet18()
+    if '12' in model_config.type:
+        net = ResNet12(num_classes=model_config.out_channels)
+    elif '18' in model_config.type:
+        net = ResNet18(num_classes=model_config.out_channels)
+    elif '34' in model_config.type:
+        net = ResNet34(num_classes=model_config.out_channels)
     elif '50' in model_config.type:
-        net = ResNet50()
+        net = ResNet50(num_classes=model_config.out_channels)
     return net
 
 
@@ -302,4 +312,4 @@ def call_resnet(model_config, local_data):
         return model
 
 
-# register_model('resnet', call_resnet)
+register_model('resnet', call_resnet)

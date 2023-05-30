@@ -11,11 +11,13 @@ def extend_model_heterogeneous_cfg(cfg):
 
     cfg.MHFL.public_train = CN()  # 在公共数据集上训练相关的参数
     cfg.MHFL.public_dataset = 'mnist'
-
+    cfg.MHFL.public_path = './data'
 
 
     cfg.MHFL.public_train.batch_size = 128  # 训练、测试公共数据集的batch_size
     cfg.MHFL.public_train.epochs = 40
+    cfg.MHFL.public_len = 5000
+    cfg.MHFL.pub_aug = 'weak' #weak or strong
     #public training optimizer相关
     cfg.MHFL.public_train.optimizer = CN()
     cfg.MHFL.public_train.optimizer.type ='Adam'
@@ -64,6 +66,15 @@ def extend_model_heterogeneous_cfg(cfg):
     # model related options
     cfg.model.fsfl_cnn_layer1_out_channels = 128
     cfg.model.fsfl_cnn_layer2_out_channels = 512
+
+
+    # ---------------------------------------------------------------------- #
+    # Fccl related options
+    # ---------------------------------------------------------------------- #
+    cfg.fccl = CN()
+    cfg.fccl.structure = 'homogeneity'
+    cfg.fccl.beta = 0.1
+    cfg.fccl.off_diag_weight = 0.0051
 
 
 register_config("model_heterogeneity", extend_model_heterogeneous_cfg)
