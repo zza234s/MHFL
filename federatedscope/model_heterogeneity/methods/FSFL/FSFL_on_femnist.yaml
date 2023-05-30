@@ -6,20 +6,9 @@ seed: 12345
 federate:
   method: fsfl
   mode: standalone
-  total_round_num: 100
   sample_client_rate: 1.0
   client_num: 2
   make_global_eval: False
-MHFL:
-  task: CV
-  public_dataset: mnist
-  public_train:
-    batch_size: 127
-    epochs: 40
-    optimizer:
-      type: Adam
-      lr: 0.01
-      weight_decay: 0.0
 data:
   root: data/
   type: femnist
@@ -27,19 +16,48 @@ data:
   subsample: 0.05
   transform: [ [ 'ToTensor' ], [ 'Normalize', { 'mean': [ 0.9637 ], 'std': [ 0.1592 ] } ] ]
 dataloader:
-  batch_size: 64
+  batch_size: 5 #according to soure code of the paper
 train:
   local_update_steps: 1
   batch_or_epoch: epoch
   optimizer:
-    lr: 0.01
-    weight_decay: 0.0
-grad:
-  grad_clip: 5.0
+    type: Adam
+    lr: 0.001
+    weight_decay: 1e-4
 criterion:
   type: CrossEntropyLoss
-trainer:
-  type: cvtrainer
 eval:
   freq: 1
   metrics: ['acc', 'correct']
+MHFL:
+  task: CV
+  save_pretraining_model: True
+  save_model: True
+  public_dataset: mnist
+  public_train:
+    batch_size: 127
+    optimizer:
+      type: Adam
+      lr: 0.01
+      weight_decay: 0.0
+fsfl:
+  pre_training_epochs: 1
+  domain_identifier_epochs: 4
+  gan_local_epochs: 4
+  collaborative_epoch: 1
+  collaborative_num_samples_epochs: 5000
+  MAFL_batch_size: 256
+  DI_optimizer:
+    type: Adam
+    lr: 0.001
+    weight_decay: 1e-4
+  DI_optimizer_step_2:
+    type: Adam
+    lr: 0.0001
+    weight_decay: 1e-4
+finetune:
+  before_eval: True
+  local_update_steps: 1
+  optimizer:
+    type: Adam
+    lr: 0.001

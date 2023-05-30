@@ -12,7 +12,6 @@ client_1:
       type: Adam
       lr: 0.01
       weight_decay: 0.0
-      momentum: 1e-4
 client_2:
   model:
     type: CNN_fsfl_mnist_2_layer
@@ -27,4 +26,3 @@ client_2:
       type: Adam
       lr: 0.01
       weight_decay: 0.0
-      momentum: 1e-4
