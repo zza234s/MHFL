@@ -342,7 +342,7 @@ class FSFL_Client(Client):
             if early_stopper.early_stop_check(eval_metrics['val_avg_loss']):
                 logger.info('No improvment over {} epochs, stop training'.format(early_stopper.max_round))
                 logger.info(f'the best epoch is {early_stopper.best_epoch}')
-                torch.save(model.state_dict(), f'{model_dir}/{dataset}_private_model_{self.ID}.pt')
+                torch.save(self.model.state_dict(), f'{model_dir}/{dataset}_private_model_{self.ID}.pt')
                 logger.info(
                     f'client{self.ID}#存储在公共数据集上预训练的模型至./model_weight/{dataset}_private_model_{self.ID}.pt')  # TODO:提示变成英语
                 break
