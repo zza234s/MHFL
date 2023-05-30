@@ -15,6 +15,18 @@ python federatedscope/main.py --cfg federatedscope/model_heterogeneity/methods/F
 
 
 #FSFL
+
+#--cfg
+#D:\ZHL_WORK\Architecture_heterogeneous_FL\FS3\federatedscope\model_heterogeneity\methods\FSFL\FSFL_on_femnist.yaml
+#--client_cfg
+#D:\ZHL_WORK\Architecture_heterogeneous_FL\FS3\federatedscope\model_heterogeneity\methods\FSFL\FSFL_per_client_on_femnist.yaml
+
+#FCCL
+#--cfg
+#/data/hxh2022/FederatedScope/FedMM/federatedscope/model_heterogeneity/methods/FCCL/FCCL_on_officehome.yaml
+#--client_cfg
+#/data/hxh2022/FederatedScope/FedMM/federatedscope/model_heterogeneity/methods/FCCL/FCCL_per_client_on_officehome.yaml
+=======
 --cfg
 D:\ZHL_WORK\Architecture_heterogeneous_FL\FS3\federatedscope\model_heterogeneity\methods\FSFL\FSFL_on_femnist.yaml
 --client_cfg
