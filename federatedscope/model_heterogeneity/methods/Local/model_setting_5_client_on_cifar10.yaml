@@ -3,6 +3,11 @@ client_1:
     type: shufflenetv2
     out_channels: 10
     dropout: 0.0
+  train:
+    optimizer:
+      type: Adam
+      lr: 0.001
+      weight_decay: 0.
 client_2:
   model:
     type: resnet18
@@ -24,7 +29,7 @@ client_4:
     optimizer:
       type: Adam
       lr: 6e-4
-      weight_decay: 6e-2
+      weight_decay: 5e-4
 client_5:
   model:
     type: MLP
