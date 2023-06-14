@@ -182,6 +182,10 @@ class Client(BaseClient):
                 'port': self.comm_manager.port
             }
 
+        #######统计下载量自用#######
+        self.download_track=dict()
+        #########################
+
     def _gen_timestamp(self, init_timestamp, instance_number):
         if init_timestamp is None:
             return None
@@ -593,3 +597,10 @@ class Client(BaseClient):
     @classmethod
     def get_msg_handler_dict(cls):
         return cls().msg_handlers_str
+
+    def track_download_bytes_details(self,msg,download_bytes):
+        msg_type=msg.msg_type
+        sender =msg.sender
+        self.download_track.setdefault(msg_type,dict())
+        self.download_track[msg_type].setdefault(round,[])
+        self.download_track[msg_type][round].append({sender,download_bytes})

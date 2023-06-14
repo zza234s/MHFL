@@ -28,7 +28,6 @@ class FedprotoServer(Server):
         if self.check_buffer(self.state, min_received_num, check_eval_result):
             if not check_eval_result:
                 # Receiving enough feedback in the training process
-
                 # update global protos
                 #################################################################
                 local_protos_list = dict()
@@ -164,6 +163,18 @@ class FedprotoClient(Client):
         self.state = round
 
         sample_size, model_para, results, agg_protos = self.trainer.train()
+
+        train_log_res = self._monitor.format_eval_res(
+            results,
+            rnd=self.state,
+            role='Client #{}'.format(self.ID),
+            return_raw=True)
+        logger.info(train_log_res)
+
+        if self._cfg.wandb.use and self._cfg.wandb.client_train_info:
+            self._monitor.save_formatted_results(train_log_res,
+                                                 save_file_name="")
+
 
         self.comm_manager.send(
             Message(msg_type='model_para',

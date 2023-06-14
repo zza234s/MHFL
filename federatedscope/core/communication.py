@@ -47,7 +47,8 @@ class StandaloneCommManager(object):
     def send(self, message):
         # All the workers share one comm_queue
         self.comm_queue.append(message)
-
+        download_bytes, upload_bytes = message.count_bytes()
+        self.monitor.track_upload_bytes(upload_bytes,message)
 
 class StandaloneDDPCommManager(StandaloneCommManager):
     """
@@ -97,7 +98,7 @@ class StandaloneDDPCommManager(StandaloneCommManager):
                             self._send_model_para(model_para, idx + 1)
                             break
         download_bytes, upload_bytes = message.count_bytes()
-        self.monitor.track_upload_bytes(upload_bytes)
+        self.monitor.track_upload_bytes(upload_bytes,message)
 
 
 class gRPCCommManager(object):

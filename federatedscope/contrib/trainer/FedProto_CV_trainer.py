@@ -99,8 +99,8 @@ class FedProto_Trainer(GeneralTorchTrainer):
 
     @lifecycle(LIFECYCLE.BATCH)
     def _run_batch(self, hooks_set):
-        for batch_i in tqdm(range(
-                getattr(self.ctx, f"num_{self.ctx.cur_split}_batch"))):
+        for batch_i in range(
+                getattr(self.ctx, f"num_{self.ctx.cur_split}_batch")):
             self.ctx.cur_batch_i = CtxVar(batch_i, LIFECYCLE.BATCH)
 
             for hook in hooks_set["on_batch_start"]:

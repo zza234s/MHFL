@@ -414,11 +414,11 @@ class StandaloneRunner(BaseRunner):
         for each_receiver in receiver:
             if each_receiver == 0:
                 self.server.msg_handlers[msg.msg_type](msg)
-                self.server._monitor.track_download_bytes(download_bytes)
+                self.server._monitor.track_download_bytes(download_bytes,msg)
             else:
                 self.client[each_receiver].msg_handlers[msg.msg_type](msg)
                 self.client[each_receiver]._monitor.track_download_bytes(
-                    download_bytes)
+                    download_bytes,msg)
 
     def _run_simulation_online(self):
         """
@@ -957,10 +957,12 @@ class FedRunner(object):
             if each_receiver == 0:
                 self.server.msg_handlers[msg.msg_type](msg)
                 self.server._monitor.track_download_bytes(download_bytes)
+                self.server.track_download_bytes_details(msg,download_bytes)
             else:
                 self.client[each_receiver].msg_handlers[msg.msg_type](msg)
                 self.client[each_receiver]._monitor.track_download_bytes(
                     download_bytes)
+                self.client[each_receiver].track_download_bytes_details(msg, download_bytes)
 
     def check(self):
         """

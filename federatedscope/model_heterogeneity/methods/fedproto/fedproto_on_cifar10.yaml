@@ -1,42 +1,42 @@
 use_gpu: True
 device: 0
 early_stop:
-  patience: 5
-seed: 12345
+  patience: 200
+seed: 0
 check_completeness: True
 federate:
   mode: standalone
   method: fedproto
-  client_num: 2
-  total_round_num: 110
+  client_num: 5
+  total_round_num: 200
   sample_client_rate: 1.0
   make_global_eval: False
 data:
   root: data/
   type: 'CIFAR10@torchvision'
-  splits: [1.0, 0.0, 0.0]
+  splits: [0.9, 0.1, 0.0]
   num_workers: 0
   transform: [['ToTensor'], ['Normalize', {'mean': [0.485, 0.456, 0.406], 'std': [0.229, 0.224, 0.225]}]]
   test_transform: [['ToTensor'], ['Normalize', {'mean': [0.485, 0.456, 0.406], 'std': [0.229, 0.224, 0.225]}]]
   args: [{'download': True}]
   splitter: 'lda'
-  splitter_args: [{'alpha': 0.05}]
+  splitter_args: [{'alpha': 100}]
 dataloader:
   batch_size: 64
 train:
   local_update_steps: 1
   batch_or_epoch: epoch
   optimizer:
-    type: SGD
-    lr: 0.01
+    type: Adam
+    lr: 0.001
     weight_decay: 0.0
-    momentum: 0.5
 criterion:
   type: CrossEntropyLoss
 trainer:
   type: fedproto_trainer
 eval:
   freq: 1
-  metrics: ['acc', 'correct']
+  metrics: ['acc']
+  report : ['weighted_avg', 'avg', 'raw']
   best_res_update_round_wise_key: test_loss
 

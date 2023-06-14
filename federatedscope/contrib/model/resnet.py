@@ -238,7 +238,7 @@ class ResNet(nn.Module):
         self.layer4 = self._make_layer(block, 512, num_blocks[3], stride=2)
         self.linear = nn.Linear(512 * block.expansion, num_classes)
 
-    def         _make_layer(self, block, planes, num_blocks, stride):
+    def _make_layer(self, block, planes, num_blocks, stride):
         strides = [stride] + [1] * (num_blocks - 1)
         layers = []
         for stride in strides:
@@ -304,10 +304,10 @@ def resnet(model_config):
 
 
 def call_resnet(model_config, local_data):
-    if 'resnet' in model_config.type and 'pre' in model_config.type:
+    if 'resnet' in model_config.type and 'pre' in model_config.type and 'proto' not in model_config.type:
         model = preact_resnet(model_config)
         return model
-    elif 'resnet' in model_config.type and 'pre' not in model_config.type:
+    elif 'resnet' in model_config.type and 'pre' not in model_config.type and 'proto' not in model_config.type:
         model = resnet(model_config)
         return model
 

@@ -9,6 +9,7 @@ from collections import defaultdict
 from importlib import import_module
 
 import numpy as np
+import pandas as pd
 
 from federatedscope.core.auxiliaries.logging import logline_2_wandb_dict
 from federatedscope.core.monitors.metric_calculator import MetricCalculator
@@ -109,7 +110,13 @@ class Monitor(object):
                 logger.error(
                     "cfg.wandb.use=True but not install the wandb package")
                 exit()
-
+        #######统计下载量自用#######
+        self.download_track = dict()
+        self.upload_track = dict()
+        columns = ['msgtype', 'state', 'sender', 'bytes']
+        self.download_df = pd.DataFrame(columns=columns)
+        self.upload_df = pd.DataFrame(columns=columns)
+        #########################
     def eval(self, ctx):
         """
         Evaluates the given context with ``metric_calculator``.
@@ -145,6 +152,9 @@ class Monitor(object):
         """
         self.fl_end_wall_time = datetime.datetime.now(
         ) - self.fl_begin_wall_time
+
+        #输出上传/下载的通信统计量，按照msg_type分类
+        self.get_detail_communication_statics()
 
         system_metrics = self.get_sys_metrics()
         sys_metric_f_name = os.path.join(self.outdir, "system_metrics.log")
@@ -590,17 +600,40 @@ class Monitor(object):
                                  flops) / (self.flop_count + sample_num)
         self.flop_count += 1
 
-    def track_upload_bytes(self, bytes):
+    def track_upload_bytes(self, bytes, msg):
         """
         Track the number of bytes uploaded.
         """
         self.total_upload_bytes += bytes
 
-    def track_download_bytes(self, bytes):
+        # 增加更详细的统计记录
+        msg_type=msg.msg_type
+        sender =msg.sender
+        state = msg.state
+        new_rows = [msg_type,state,sender,bytes]
+        self.upload_df.loc[len(self.upload_df)] = new_rows
+
+        # self.upload_track.setdefault(msg_type,dict())
+        # self.upload_track[msg_type].setdefault(state,[])
+        # self.upload_track[msg_type][state].append(bytes)
+    def track_download_bytes(self, bytes, msg):
         """
         Track the number of bytes downloaded.
         """
         self.total_download_bytes += bytes
+
+        #增加更详细的统计记录
+        #  columns = ['msgtype', 'state', 'sender', 'bytes']
+
+        msg_type = msg.msg_type
+        sender = msg.sender
+        state = msg.state
+        new_rows = [msg_type,state,sender,bytes]
+        self.download_df.loc[len(self.download_df)] = new_rows
+        # self.download_df.append(new_rows)
+        # self.download_track.setdefault(msg_type,dict())
+        # self.download_track[msg_type].setdefault(state,[])
+        # self.download_track[msg_type][state].append({sender:bytes})
 
     def update_best_result(self, best_results, new_results, results_type):
         """
@@ -744,3 +777,16 @@ class Monitor(object):
         Add a new key: value item (results-type: new_results) to best_result
         """
         best_results[results_type] = new_results
+
+    def get_detail_communication_statics(self):
+        ID=self.monitored_object.ID
+
+        #下载量
+        download_total_by_msgtype = self.download_df.groupby('msgtype')['bytes'].sum()
+        logger.info(f'ID:{ID},下载bytes之和:')
+        logger.info(f'{download_total_by_msgtype}')
+
+        #上传量指标
+        upload_total_by_msgtype=  self.upload_df.groupby('msgtype')['bytes'].sum()
+        logger.info(f'ID:{ID},上传bytes之和:')
+        logger.info(f'{upload_total_by_msgtype}')

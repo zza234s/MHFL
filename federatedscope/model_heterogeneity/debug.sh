@@ -31,3 +31,9 @@ python federatedscope/main.py --cfg federatedscope/model_heterogeneity/methods/F
 D:\ZHL_WORK\Architecture_heterogeneous_FL\FS3\federatedscope\model_heterogeneity\methods\FSFL\FSFL_on_femnist.yaml
 --client_cfg
 D:\ZHL_WORK\Architecture_heterogeneous_FL\FS3\federatedscope\model_heterogeneity\methods\FSFL\FSFL_per_client_on_femnist.yaml
+
+#LOCAL
+--cfg
+D:\ZHL_WORK\Architecture_heterogeneous_FL\FS3\federatedscope\model_heterogeneity\methods\Local\Local_on_cifar10.yaml
+--client_cfg
+D:\ZHL_WORK\Architecture_heterogeneous_FL\FS3\federatedscope\model_heterogeneity\methods\Local\model_setting_5_client_on_cifar10.yaml
