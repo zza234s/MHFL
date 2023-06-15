@@ -27,6 +27,9 @@ def extend_model_heterogeneous_cfg(cfg):
     cfg.MHFL.public_train.optimizer.weight_decay = 0.
     # cfg.MHFL.public_train.optimizer.momentum = 1e-4
 
+    cfg.model.filter_channels = [64,64,64]
+
+
     '''benchmark中各方法所需的参数'''
     # ---------------------------------------------------------------------- #
     # fedproto related options
