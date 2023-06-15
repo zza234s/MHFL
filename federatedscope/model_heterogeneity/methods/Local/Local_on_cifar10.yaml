@@ -24,7 +24,6 @@ data:
 dataloader:
   batch_size: 64
 model:
-  type: convnet2
   hidden: 2048
   out_channels: 10
   dropout: 0.0

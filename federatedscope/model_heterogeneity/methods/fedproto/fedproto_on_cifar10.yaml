@@ -1,7 +1,7 @@
 use_gpu: True
 device: 0
 early_stop:
-  patience: 200
+  patience: 50
 seed: 0
 check_completeness: True
 federate:
