@@ -55,3 +55,4 @@ if __name__ == '__main__':
                         config=init_cfg.clone(),
                         client_configs=client_cfgs)
     _ = runner.run()
+    best_round = runner.server.best_round
