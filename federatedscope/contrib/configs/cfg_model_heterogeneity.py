@@ -35,6 +35,7 @@ def extend_model_heterogeneous_cfg(cfg):
     # fedproto related options
     # ---------------------------------------------------------------------- #
     cfg.fedproto = CN()
+    cfg.fedproto.proto_weight = 1.0 #weight of proto loss
 
     # Model related options
     cfg.model.stride = [1, 4]

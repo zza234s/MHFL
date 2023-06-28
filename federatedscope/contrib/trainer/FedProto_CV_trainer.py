@@ -22,6 +22,7 @@ class FedProto_Trainer(GeneralTorchTrainer):
         super(FedProto_Trainer, self).__init__(model, data, device, config,
                                               only_for_eval, monitor)
         self.loss_mse = nn.MSELoss()
+        self.proto_weight=self.ctx.cfg.fedproto.proto_weight
         self.register_hook_in_train(self._hook_on_fit_end_agg_proto,
                                     "on_fit_end")
 
@@ -48,8 +49,8 @@ class FedProto_Trainer(GeneralTorchTrainer):
                     proto_new[i, :] = ctx.global_protos[label.item()][0].data
                 i += 1
             loss2 = self.loss_mse(proto_new, protos)
-        loss = loss1 + loss2 * 1.0  #TODO: 将1.0变成变量超参--》parser.add_argument('--ld', type=float, default=1, help="weight of proto loss")
-
+        loss = loss1 + loss2 * self.proto_weight
+        logger.info(f'client#{self.ctx.client_ID} \t CE_loss:{loss1}, \t proto_loss:{loss2},\t total_loss:{loss}')
         ctx.y_true = CtxVar(labels, LIFECYCLE.BATCH)
         ctx.y_prob = CtxVar(pred, LIFECYCLE.BATCH)
         ctx.loss_batch = CtxVar(loss, LIFECYCLE.BATCH)
@@ -62,7 +63,7 @@ class FedProto_Trainer(GeneralTorchTrainer):
                 ctx.agg_protos_label[labels[i].item()] = [protos[i, :]]
 
     def update(self, global_proto,strict=False):
-        self.ctx.global_proto = global_proto
+        self.ctx.global_protos = global_proto
 
     def _hook_on_epoch_start_for_proto(self,ctx):
         """定义一些fedproto需要用到的全局变量"""

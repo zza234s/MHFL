@@ -10,6 +10,7 @@ logger = logging.getLogger(__name__)
 
 # Build your worker here.
 class FedprotoServer(Server):
+    
     def check_and_move_on(self,
                           check_eval_result=False,
                           min_received_num=None):
@@ -148,6 +149,7 @@ class FedprotoClient(Client):
         super(FedprotoClient, self).__init__(ID, server_id, state, config, data, model, device,
                                              strategy, is_unseen_client, *args, **kwargs)
         self.trainer.ctx.global_protos = []
+        self.trainer.ctx.client_ID = self.ID
         self.register_handlers('global_proto',
                                self.callback_funcs_for_model_para,
                                ['model_para', 'ss_model_para'])
