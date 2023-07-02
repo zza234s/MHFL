@@ -2,7 +2,7 @@ use_gpu: True
 device: 0
 early_stop:
   patience: 50
-seed: 2
+seed: 0
 federate:
   method: local
   mode: standalone
@@ -20,7 +20,7 @@ data:
   test_transform: [['ToTensor'], ['Normalize', {'mean': [0.4914, 0.4822, 0.4465], 'std': [0.2470, 0.2435, 0.2616]}]]
   args: [{'download': True}]
   splitter: 'lda'
-  splitter_args: [{'alpha': 100}] #please set alpha to 100,1 and 0.01. The smaller alpha, the greater the heterogeneity
+  splitter_args: [{'alpha': 0.1}] #please set alpha to 100,1 and 0.01. The smaller alpha, the greater the heterogeneity
 dataloader:
   batch_size: 64
 model:

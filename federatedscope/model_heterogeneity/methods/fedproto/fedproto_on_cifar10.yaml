@@ -8,13 +8,14 @@ federate:
   mode: standalone
   method: fedproto
   client_num: 10
-  total_round_num: 200
+  total_round_num: 400
   sample_client_rate: 1.0
   make_global_eval: False
 fedproto:
-  proto_weight: 1.0 #weight of proto loss
+  proto_weight: 10.0 #weight of proto loss
 data:
   root: data/
+  local_eval_whole_test_dataset: True #important! Whether the test dataset for each client is equivalent to the test dataset for the unsplit dataset
   type: 'CIFAR10@torchvision'
   splits: [1.0, 0.0, 0.0]
   num_workers: 0
@@ -24,7 +25,7 @@ data:
   splitter: 'lda'
   splitter_args: [{'alpha': 100}]
 dataloader:
-  batch_size: 64
+  batch_size: 256
 train:
   local_update_steps: 1
   batch_or_epoch: epoch
