@@ -136,7 +136,13 @@ class BaseDataTranslator:
                     self.client_cfgs.get(f'client_{client_id}'))
             else:
                 client_cfg = self.global_cfg
-            data_dict[client_id] = ClientData(client_cfg,
+            if client_cfg.data.local_eval_whole_test_dataset:
+                data_dict[client_id] = ClientData(client_cfg,
+                                                  train=split_train[client_id - 1],
+                                                  val=split_val[client_id - 1],
+                                                  test=test)
+            else:
+                data_dict[client_id] = ClientData(client_cfg,
                                               train=split_train[client_id - 1],
                                               val=split_val[client_id - 1],
                                               test=split_test[client_id - 1])
