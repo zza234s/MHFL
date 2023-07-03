@@ -353,20 +353,19 @@ class FCCLClient(Client):
 
     def _pretrain_nets(self):
         self.pre_model = copy.deepcopy(self.model)
-        pretrain_path = os.path.join('./pretrain/', 'low_10_CNN_256')
+        pretrain_path = os.path.join('./pretrain/', 'low_5_CNN_alpha0.01')
         ckpt_files = os.path.join(pretrain_path, str(self.ID)+'.ckpt')
 
         if not os.path.exists(pretrain_path):
             os.makedirs(pretrain_path)
+        if not os.path.exists(ckpt_files):
+            self._pretrain_net(50)
+            save_path = os.path.join(pretrain_path,str(self.ID)+'.ckpt')
+            torch.save(self.pre_model.state_dict(),save_path)
         else:
-            if not os.path.exists(ckpt_files):
-                self._pretrain_net(50)
-                save_path = os.path.join(pretrain_path,str(self.ID)+'.ckpt')
-                torch.save(self.pre_model.state_dict(),save_path)
-            else:
-                save_path = os.path.join(pretrain_path, str(self.ID) + '.ckpt')
-                self.pre_model.load_state_dict(torch.load(save_path,self.device))
-                self._evaluate_net()
+            save_path = os.path.join(pretrain_path, str(self.ID) + '.ckpt')
+            self.pre_model.load_state_dict(torch.load(save_path,self.device))
+            self._evaluate_net()
         self.model.load_state_dict(torch.load(ckpt_files,self.device))
 
     def _pretrain_net(self,epoch):

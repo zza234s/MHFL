@@ -1,15 +1,16 @@
 use_gpu: True
 device: 1
 early_stop:
-  patience: 100
-seed: 2  #0,1,2
+  patience: 50
+seed: 1  #0,1,2
 federate:
   method: fccl
   mode: standalone
-  total_round_num: 400
+  total_round_num: 200
   sample_client_rate: 1.0
-  client_num: 10
+  client_num: 5
   make_global_eval: False
+#  merge_test_data: True
 MHFL:
   task: CV
   public_dataset: MyCifar100
@@ -22,6 +23,8 @@ MHFL:
       lr: 0.0001  #0.01
       weight_decay: 5e-4  #0.0
 data:
+  root: data/
+  local_eval_whole_test_dataset: True #important! Whether the test dataset for each client is equivalent to the test dataset for the unsplit dataset
   type: 'CIFAR10@torchvision'
   splits: [ 1.0, 0.0, 0.0 ]
   num_workers: 0
@@ -29,20 +32,20 @@ data:
   test_transform: [ [ 'ToTensor' ], [ 'Normalize', { 'mean': [ 0.4914, 0.4822, 0.4465 ], 'std': [ 0.2470, 0.2435, 0.2616 ] } ] ]
   args: [ { 'download': True } ]
   splitter: 'lda'
-  splitter_args: [ { 'alpha': 100 } ] #please set alpha to 100,1 and 0.01. The smaller alpha, the greater the heterogeneity
+  splitter_args: [ { 'alpha': 1 } ] #please set alpha to 100,1 and 0.01. The smaller alpha, the greater the heterogeneity
 dataloader:
-  batch_size: 64
+  batch_size: 256
 model:
   hidden: 2048
-  out_channels: 10
+  out_channels: 100
   dropout: 0.0
 train:
   local_update_steps: 1
   batch_or_epoch: epoch
   optimizer:
     type: Adam
-    lr: 0.01
-    weight_decay: 0.0
+    lr: 0.001
+    weight_decay: 1e-4
 grad:
   grad_clip: 5.0
 criterion:
@@ -50,7 +53,7 @@ criterion:
 trainer:
   type: fccl_trainer
 eval:
-  freq: 1
+  freq: 20
   metrics: ['acc']
   report : ['weighted_avg', 'avg','raw']
   best_res_update_round_wise_key: test_acc

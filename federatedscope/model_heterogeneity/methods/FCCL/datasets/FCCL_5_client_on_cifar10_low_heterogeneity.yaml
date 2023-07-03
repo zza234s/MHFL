@@ -1,0 +1,60 @@
+client_1:
+  model:
+    type: CNN_2layers
+    out_channels: 100
+    dropout: 0.5
+    hidden: 256
+    filter_channels: [128,256]
+  train:
+    optimizer:
+      type: Adam
+      lr: 0.001
+      weight_decay: 1e-4
+client_2:
+  model:
+    type: CNN_3layers
+    out_channels: 100
+    dropout: 0.5
+    hidden: 256
+    filter_channels: [128,128,192]
+  train:
+    optimizer:
+      type: Adam
+      lr: 0.001
+      weight_decay: 1e-4
+client_3:
+  model:
+    type: CNN_3layers
+    out_channels: 100
+    dropout: 0.5
+    hidden: 256
+    filter_channels: [64,64,64]
+  train:
+    optimizer:
+      type: Adam
+      lr: 0.001
+      weight_decay: 1e-4
+client_4:
+  model:
+    type: CNN_3layers
+    out_channels: 100
+    dropout: 0.5
+    hidden: 256
+    filter_channels: [128,64,64]
+  train:
+    optimizer:
+      type: Adam
+      lr: 0.001
+      weight_decay: 1e-4
+client_5:
+  model:
+    type: CNN_3layers
+    out_channels: 10
+    dropout: 0.5
+    hidden: 256
+    filter_channels: [64,64,128]
+  train:
+    optimizer:
+      type: Adam
+      lr: 0.001
+      weight_decay: 1e-4
