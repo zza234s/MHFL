@@ -1,35 +1,29 @@
 use_gpu: True
-device: 4
+device: 0
 early_stop:
-  patience: 10
-seed: 12345
+  patience: 50
+seed: 0
 federate:
-  method: fccl
+  method: local
   mode: standalone
-  total_round_num: 40
-  sample_client_rate: 1.0
   client_num: 4
+  total_round_num: 200
+  sample_client_rate: 1.0
   make_global_eval: False
-MHFL:
-  task: CV
-  public_dataset: MyCifar100
-  public_path: ./data
-  public_train:
-    batch_size: 256
-    epochs: 50
-    optimizer:
-      type: Adam
-      lr: 0.001
-      weight_decay: 0.0
+#  merge_test_data: True
 data:
-  root: ./data/
+  root: data/
   type: officehome
   splits: [ 0.6,0.2,0.2 ]
   transform: [ [ 'ToTensor' ], [ 'Normalize', { 'mean': [ 0.9637 ], 'std': [ 0.1592 ] } ] ]
 dataloader:
   batch_size: 256
+model:
+  hidden: 2048
+  out_channels: 65
+  dropout: 0.0
 train:
-  local_update_steps: 10
+  local_update_steps: 1
   batch_or_epoch: epoch
   optimizer:
     lr: 0.001
@@ -39,12 +33,9 @@ grad:
 criterion:
   type: CrossEntropyLoss
 trainer:
-  type: fccl_trainer
+  type: cvtrainer
 eval:
   freq: 1
   metrics: ['top5', 'acc', 'correct']
-  best_res_update_round_wise_key: test_loss
-fccl:
-  structure: homogeneity
-  beta: 0.1
-  off_diag_weight: 0.0051
+  report : ['weighted_avg', 'avg', 'raw']
+  best_res_update_round_wise_key: test_acc

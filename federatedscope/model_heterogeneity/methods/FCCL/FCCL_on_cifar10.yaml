@@ -1,0 +1,60 @@
+use_gpu: True
+device: 1
+early_stop:
+  patience: 100
+seed: 2  #0,1,2
+federate:
+  method: fccl
+  mode: standalone
+  total_round_num: 400
+  sample_client_rate: 1.0
+  client_num: 10
+  make_global_eval: False
+MHFL:
+  task: CV
+  public_dataset: MyCifar100
+  public_path: ./data
+  public_train:
+    batch_size: 512  #64
+    epochs: 50
+    optimizer:
+      type: Adam
+      lr: 0.0001  #0.01
+      weight_decay: 5e-4  #0.0
+data:
+  type: 'CIFAR10@torchvision'
+  splits: [ 1.0, 0.0, 0.0 ]
+  num_workers: 0
+  transform: [ [ 'ToTensor' ], [ 'Normalize', { 'mean': [ 0.4914, 0.4822, 0.4465 ], 'std': [ 0.2470, 0.2435, 0.2616 ] } ] ]
+  test_transform: [ [ 'ToTensor' ], [ 'Normalize', { 'mean': [ 0.4914, 0.4822, 0.4465 ], 'std': [ 0.2470, 0.2435, 0.2616 ] } ] ]
+  args: [ { 'download': True } ]
+  splitter: 'lda'
+  splitter_args: [ { 'alpha': 100 } ] #please set alpha to 100,1 and 0.01. The smaller alpha, the greater the heterogeneity
+dataloader:
+  batch_size: 64
+model:
+  hidden: 2048
+  out_channels: 10
+  dropout: 0.0
+train:
+  local_update_steps: 1
+  batch_or_epoch: epoch
+  optimizer:
+    type: Adam
+    lr: 0.01
+    weight_decay: 0.0
+grad:
+  grad_clip: 5.0
+criterion:
+  type: CrossEntropyLoss
+trainer:
+  type: fccl_trainer
+eval:
+  freq: 1
+  metrics: ['acc']
+  report : ['weighted_avg', 'avg','raw']
+  best_res_update_round_wise_key: test_acc
+fccl:
+  structure: homogeneity
+  beta: 0.1
+  off_diag_weight: 0.00031  #0.0051
