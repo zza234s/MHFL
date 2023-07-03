@@ -32,6 +32,8 @@ def extend_model_heterogeneous_cfg(cfg):
     # 数据集相关参数
     cfg.data.local_eval_whole_test_dataset = False
 
+    cfg.csv_name ='./'
+
 
     '''benchmark中各方法所需的参数'''
     # ---------------------------------------------------------------------- #

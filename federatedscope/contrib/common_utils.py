@@ -3,6 +3,8 @@ import torch.nn as nn
 import numpy as np
 from torchvision import datasets, transforms
 import logging
+import pandas as pd
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -85,8 +87,37 @@ class EarlyStopMonitor(object):
         self.epoch_count += 1
 
         return self.num_round >= self.max_round
+
     def reset(self):
         self.num_round = 0
         self.epoch_count = 0
         self.best_epoch = 0
         self.last_best = None
+
+
+def result_to_csv(result, init_cfg):
+    # 获取当前时间
+    current_time = datetime.now()
+    time_string = current_time.strftime("%Y-%m-%d %H:%M")
+    out_dict = {
+        'exp_time': [time_string],
+        'seed': [init_cfg.seed],
+        'method': [init_cfg.federate.method],
+        'batch_size': [init_cfg.dataloader.batch_size],
+        'datasets': [init_cfg.data.type],
+        'splitter': [init_cfg.data.splitter],
+        'client_num': [init_cfg.federate.client_num],
+        'local_updates': [init_cfg.train.local_update_steps],
+        'test_acc': [result['client_summarized_avg']['test_acc']]
+    }
+    # if out_dict['method'][0] == 'fedproto':
+    #     out_dict['server_lr'] = init_cfg.model.fedgsl.server_lr
+    #     out_dict['loc_gnn_outsize'] = init_cfg.model.fedgsl.loc_gnn_outsize
+    #     out_dict['glob_gnn_outsize'] = init_cfg.model.fedgsl.glob_gnn_outsize
+    #     out_dict['gsl_gnn_hids'] = init_cfg.model.fedgsl.gsl_gnn_hids
+    #     out_dict['k_for_knn'] = init_cfg.model.fedgsl.k
+    #     out_dict['pretrain_out_channels'] = init_cfg.model.fedgsl.pretrain_out_channels
+    #     out_dict['pretrain_epoch'] = init_cfg.model.fedgsl.pretrain_epoch
+    df = pd.DataFrame(out_dict, columns=out_dict.keys())
+    csv_path = ''
+    return out_dict
