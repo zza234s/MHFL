@@ -6,6 +6,7 @@ import logging
 import pandas as pd
 from datetime import datetime
 import os
+
 logger = logging.getLogger(__name__)
 
 
@@ -127,10 +128,9 @@ def result_to_csv(result, init_cfg):
     # 如果已存在csv，则在csv末尾添加本次的实验记录
     if not os.path.exists(csv_path) or not os.path.getsize(csv_path):
         df.to_csv(csv_path, mode='a', index=False, header=True)
-        logger.info(f'本次试验记录已保存至:{csv_path}文件')
     else:
         df.to_csv(csv_path, mode='a', index=False, header=False)
-        logger.info(f'添加本次实验记录至:{csv_path}文件')
+    logger.info(f'The results of the experiment have been saved to: {csv_path} file')
     print(df)
 
     return df
