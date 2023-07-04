@@ -21,7 +21,7 @@ from federatedscope.core.workers import Server, Client
 
 from federatedscope.model_heterogeneity.methods.FCCL.datasets.cifar100 import MyCifar100
 # from federatedscope.model_heterogeneity.methods.FCCL.datasets import get_prive_dataset, get_public_dataset
-from federatedscope.model_heterogeneity.methods.FCCL.utils.conf import data_path
+# from federatedscope.model_heterogeneity.methods.FCCL.utils.conf import data_path
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -335,7 +335,14 @@ class FCCLClient(Client):
         self.trainer.ctx.pre_model = self.pre_model
         sample_size, model_para, results = self.trainer.train()
         #TODO:worker中的model是否和trainer中一样
-        self.pre_model.load_state_dict(self.model.state_dict())
+        self.inter_model.load_state_dict(self.model.state_dict())
+
+        train_log_res = self._monitor.format_eval_res(
+            results,
+            rnd=self.state,
+            role='Client #{}'.format(self.ID),
+            return_raw=True)
+        logger.info(train_log_res)
 
         self.comm_manager.send(
             Message(msg_type='model_para',
@@ -346,7 +353,7 @@ class FCCLClient(Client):
 
     def _pretrain_nets(self):
         self.pre_model = copy.deepcopy(self.model)
-        pretrain_path = os.path.join('./checkpoint/', 'pretrain')
+        pretrain_path = os.path.join('./pretrain/', 'low_10_CNN_256')
         ckpt_files = os.path.join(pretrain_path, str(self.ID)+'.ckpt')
 
         if not os.path.exists(pretrain_path):

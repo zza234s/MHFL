@@ -1,0 +1,39 @@
+client_1:
+  model:
+    type: shufflenetv2
+    out_channels: 100
+    dropout: 0.0
+  train:
+    optimizer:
+      type: Adam
+      lr: 0.001
+      weight_decay: 0.
+client_2:
+  model:
+    type: resnet18
+    out_channels: 100
+    dropout: 0.0
+  criterion:
+    type: CrossEntropyLoss
+client_3:
+  model:
+    type: convnet2
+    out_channels: 100
+    dropout: 0.0
+    hidden: 512
+client_4:
+  model:
+    type: cct_6
+    out_channels: 100
+  train:
+    optimizer:
+      type: Adam
+      lr: 6e-4
+      weight_decay: 0.0
+client_5:
+  model:
+    type: MLP
+    out_channels: 100
+    hidden: 512
+    layer: 4
+    dropout: 0.0
