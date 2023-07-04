@@ -16,12 +16,15 @@ from federatedscope.core.auxiliaries.worker_builder import get_client_cls, \
 from federatedscope.core.configs.config import global_cfg, CfgNode
 from federatedscope.core.auxiliaries.runner_builder import get_runner
 
+from federatedscope.contrib.common_utils import result_to_csv
+
 if os.environ.get('https_proxy'):
     del os.environ['https_proxy']
 if os.environ.get('http_proxy'):
     del os.environ['http_proxy']
 
 if __name__ == '__main__':
+    print(os.getcwd())
     init_cfg = global_cfg.clone()
     args = parse_args()
     if args.cfg_file:
@@ -59,4 +62,5 @@ if __name__ == '__main__':
     client_summarized_test_acc = _['client_summarized_avg']['test_acc']
     # client_summarized_weighted_avg = _['client_summarized_weighted_avg']['test_acc']
     print(f'client_summarized_test_acc:{client_summarized_test_acc}')
+    result_to_csv(_,init_cfg)
     # print(f'client_summarized_weighted_avg:{client_summarized_weighted_avg}')

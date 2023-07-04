@@ -2,12 +2,12 @@ use_gpu: True
 device: 0
 early_stop:
   patience: 50
-seed: 0
+seed: 2
 federate:
   method: local
   mode: standalone
   client_num: 5
-  total_round_num: 200
+  total_round_num: 2
   sample_client_rate: 1.0
   make_global_eval: False
 #  merge_test_data: True
@@ -21,7 +21,7 @@ data:
   test_transform: [['ToTensor'], ['Normalize', {'mean': [0.4914, 0.4822, 0.4465], 'std': [0.2470, 0.2435, 0.2616]}]]
   args: [{'download': True}]
   splitter: 'lda'
-  splitter_args: [{'alpha': 100}] #please set alpha to 100,1 and 0.01. The smaller alpha, the greater the heterogeneity
+  splitter_args: [{'alpha': 0.1}] #please set alpha to 100,1 and 0.01. The smaller alpha, the greater the heterogeneity
 dataloader:
   batch_size: 256
 model:
@@ -41,7 +41,7 @@ criterion:
 trainer:
   type: cvtrainer
 eval:
-  freq: 20
+  freq: 5
   metrics: ['acc', 'correct']
   report : ['weighted_avg', 'avg', 'raw']
   best_res_update_round_wise_key: test_acc

@@ -5,7 +5,7 @@ from torchvision import datasets, transforms
 import logging
 import pandas as pd
 from datetime import datetime
-
+import os
 logger = logging.getLogger(__name__)
 
 
@@ -39,6 +39,7 @@ def train_CV(model, optimizer, criterion, train_loader, device, client_id, epoch
     return train_loss
 
 
+@torch.no_grad()
 def eval_CV(model, criterion, test_loader, device, client_id, epoch):
     model.eval()
     val_loss = 0
@@ -119,5 +120,17 @@ def result_to_csv(result, init_cfg):
     #     out_dict['pretrain_out_channels'] = init_cfg.model.fedgsl.pretrain_out_channels
     #     out_dict['pretrain_epoch'] = init_cfg.model.fedgsl.pretrain_epoch
     df = pd.DataFrame(out_dict, columns=out_dict.keys())
-    csv_path = ''
-    return out_dict
+    folder_path = init_cfg.result_floder
+    csv_path = f'{folder_path}/{init_cfg.exp_name}.csv'
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
+    # 如果已存在csv，则在csv末尾添加本次的实验记录
+    if not os.path.exists(csv_path) or not os.path.getsize(csv_path):
+        df.to_csv(csv_path, mode='a', index=False, header=True)
+        logger.info(f'本次试验记录已保存至:{csv_path}文件')
+    else:
+        df.to_csv(csv_path, mode='a', index=False, header=False)
+        logger.info(f'添加本次实验记录至:{csv_path}文件')
+    print(df)
+
+    return df
