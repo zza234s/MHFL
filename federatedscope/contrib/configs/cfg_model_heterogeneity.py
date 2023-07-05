@@ -32,7 +32,7 @@ def extend_model_heterogeneous_cfg(cfg):
     # 数据集相关参数
     cfg.data.local_eval_whole_test_dataset = False
 
-    cfg.result_floder = './'
+    cfg.result_floder = 'model_heterogeneity/result/csv'
     cfg.exp_name = 'test'
 
     '''benchmark中各方法所需的参数'''
@@ -45,6 +45,16 @@ def extend_model_heterogeneous_cfg(cfg):
     # Model related options
     cfg.model.stride = [1, 4]
     cfg.model.fedproto_femnist_channel_temp = 18
+    cfg.model.pretrain_resnet = False
+    
+    # data related options
+    cfg.fedproto.iid = False
+    cfg.fedproto.unequal = False
+    cfg.fedproto.ways = 5
+    cfg.fedproto.stdev = 2
+    cfg.fedproto.shots = 100
+    cfg.fedproto.train_shots_max = 110
+    cfg.fedproto.test_shots = 15
 
     # ---------------------------------------------------------------------- #
     # FML related options
@@ -66,7 +76,7 @@ def extend_model_heterogeneous_cfg(cfg):
     # FedHeNN related options
     # ---------------------------------------------------------------------- #
     cfg.fedhenn = CN()
-    cfg.fedhenn.n_0 = 0.01
+    cfg.fedhenn.eta = 0.001  # weight of proto loss
 
     # ---------------------------------------------------------------------- #
     # FSFL related options

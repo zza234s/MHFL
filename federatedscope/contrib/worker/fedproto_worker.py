@@ -163,7 +163,7 @@ class FedprotoClient(Client):
 
         self.trainer.update(content)
         self.state = round
-
+        self.trainer.ctx.cur_state = self.state
         sample_size, model_para, results, agg_protos = self.trainer.train()
 
         train_log_res = self._monitor.format_eval_res(

@@ -1,12 +1,19 @@
 set -e
 cd ../../../ #到federatedscope目录
 
-main_cfg=model_heterogeneity/methods/Local/Local_on_cifar10.yaml
-client_file=model_heterogeneity/methods/Local/model_setting_10_client_on_cifar10_low_heterogeneity.yaml
-client_num=10
+dataset=femnist
+
+if [[ $dataset = 'femnist' ]]; then
+  main_cfg=model_heterogeneity/methods/Local/Local_on_femnist.yaml
+  client_file=model_heterogeneity/methods/Local/model_setting_5_client_on_FEMNIST_low_heterogeneity.yaml
+  exp_name=local_femnist_5_client_low
+elif [[ $dataset = 'cifar10' ]]; then
+  main_cfg=model_heterogeneity/methods/Local/Local_on_cifar10.yaml
+  client_file=model_heterogeneity/methods/Local/model_setting_5_client_on_cifar10_low_heterogeneity.yaml
+  exp_name=local_cifar10_5_client_low
+fi
 
 result_floder=model_heterogeneity/result/csv
-exp_name=local_cifar_5_client_low
 
 
 for k in {0..3}

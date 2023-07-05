@@ -7,7 +7,6 @@ from torch.nn import Linear
 from torch.nn import MaxPool2d
 from torch.nn import ReLU
 
-
 class CNN_2layers(Module):
     def __init__(self,
                  in_channels,

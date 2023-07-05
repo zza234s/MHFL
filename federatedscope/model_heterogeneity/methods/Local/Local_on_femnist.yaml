@@ -7,19 +7,15 @@ federate:
   method: local
   mode: standalone
   client_num: 5
-  total_round_num: 200
+  total_round_num: 100
   sample_client_rate: 1.0
   make_global_eval: False
-#  merge_test_data: True
 data:
   root: data/
   local_eval_whole_test_dataset: True #important! Whether the test dataset for each client is equivalent to the test dataset for the unsplit dataset
-  type: 'CIFAR10_fedproto' #'CIFAR10@torchvision'
-  splits: [1.0, 0.0, 0.0]
-  num_workers: 0
-  transform: [['ToTensor'], ['Normalize', {'mean': [0.4914, 0.4822, 0.4465], 'std': [0.2470, 0.2435, 0.2616]}]]
-  test_transform: [['ToTensor'], ['Normalize', {'mean': [0.4914, 0.4822, 0.4465], 'std': [0.2470, 0.2435, 0.2616]}]]
-  args: [{'download': True}]
+  type: 'femnist'
+  splits: [0.6,0.2,0.2]
+  transform: [['ToTensor'], ['Normalize', {'mean': [0.9637], 'std': [0.1592]}]]
   splitter: 'lda'
   splitter_args: [{'alpha': 100}] #please set alpha to 100,1 and 0.1. The smaller alpha, the greater the heterogeneity
 dataloader:
@@ -45,4 +41,4 @@ eval:
   metrics: ['acc', 'correct']
   report : ['weighted_avg', 'avg', 'raw']
   best_res_update_round_wise_key: test_acc
-
+exp_name: local_femnist_5_client_low
