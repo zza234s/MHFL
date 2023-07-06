@@ -1,11 +1,22 @@
 set -e
-cd ../../../../ #到项目根目录
+cd ../../../ #到federatedscope目录
 
-main_cfg=federatedscope/model_heterogeneity/methods/Local/Local_on_cifar10.yaml
-client_file=federatedscope/model_heterogeneity/methods/Local/model_setting_10_client_on_cifar10_low_heterogeneity.yaml
-client_num=10
-csv_name=./local_5_client
+dataset=femnist
+
+if [[ $dataset = 'femnist' ]]; then
+  main_cfg=model_heterogeneity/methods/Local/Local_on_femnist.yaml
+  client_file=model_heterogeneity/methods/Local/model_setting_5_client_on_FEMNIST_low_heterogeneity.yaml
+  exp_name=local_femnist_5_client_low
+elif [[ $dataset = 'cifar10' ]]; then
+  main_cfg=model_heterogeneity/methods/Local/Local_on_cifar10.yaml
+  client_file=model_heterogeneity/methods/Local/model_setting_5_client_on_cifar10_low_heterogeneity.yaml
+  exp_name=local_cifar10_5_client_low
+fi
+
+result_floder=model_heterogeneity/result/csv
+
+
 for k in {0..3}
 do
-  python federatedscope/main.py --cfg ${main_cfg} csv_name${csv_name} --client_cfg ${client_file} seed ${k}
+  python main.py --cfg ${main_cfg} --client_cfg ${client_file} result_floder ${result_floder} exp_name ${exp_name} seed ${k}
 done

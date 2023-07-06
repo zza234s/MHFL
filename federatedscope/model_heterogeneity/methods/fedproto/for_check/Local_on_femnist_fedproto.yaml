@@ -1,0 +1,44 @@
+use_gpu: True
+device: 0
+early_stop:
+  patience: 15
+seed: 0
+federate:
+  method: local
+  mode: standalone
+  client_num: 20
+  total_round_num: 120
+  sample_client_rate: 1.0
+  make_global_eval: False
+fedproto:
+  iid: False
+  unequal: False
+  ways: 3
+  stdev: 2
+  shots: 100
+  train_shots_max: 110
+  test_shots: 15
+  proto_weight: 0.1 #weight of proto loss;
+data:
+  root: data/
+  type: 'femnist_fedproto'
+dataloader:
+  batch_size: 4
+train:
+  local_update_steps: 1
+  batch_or_epoch: epoch
+  optimizer:
+    type: SGD
+    lr: 0.01
+    weight_decay: 1e-4
+    momentum: 0.5
+criterion:
+  type: CrossEntropyLoss
+trainer:
+  type: cvtrainer
+eval:
+  freq: 5
+  metrics: ['acc', 'correct']
+  report : ['weighted_avg', 'avg', 'raw']
+  best_res_update_round_wise_key: test_acc
+

@@ -8,6 +8,6 @@ The code of this project is under construction.
 
 ## Acknowledgment
 
-All code implementations are based on FederatedScope V3.0: https://github.com/alibaba/FederatedScope 
+All code implementations are based on FederatedScope V0.3.0: https://github.com/alibaba/FederatedScope 
 
 We are grateful for their outstanding work.

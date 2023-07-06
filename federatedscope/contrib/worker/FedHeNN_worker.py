@@ -25,7 +25,6 @@ def get_representation_matrices(RAD_dataloader, model):
 
 # Build your worker here.
 class FedHeNN_server(Server):
-    # TODO: 伪代码中，每一轮的学习率eta=n_0 * f(current_round),但暂未找到关于f()的实现方式的描述
     def __init__(self,
                  ID=-1,
                  state=0,
@@ -261,7 +260,8 @@ class FedHeNN_client(Client):
         sender = message.sender
         content = message.content
         self.state = round
-
+        self.trainer.ctx.cur_state = self.state
+        self.trainer.ctx.client_ID = self.ID
         # 把接收到的数据放入tainer的环境变量中供trainer调用
         self.trainer.ctx.global_K = content[0]
         self.trainer.ctx.RAD_dataloader = content[1]

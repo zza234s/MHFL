@@ -7,7 +7,6 @@ from federatedscope.core.trainers.context import Context, CtxVar, lifecycle
 import torch.nn as nn
 import copy
 import logging
-from tqdm import tqdm
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 # Build your trainer here.
@@ -50,7 +49,7 @@ class FedProto_Trainer(GeneralTorchTrainer):
                 i += 1
             loss2 = self.loss_mse(proto_new, protos)
         loss = loss1 + loss2 * self.proto_weight
-        logger.info(f'client#{self.ctx.client_ID} \t CE_loss:{loss1}, \t proto_loss:{loss2},\t total_loss:{loss}')
+        logger.info(f'client#{self.ctx.client_ID} {ctx.cur_split} round:{ctx.cur_state} \t CE_loss:{loss1}, \t proto_loss:{loss2},\t total_loss:{loss}')
         ctx.y_true = CtxVar(labels, LIFECYCLE.BATCH)
         ctx.y_prob = CtxVar(pred, LIFECYCLE.BATCH)
         ctx.loss_batch = CtxVar(loss, LIFECYCLE.BATCH)

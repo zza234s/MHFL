@@ -4,6 +4,11 @@ from federatedscope.core.trainers.enums import LIFECYCLE, MODE
 from federatedscope.model_heterogeneity.methods.FedHeNN.cka_utils_torch import linear_CKA
 from federatedscope.register import register_trainer
 import torch
+import logging
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
 
 class FedHeNN_Trainer(GeneralTorchTrainer):
     def __init__(self,
@@ -15,10 +20,11 @@ class FedHeNN_Trainer(GeneralTorchTrainer):
                  monitor=None):
         super(FedHeNN_Trainer, self).__init__(model, data, device, config,
                                               only_for_eval, monitor)
+
     def _hook_on_batch_forward(self, ctx):
         RAD_dataloader = ctx.RAD_dataloader
         global_K = ctx.global_K
-        eta = 1.0  # TODO:写进超参数;找到正确的计算方法
+        proximal_weight = ctx.cfg.fedhenn.eta * ctx.cur_state
 
         # 1. the loss of proximal term
         # get reprensentation matrix from RAD
@@ -38,8 +44,9 @@ class FedHeNN_Trainer(GeneralTorchTrainer):
             labels = labels.unsqueeze(0)
         pred_loss = ctx.criterion(pred, labels)
 
-        loss = pred_loss + proximal_loss * eta
-
+        loss = pred_loss + proximal_loss * proximal_weight
+        logger.info(
+            f'client#{self.ctx.client_ID} {ctx.cur_split} round:{ctx.cur_state} \t CE_loss:{pred_loss}, \t proximal_loss:{proximal_loss},\t proximal_weight:{proximal_weight}')
         ctx.y_true = CtxVar(labels, LIFECYCLE.BATCH)
         ctx.y_prob = CtxVar(pred, LIFECYCLE.BATCH)
         ctx.loss_batch = CtxVar(loss, LIFECYCLE.BATCH)
