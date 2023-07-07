@@ -1,5 +1,6 @@
-#TODO:只是复制了代码还没注册
+# TODO:只是复制了代码还没注册
 from federatedscope.register import register_model
+
 '''Pre-activation ResNet in PyTorch.
 
 Reference:
@@ -221,11 +222,11 @@ class Bottleneck(nn.Module):
 
 
 class ResNet(nn.Module):
-    def __init__(self, block, num_blocks, num_classes=10):
+    def __init__(self, block, num_blocks, num_classes=10,input_channels=3):
         super(ResNet, self).__init__()
         self.in_planes = 64
 
-        self.conv1 = nn.Conv2d(3,
+        self.conv1 = nn.Conv2d(input_channels,
                                64,
                                kernel_size=3,
                                stride=1,
@@ -257,31 +258,32 @@ class ResNet(nn.Module):
         out = self.linear(out)
         return out
 
-def ResNet12(num_classes):
-    return ResNet(BasicBlock, [2, 1, 1, 1], num_classes)
+
+def ResNet12(input_channels,num_classes):
+    return ResNet(BasicBlock, [2, 1, 1, 1], num_classes,input_channels=input_channels)
 
 
-def ResNet18(num_classes):
-    return ResNet(BasicBlock, [2, 2, 2, 2], num_classes)
+def ResNet18(input_channels,num_classes):
+    return ResNet(BasicBlock, [2, 2, 2, 2], num_classes,input_channels=input_channels)
 
 
-def ResNet34(num_classes):
-    return ResNet(BasicBlock, [3, 4, 6, 3],num_classes)
+def ResNet34(input_channels,num_classes):
+    return ResNet(BasicBlock, [3, 4, 6, 3], num_classes,input_channels=input_channels)
 
 
-def ResNet50(num_classes):
-    return ResNet(Bottleneck, [3, 4, 6, 3],num_classes)
+def ResNet50(input_channels,num_classes):
+    return ResNet(Bottleneck, [3, 4, 6, 3], num_classes,input_channels=input_channels)
 
 
-def ResNet101():
-    return ResNet(Bottleneck, [3, 4, 23, 3],num_classes)
+def ResNet101(input_channels,num_classes):
+    return ResNet(Bottleneck, [3, 4, 23, 3], num_classes,input_channels=input_channels)
 
 
-def ResNet152(num_classes):
-    return ResNet(Bottleneck, [3, 8, 36, 3],num_classes)
+def ResNet152(input_channels,num_classes):
+    return ResNet(Bottleneck, [3, 8, 36, 3], num_classes,input_channels=input_channels)
 
 
-def preact_resnet(model_config):
+def preact_resnet(input_channels,model_config):
     if '18' in model_config.type:
         net = PreActResNet18()
     elif '34' in model_config.type:
@@ -291,24 +293,25 @@ def preact_resnet(model_config):
     return net
 
 
-def resnet(model_config):
+def resnet(input_channels, model_config):
     if '12' in model_config.type:
-        net = ResNet12(num_classes=model_config.out_channels)
+        net = ResNet12(input_channels=input_channels, num_classes=model_config.out_channels)
     elif '18' in model_config.type:
-        net = ResNet18(num_classes=model_config.out_channels)
+        net = ResNet18(input_channels=input_channels, num_classes=model_config.out_channels)
     elif '34' in model_config.type:
-        net = ResNet34(num_classes=model_config.out_channels)
+        net = ResNet34(input_channels=input_channels, num_classes=model_config.out_channels)
     elif '50' in model_config.type:
-        net = ResNet50(num_classes=model_config.out_channels)
+        net = ResNet50(input_channels=input_channels, num_classes=model_config.out_channels)
     return net
 
 
 def call_resnet(model_config, local_data):
+    #TODO :preact_resnet 有bug
     if 'resnet' in model_config.type and 'pre' in model_config.type and 'proto' not in model_config.type:
-        model = preact_resnet(model_config)
+        model = preact_resnet(input_channels=local_data[1], model_config=model_config)
         return model
     elif 'resnet' in model_config.type and 'pre' not in model_config.type and 'proto' not in model_config.type:
-        model = resnet(model_config)
+        model = resnet(input_channels=local_data[1], model_config=model_config)
         return model
 
 

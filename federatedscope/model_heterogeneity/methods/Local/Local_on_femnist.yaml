@@ -7,27 +7,21 @@ federate:
   method: local
   mode: standalone
   client_num: 5
-  total_round_num: 100
+  total_round_num: 200
   sample_client_rate: 1.0
   make_global_eval: False
 data:
   root: data/
-  local_eval_whole_test_dataset: True #important! Whether the test dataset for each client is equivalent to the test dataset for the unsplit dataset
-  type: 'femnist'
-  splits: [0.6,0.2,0.2]
-  transform: [['ToTensor'], ['Normalize', {'mean': [0.9637], 'std': [0.1592]}]]
-  splitter: 'lda'
-  splitter_args: [{'alpha': 100}] #please set alpha to 100,1 and 0.1. The smaller alpha, the greater the heterogeneity
+  type: femnist
+  splits: [ 0.6,0.2,0.2 ]
+  transform: [ [ 'ToTensor' ], [ 'Normalize', { 'mean': [ 0.9637 ], 'std': [ 0.1592 ] } ] ]
 dataloader:
   batch_size: 256
-model:
-  hidden: 2048
-  out_channels: 10
-  dropout: 0.5
 train:
   local_update_steps: 1
   batch_or_epoch: epoch
   optimizer:
+    type: Adam
     lr: 0.001
     weight_decay: 1e-4
 grad:
@@ -37,8 +31,8 @@ criterion:
 trainer:
   type: cvtrainer
 eval:
-  freq: 5
-  metrics: ['acc', 'correct']
-  report : ['weighted_avg', 'avg', 'raw']
+  freq: 1
+  metrics: [ 'acc', 'correct' ]
+  report: [ 'weighted_avg', 'avg', 'raw' ]
   best_res_update_round_wise_key: test_acc
 exp_name: local_femnist_5_client_low

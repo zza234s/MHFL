@@ -111,12 +111,12 @@ class DownBlock(nn.Module):
 
 
 class ShuffleNetV2(nn.Module):
-    def __init__(self, num_classes, save_activations=False):
+    def __init__(self, input_channels, num_classes, save_activations=False):
         super(ShuffleNetV2, self).__init__()
         out_channels = (48, 96, 192, 512)
         num_blocks = (3, 7, 3)
 
-        self.conv1 = nn.Conv2d(3, 24, kernel_size=3, stride=1, padding=1, bias=False)
+        self.conv1 = nn.Conv2d(input_channels, 24, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn1 = nn.BatchNorm2d(24)
         self.in_channels = 24
         self.layer1 = self._make_layer(out_channels[0], num_blocks[0])
@@ -171,7 +171,7 @@ class ShuffleNetV2(nn.Module):
 
 def call_shufflenetv2(model_config, local_data):
     if 'shufflenetv2' in model_config.type and 'proto' not in model_config.type:
-        model = ShuffleNetV2(num_classes=model_config.out_channels)
+        model = ShuffleNetV2(input_channels=1,num_classes=model_config.out_channels)
         return model
 
 register_model('shufflenetv2', call_shufflenetv2)

@@ -176,3 +176,4 @@ class LEAF_CV(LEAF):
                                 val_data=val_data,
                                 val_targets=val_targets)
                 idx += 1
+        print(f'total_writer/user:{idx}')

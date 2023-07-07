@@ -7,7 +7,7 @@ client_1:
     optimizer:
       type: Adam
       lr: 0.001
-      weight_decay: 0.
+      weight_decay: 1e-4
 client_2:
   model:
     type: resnet18
@@ -17,7 +17,7 @@ client_2:
     optimizer:
       type: Adam
       lr: 0.001
-      weight_decay: 0.
+      weight_decay: 1e-4
 client_3:
   model:
     type: convnet2
@@ -28,7 +28,7 @@ client_3:
     optimizer:
       type: Adam
       lr: 0.001
-      weight_decay: 0.
+      weight_decay: 1e-4
 client_4:
   model:
     type: cct_6
@@ -37,7 +37,7 @@ client_4:
     optimizer:
       type: Adam
       lr: 6e-4
-      weight_decay: 5e-4
+      weight_decay: 1e-4
 client_5:
   model:
     type: MLP
@@ -49,4 +49,4 @@ client_5:
     optimizer:
       type: Adam
       lr: 0.001
-      weight_decay: 0.
+      weight_decay: 1e-4

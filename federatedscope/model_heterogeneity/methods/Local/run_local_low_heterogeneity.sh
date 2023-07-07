@@ -14,9 +14,13 @@ elif [[ $dataset = 'cifar10' ]]; then
 fi
 
 result_floder=model_heterogeneity/result/csv
-
-
-for k in {0..3}
-do
-  python main.py --cfg ${main_cfg} --client_cfg ${client_file} result_floder ${result_floder} exp_name ${exp_name} seed ${k}
+alpha=0.1
+for k in {0..2}; do
+  python main.py \
+        --cfg ${main_cfg} \
+        --client_cfg ${client_file} \
+        result_floder ${result_floder} \
+        exp_name ${exp_name} \
+        seed ${k} \
+        data.splitter_args "[{'alpha': ${alpha}}]"
 done
