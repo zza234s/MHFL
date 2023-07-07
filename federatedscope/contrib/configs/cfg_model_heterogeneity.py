@@ -70,6 +70,7 @@ def extend_model_heterogeneous_cfg(cfg):
     cfg.fml.meme_model.in_channels = 0
     cfg.fml.meme_model.out_channels = 1
     cfg.fml.meme_model.layer = 2
+    cfg.fml.meme_model.T = 5 #TODO: 临时变量
 
     # ---------------------------------------------------------------------- #
     # FedHeNN related options

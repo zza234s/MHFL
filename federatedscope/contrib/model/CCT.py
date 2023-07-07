@@ -358,22 +358,23 @@ class CCT(nn.Module):
         return self.classifier(x)
 
 
-model = cct_6(img_size=32,
-              n_conv_layers=1,
-              kernel_size=7,
-              stride=2,
-              padding=3,
-              pooling_kernel_size=3,
-              pooling_stride=2,
-              pooling_padding=1,
-              num_classes=1000,
-              positional_embedding='learnable')
+# model = cct_6(img_size=32,
+#               n_conv_layers=1,
+#               kernel_size=7,
+#               stride=2,
+#               padding=3,
+#               pooling_kernel_size=3,
+#               pooling_stride=2,
+#               pooling_padding=1,
+#               num_classes=1000,
+#               positional_embedding='learnable')
 
 
 def call_cct_6(model_config, local_data):
     if 'cct_6' in model_config.type:
         image_size = local_data[-1]
         model = cct_6(img_size=image_size,
+                      n_input_channels=local_data[1],
                       n_conv_layers=1,
                       kernel_size=7,
                       stride=2,

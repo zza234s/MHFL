@@ -1,11 +1,11 @@
 use_gpu: True
 device: 0
 early_stop:
-  patience: 50
-seed: 0
+  patience: 15
+seed: 0 #[0,1,2]
 federate:
   mode: standalone
-  method: fedproto
+  method: fedhenn
   client_num: 5
   total_round_num: 200
   sample_client_rate: 1.0
@@ -14,6 +14,7 @@ data:
   root: data/
   type: femnist
   splits: [ 0.6,0.2,0.2 ]
+  subsample: 0.05
   transform: [ [ 'ToTensor' ], [ 'Normalize', { 'mean': [ 0.9637 ], 'std': [ 0.1592 ] } ] ]
 dataloader:
   batch_size: 256
@@ -27,12 +28,12 @@ train:
 criterion:
   type: CrossEntropyLoss
 trainer:
-  type: fedproto_trainer
+  type: fedhenn_trainer
 grad:
   grad_clip: 5.0
 eval:
   freq: 1
-  metrics: ['acc']
-  report : ['weighted_avg', 'avg']
+  metrics: ['acc', 'correct']
+  report : ['weighted_avg', 'avg', 'raw']
   best_res_update_round_wise_key: test_acc
-exp_name: 'fedproto_5_clients_on_femnist_low_heterogeneity'
+exp_name: 'FedHeNN_5_clients_on_femnist_low_heterogeneity'

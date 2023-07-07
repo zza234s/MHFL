@@ -1,7 +1,7 @@
 use_gpu: True
 device: 0
 early_stop:
-  patience: 50
+  patience: 15
 seed: 0
 check_completeness: False
 federate:
@@ -23,11 +23,11 @@ data:
   test_transform: [['ToTensor'], ['Normalize', {'mean': [0.4914, 0.4822, 0.4465], 'std': [0.2470, 0.2435, 0.2616]}]]
   args: [{'download': True}]
   splitter: 'lda'
-  splitter_args: [{'alpha': 100}]
+  splitter_args: [{'alpha': 1.0}]
 dataloader:
   batch_size: 256
 train:
-  local_update_steps: 20
+  local_update_steps: 1
   batch_or_epoch: epoch
   optimizer:
     type: Adam
@@ -40,7 +40,7 @@ trainer:
 grad:
   grad_clip: 5.0
 eval:
-  freq: 5
+  freq: 20
   metrics: ['acc']
   report : ['weighted_avg', 'avg']
   best_res_update_round_wise_key: test_acc
