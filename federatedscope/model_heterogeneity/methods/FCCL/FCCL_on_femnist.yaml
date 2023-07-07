@@ -1,0 +1,61 @@
+use_gpu: True
+device: 0
+early_stop:
+  patience: 15
+seed: 0
+federate:
+  method: fccl
+  mode: standalone
+  client_num: 5
+  total_round_num: 200
+  sample_client_rate: 1.0
+  make_global_eval: False
+MHFL:
+  task: CV
+  public_dataset: minist
+  public_path: ./data
+  public_train:
+    batch_size: 512
+    epochs: 200
+    optimizer:
+      type: Adam
+      lr: 0.00001
+      weight_decay: 5e-4  #5e-4
+data:
+  root: data/
+  local_eval_whole_test_dataset: True #important! Whether the test dataset for each client is equivalent to the test dataset for the unsplit dataset
+  type: 'femnist'
+  splits: [0.6,0.2,0.2]
+  transform: [['ToTensor'], ['Normalize', {'mean': [0.9637], 'std': [0.1592]}]]
+dataloader:
+  batch_size: 256
+model:
+  hidden: 2048
+  out_channels: 10
+  dropout: 0.5
+train:
+  local_update_steps: 1
+  batch_or_epoch: epoch
+  optimizer:
+    lr: 0.001
+    weight_decay: 1e-4
+grad:
+  grad_clip: 5.0
+criterion:
+  type: CrossEntropyLoss
+trainer:
+  type: fccl_trainer
+eval:
+  freq: 1
+  metrics: ['acc', 'correct']
+  report : ['weighted_avg', 'avg', 'raw']
+  best_res_update_round_wise_key: test_acc
+#exp_name: local_femnist_5_client_low
+fccl:
+  structure: homogeneity
+  beta: 0.1
+  off_diag_weight: 0.00032  #0.00032
+  pretrain_epoch: 100
+  pretrain_path: 'low_5_CNN_femnist'
+  loss_dual_weight: 1
+  pub_aug: 'weak'

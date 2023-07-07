@@ -3,7 +3,6 @@ import numpy as np
 
 from federatedscope.core.auxiliaries.splitter_builder import get_splitter
 from federatedscope.core.data import ClientData, StandaloneDataDict
-
 logger = logging.getLogger(__name__)
 
 

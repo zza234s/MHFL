@@ -1,5 +1,5 @@
 use_gpu: True
-device: 4
+device: 0
 early_stop:
   patience: 10
 seed: 12345
@@ -12,7 +12,7 @@ federate:
   make_global_eval: False
 MHFL:
   task: CV
-  public_dataset: MyCifar100
+  public_dataset: Cifar100
   public_path: ./data
   public_train:
     batch_size: 256
@@ -48,3 +48,6 @@ fccl:
   structure: homogeneity
   beta: 0.1
   off_diag_weight: 0.0051
+  pretrain_epoch: 50
+  pretrain_path: 'officehome'
+  loss_dual_weight: 1

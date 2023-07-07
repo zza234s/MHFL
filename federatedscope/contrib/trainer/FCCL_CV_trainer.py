@@ -7,7 +7,9 @@ import torch
 import torch.optim as optim
 import torch.nn as nn
 import torch.nn.functional as F
-
+import logging
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 class FCCL_Trainer(GeneralTorchTrainer):
     def __init__(self,
                  model,
@@ -38,8 +40,8 @@ class FCCL_Trainer(GeneralTorchTrainer):
         pre_loss = self.criterionKL(logsoft_outputs, pre_soft_outpus)  # 公式5 intra损失
         loss_hard = ctx.criterion(outputs, label)  # 交叉熵损失
         #TODO：为啥后两个loss不用*λloc
-        loss = loss_hard + inter_loss + pre_loss  # 公式7 总损失
-
+        loss = loss_hard + (inter_loss + pre_loss) * self.ctx.cfg.fccl.loss_dual_weight  # 公式7 总损失
+        # logger.info(f' CE_loss:{loss_hard}, \t col_loss:{inter_loss+pre_loss}')
         ctx.y_true = CtxVar(label, LIFECYCLE.BATCH)
         ctx.y_prob = CtxVar(outputs, LIFECYCLE.BATCH)
         ctx.loss_batch = CtxVar(loss, LIFECYCLE.BATCH)

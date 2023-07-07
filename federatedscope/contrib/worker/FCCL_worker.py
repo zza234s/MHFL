@@ -19,9 +19,10 @@ from federatedscope.register import register_worker
 from federatedscope.core.workers import Server, Client
 
 
-from federatedscope.model_heterogeneity.methods.FCCL.datasets.cifar100 import MyCifar100
-# from federatedscope.model_heterogeneity.methods.FCCL.datasets import get_prive_dataset, get_public_dataset
-# from federatedscope.model_heterogeneity.methods.FCCL.utils.conf import data_path
+from federatedscope.model_heterogeneity.methods.FCCL.datasets.cifar100 import load_Cifar100
+from federatedscope.model_heterogeneity.methods.FCCL.datasets.fashion_mnist import load_fashion_minist
+from federatedscope.model_heterogeneity.methods.FCCL.datasets.mnist import load_minist
+
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -45,29 +46,14 @@ class FCCLServer(Server):
         self.client_models = dict()  # 用于放客户端模型
         self.selected_transform = None
         self.train_dataset = None
-        # 选transform
-        if self._cfg.MHFL.pub_aug == 'weak':
-            self.selected_transform = transforms.Compose(
-                [transforms.RandomCrop(32, padding=4),
-                 transforms.RandomHorizontalFlip(),
-                 transforms.ToTensor(),
-                 transforms.Normalize((0.4802, 0.4480, 0.3975),
-                                      (0.2770, 0.2691, 0.2821))])
-        elif self._cfg.MHFL.pub_aug == 'strong':
-            self.selected_transform = transforms.Compose(
-                [transforms.RandomCrop(32, padding=4),
-                 transforms.RandomHorizontalFlip(),
-                 transforms.RandomApply([
-                     transforms.ColorJitter(0.4, 0.4, 0.4, 0.1)
-                 ], p=0.8),
-                 transforms.RandomGrayscale(p=0.2),
-                 transforms.ToTensor(),
-                 transforms.Normalize((0.4802, 0.4480, 0.3975),
-                                      (0.2770, 0.2691, 0.2821))])
 
         # 训练的数据集
-        if self._cfg.MHFL.public_dataset == 'MyCifar100':
-            self.train_dataset = MyCifar100(self._cfg.MHFL.public_path, train=True, transform=self.selected_transform, download=True)
+        if self._cfg.MHFL.public_dataset == 'Cifar100':
+            self.train_dataset = load_Cifar100(self._cfg.fccl.pub_aug, self._cfg.MHFL.public_path)
+        elif self._cfg.MHFL.public_dataset == 'fashion_minist':
+            self.train_dataset = load_fashion_minist(self._cfg.fccl.pub_aug, self._cfg.MHFL.public_path)
+        elif self._cfg.MHFL.public_dataset == 'minist':
+            self.train_dataset = load_minist(self._cfg.fccl.pub_aug, self._cfg.MHFL.public_path)
         # 获取dataloaders
         # 随机采样
         n_train = len(self.train_dataset)
@@ -353,20 +339,19 @@ class FCCLClient(Client):
 
     def _pretrain_nets(self):
         self.pre_model = copy.deepcopy(self.model)
-        pretrain_path = os.path.join('./pretrain/', 'low_10_CNN_256')
+        pretrain_path = os.path.join('./pretrain/', self._cfg.fccl.pretrain_path)
         ckpt_files = os.path.join(pretrain_path, str(self.ID)+'.ckpt')
 
         if not os.path.exists(pretrain_path):
             os.makedirs(pretrain_path)
+        if not os.path.exists(ckpt_files):
+            self._pretrain_net(self._cfg.fccl.pretrain_epoch)
+            save_path = os.path.join(pretrain_path,str(self.ID)+'.ckpt')
+            torch.save(self.pre_model.state_dict(),save_path)
         else:
-            if not os.path.exists(ckpt_files):
-                self._pretrain_net(50)
-                save_path = os.path.join(pretrain_path,str(self.ID)+'.ckpt')
-                torch.save(self.pre_model.state_dict(),save_path)
-            else:
-                save_path = os.path.join(pretrain_path, str(self.ID) + '.ckpt')
-                self.pre_model.load_state_dict(torch.load(save_path,self.device))
-                self._evaluate_net()
+            save_path = os.path.join(pretrain_path, str(self.ID) + '.ckpt')
+            self.pre_model.load_state_dict(torch.load(save_path,self.device))
+            self._evaluate_net()
         self.model.load_state_dict(torch.load(ckpt_files,self.device))
 
     def _pretrain_net(self,epoch):
@@ -394,6 +379,7 @@ class FCCLClient(Client):
                 # if acc >80:
                 #     break
 
+    @torch.no_grad()
     def _evaluate_net(self):
         device = self._cfg.device
         model = self.pre_model.to(device)
