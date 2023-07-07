@@ -11,6 +11,7 @@ class MyCifar100(CIFAR100):
     def __init__(self, root, train=True, transform=None,
                  target_transform=None, download=False) -> None:
         self.not_aug_transform = transforms.Compose([transforms.ToTensor()])  #先将图像转换成张量并将图像串联
+
         super(MyCifar100, self).__init__(
             root, train, transform, target_transform, download)
 
@@ -24,6 +25,27 @@ class MyCifar100(CIFAR100):
         return img, target
 
 
+def load_Cifar100(pubaug, path):
+    if pubaug == 'weak':
+        selected_transform = transforms.Compose(
+            [transforms.RandomCrop(32, padding=4),
+             transforms.RandomHorizontalFlip(),
+             transforms.ToTensor(),
+             transforms.Normalize((0.4802, 0.4480, 0.3975),
+                                  (0.2770, 0.2691, 0.2821))])
+    elif pubaug == 'strong':
+        selected_transform = transforms.Compose(
+            [transforms.RandomCrop(32, padding=4),
+             transforms.RandomHorizontalFlip(),
+             transforms.RandomApply([
+                 transforms.ColorJitter(0.4, 0.4, 0.4, 0.1)
+             ], p=0.8),
+             transforms.RandomGrayscale(p=0.2),
+             transforms.ToTensor(),
+             transforms.Normalize((0.4802, 0.4480, 0.3975),
+                                  (0.2770, 0.2691, 0.2821))])
+    train_dataset = MyCifar100(path, train=True, transform=selected_transform, download=True)
+    return  train_dataset
 
 # class PublicCIFAR100(PublicDataset):
 #     NAME = 'pub_cifar100'
