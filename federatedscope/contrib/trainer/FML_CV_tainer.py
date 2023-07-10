@@ -30,9 +30,11 @@ class FML_CV_Trainer(GeneralTorchTrainer):
                  monitor=None):
         super(FML_CV_Trainer, self).__init__(model, data, device, config,
                                              only_for_eval, monitor)
-
-        self.ctx.local_model = copy.deepcopy(self.ctx.model)
-        self.ctx.model = get_model(model_config=config.fml.meme_model,local_data=data)  # the personalized model  #修改要聚合的模型为meme model
+        '''
+        local model
+        '''
+        self.ctx.local_model = copy.deepcopy(self.ctx.model) # the personalized model
+        self.ctx.meme_model = get_model(model_config=config.fml.meme_model,local_data=data)    #修改要聚合的模型为meme model
         # self.ctx.models = [self.ctx.local_model, self.ctx.model] #TODO: 感觉不需要定义models，需要确认定义/不定义 的影响
 
         self.register_hook_in_train(new_hook=self._hook_on_fit_start_clean,

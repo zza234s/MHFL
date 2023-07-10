@@ -1,7 +1,7 @@
 use_gpu: True
 device: 0
 early_stop:
-  patience: 15
+  patience: 50
 seed: 0
 federate:
   mode: standalone
@@ -41,7 +41,7 @@ criterion:
 trainer:
   type: fml_cv_trainer
 eval:
-  freq: 20
+  freq: 5
   metrics: ['acc']
   report : ['weighted_avg', 'avg']
   best_res_update_round_wise_key: test_acc
