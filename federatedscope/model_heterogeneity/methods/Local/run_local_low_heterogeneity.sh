@@ -1,7 +1,7 @@
 set -e
 cd ../../../ #到federatedscope目录
 
-dataset=femnist
+dataset=cifar10
 
 if [[ $dataset = 'femnist' ]]; then
   main_cfg=model_heterogeneity/methods/Local/Local_on_femnist.yaml
@@ -14,7 +14,7 @@ elif [[ $dataset = 'cifar10' ]]; then
 fi
 
 result_floder=model_heterogeneity/result/csv
-alpha=0.1
+alpha=100
 for k in {0..2}; do
   python main.py \
         --cfg ${main_cfg} \

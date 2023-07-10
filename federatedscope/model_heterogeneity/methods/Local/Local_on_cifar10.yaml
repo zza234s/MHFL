@@ -14,7 +14,7 @@ federate:
 data:
   root: data/
   local_eval_whole_test_dataset: True #important! Whether the test dataset for each client is equivalent to the test dataset for the unsplit dataset
-  type: 'CIFAR10_fedproto' #'CIFAR10@torchvision'
+  type: 'CIFAR10@torchvision' #'CIFAR10@torchvision','CIFAR10_fedproto'
   splits: [1.0, 0.0, 0.0]
   num_workers: 0
   transform: [['ToTensor'], ['Normalize', {'mean': [0.4914, 0.4822, 0.4465], 'std': [0.2470, 0.2435, 0.2616]}]]

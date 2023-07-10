@@ -13,7 +13,6 @@ data:
   root: data/
   type: femnist
   splits: [ 0.6,0.2,0.2 ]
-  subsample: 0.05
   transform: [ [ 'ToTensor' ], [ 'Normalize', { 'mean': [ 0.9637 ], 'std': [ 0.1592 ] } ] ]
 dataloader:
   batch_size: 256
@@ -26,18 +25,18 @@ train:
   local_update_steps: 1
   batch_or_epoch: epoch
   optimizer:
-    type: Adam
+    type: SGD
     lr: 0.001
     weight_decay: 1e-4
-grad:
-  grad_clip: 5.0
+#grad:
+#  grad_clip: 5.0
 criterion:
   type: CrossEntropyLoss
 trainer:
   type: fml_cv_trainer
 eval:
   freq: 1
-  metrics: ['acc', 'correct']
-  report : ['weighted_avg', 'avg', 'raw']
+  metrics: ['acc']
+  report : ['weighted_avg', 'avg']
   best_res_update_round_wise_key: test_acc
 exp_name: 'FML_5_clients_on_femnist_low_heterogeneity'

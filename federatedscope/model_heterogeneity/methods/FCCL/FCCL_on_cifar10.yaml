@@ -6,7 +6,7 @@ seed: 1  #0,1,2
 federate:
   method: fccl
   mode: standalone
-  total_round_num: 200
+  total_round_num: 1
   sample_client_rate: 1.0
   client_num: 5
   make_global_eval: False

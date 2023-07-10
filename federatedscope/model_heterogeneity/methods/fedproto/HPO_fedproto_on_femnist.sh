@@ -6,7 +6,7 @@ dataset=femnist
 if [[ $dataset = 'femnist' ]]; then
   main_cfg=model_heterogeneity/methods/fedproto/fedproto_on_femnist.yaml
   client_file=model_heterogeneity/methods/fedproto/proto_model_setting_5_client_on_FEMNIST_low_heterogeneity.yaml
-  exp_name=fedproto_femnist_5_client_low_HPO
+  exp_name=fedproto_femnist_5_client_low_HPO_SGD
 elif [[ $dataset = 'cifar10' ]]; then
   main_cfg=model_heterogeneity/methods/fedproto/fedproto_on_cifar10.yaml
   client_file=model_heterogeneity/methods/fedproto/proto_model_setting_5_client_on_cifar10_low_heterogeneity.yaml
@@ -14,11 +14,11 @@ elif [[ $dataset = 'cifar10' ]]; then
 fi
 result_floder=model_heterogeneity/result/csv
 
-local_update_step=(1 10 20)
-proto_weight=(0.1 1.0 10.0)
+local_update_step=(1 10)
+proto_weight=(0.1 1.0)
 for ((p = 0; p < ${#proto_weight[@]}; p++)); do
   for ((l = 0; l < ${#local_update_step[@]}; l++)); do
-    for k in {0..3}; do
+    for k in {0..2}; do
       python main.py --cfg ${main_cfg} --client_cfg ${client_file} \
         result_floder ${result_floder} \
         exp_name ${exp_name} \

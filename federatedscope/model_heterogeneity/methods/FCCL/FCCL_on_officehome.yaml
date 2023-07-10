@@ -48,6 +48,6 @@ fccl:
   structure: homogeneity
   beta: 0.1
   off_diag_weight: 0.0051
-  pretrain_epoch: 50
+  pretrain_epoch: 1
   pretrain_path: 'officehome'
   loss_dual_weight: 1

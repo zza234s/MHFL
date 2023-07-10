@@ -190,7 +190,6 @@ def call_our_cnn(model_config, input_shape):
                             dropout=model_config.dropout,
                             return_proto=False)
         return model
-
     elif 'CNN_3layers' in model_config.type:
         if 'proto' in model_config.type:
             model = CNN_3layers(in_channels=input_shape[-3],

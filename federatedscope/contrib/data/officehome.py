@@ -10,7 +10,7 @@ from federatedscope.core.auxiliaries.utils import setup_seed
 from torchvision.datasets import ImageFolder, DatasetFolder
 from torch.utils.data import DataLoader, SubsetRandomSampler
 from typing import Tuple
-
+import os
 class ImageFolder_Custom(DatasetFolder):
     def __init__(self, data_name, root, train=True, transform=None, target_transform=None,subset_train_num=7,subset_capacity=10):
         self.data_name = data_name

@@ -59,7 +59,7 @@ class FCCLServer(Server):
         n_train = len(self.train_dataset)
         idxs = np.random.permutation((n_train))  # 生成一个长度为n_train的随机排列
         if self._cfg.MHFL.public_len != None:
-            idxs = idxs[0:self._cfg.MHFL.public_len]  # 选取前public_scale的数
+            idxs = idxs[0:self._cfg.MHFL.public_len]  # 选取前public_scale的数 TODO:来自zhl的疑问，为啥要指定公共数据集样本数？
         train_sampler = SubsetRandomSampler(idxs)  # 对idxs进行子集采样
         # 使用采样器在DataLoader中指定子集的采样方式
         # TODO:num_workers与源代码不一样（源代码为4不好跑）
@@ -78,9 +78,9 @@ class FCCLServer(Server):
 
         #####################################################################################
         # 获取客户端传来的模型
-        client = message.sender
-        client_model = message.content[0]
-        self.client_models[client] = client_model
+        client_id = message.sender
+        client_model = message.content[1]
+        self.client_models[client_id] = client_model
         ####################################################################################
 
         if int(sender) == -1:  # assign number to client
@@ -100,9 +100,10 @@ class FCCLServer(Server):
 
         self.trigger_for_start()
 
-    #所有客户端join in之后触发，只触发一次
+
     def trigger_for_start(self):
         """
+        所有客户端join in之后触发，只触发一次
         To start the FL course when the expected number of clients have joined
         额外向clients 发送全局K 以及RAD_loader
         """
@@ -177,7 +178,7 @@ class FCCLServer(Server):
                 #################################################################
                 # update model parameters
                 for model_idx, model in self.client_models.items():
-                    model.load_state_dict(self.msg_buffer['train'][self.state][model_idx][1])
+                    model.load_state_dict(self.msg_buffer['train'][self.state][model_idx][1],strict=True)#TODO: 增加strict=True
                 self.calculate_logits_output()
 
                 #################################################################
@@ -225,7 +226,7 @@ class FCCLServer(Server):
         #服务器端根据output计算Mi矩阵和loss
         for batch_idx, (images, _) in enumerate(self.train_loader):
             # 获取output Zi
-            linear_output_list = dict()  # TODO:这俩是不是应该在外面啊
+            linear_output_list = dict()  # TODO:这俩是不是应该在外面啊--正确
             linear_output_target_list = dict()
             images = images.to(device)
             for model_idx, model in self.client_models.items():
@@ -236,7 +237,7 @@ class FCCLServer(Server):
                 linear_output_list[model_idx] = linear_output
 
             #计算Mi矩阵和损失
-            for model_idx, model in self.client_models.items():
+            for model_idx, model in self.client_models.items():#TODO: model.train()?
                 optimizer = optim.Adam(model.parameters(), lr=lr)
                 linear_output_target_avg_list = []
                 for k,val in linear_output_target_list.items():
@@ -299,13 +300,13 @@ class FCCLClient(Client):
         #预训练
         self._pretrain_nets()
         local_init_model = copy.deepcopy(self.model.cpu())
-        self.inter_model = copy.deepcopy(self.model)
+        self.inter_model = copy.deepcopy(self.model) #todo: 变成self.ctx.inter_model
         self.comm_manager.send(
             Message(msg_type='join_in',
                     sender=self.ID,
                     receiver=[self.server_id],
                     timestamp=0,
-                    content=[local_init_model]))
+                    content=[self.local_address,local_init_model]))
 
 
     def callback_funcs_for_model_para(self, message: Message):
@@ -315,9 +316,9 @@ class FCCLClient(Client):
         self.state = round
         #根据服务器传过来的参数更新本地模型
         self.trainer.update(content,
-                            strict=self._cfg.federate.share_local_model)
+                            strict=True)
         #把worker中的值赋给trainer
-        self.trainer.ctx.inter_model = self.inter_model
+        self.trainer.ctx.inter_model = self.inter_model #TODO: inter model 每次是否被更新？？？？ evalute的时候，这个inter_model是否被更新？ 不用self.inter_model这个中间变量，只用ctx.inter_model会更好？
         self.trainer.ctx.pre_model = self.pre_model
         sample_size, model_para, results = self.trainer.train()
         #TODO:worker中的model是否和trainer中一样
@@ -357,7 +358,7 @@ class FCCLClient(Client):
     def _pretrain_net(self,epoch):
         device = self._cfg.device
         model = self.pre_model.to(device)
-        optimizer = optim.Adam(model.parameters(), lr=0.001)
+        optimizer = optim.Adam(model.parameters(), lr=0.001) # TODO: 预训练学习率软编码（）
         # scheduler = CosineLRScheduler(optimizer, t_initial=epoch, decay_rate=1., lr_min=1e-6)
         scheduler = CosineLRScheduler(optimizer, t_initial=epoch, lr_min=1e-6)
         criterion = nn.CrossEntropyLoss()
@@ -388,14 +389,13 @@ class FCCLClient(Client):
         model.eval()
         correct, total,top1,top5 = 0.0, 0.0,0.0,0.0
         for batch_idx, (images, labels) in enumerate(dl):
-            with torch.no_grad():
-                images, labels = images.to(device), labels.to(device)
-                outputs = model(images)
-                _, max5 = torch.topk(outputs, 5, dim=-1)
-                labels = labels.view(-1, 1)
-                top1 += (labels == max5[:, 0:1]).sum().item()
-                top5 += (labels == max5).sum().item()
-                total += labels.size(0)
+            images, labels = images.to(device), labels.to(device)
+            outputs = model(images)
+            _, max5 = torch.topk(outputs, 5, dim=-1)
+            labels = labels.view(-1, 1)
+            top1 += (labels == max5[:, 0:1]).sum().item()
+            top5 += (labels == max5).sum().item()
+            total += labels.size(0)
 
         top1acc= round(100 * top1 / total,2)
         top5acc= round(100 * top5 / total,2)

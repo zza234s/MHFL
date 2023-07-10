@@ -28,14 +28,14 @@ class FCCL_Trainer(GeneralTorchTrainer):
         inter_model = ctx.inter_model.to(device)
         pre_model = ctx.pre_model.to(device)
 
-        self.criterionKL.to(device)
+        # self.criterionKL.to(device)
 
         x, label = [_.to(ctx.device) for _ in ctx.data_batch]
         outputs = model(x)  # 私有数据的Zi
         logsoft_outputs = F.log_softmax(outputs, dim=1)  # 进行对数softmax操作
         with torch.no_grad():  # 计算操作不会被记录梯度
             inter_soft_outpus = F.softmax(inter_model(x), dim=1)
-            pre_soft_outpus = F.softmax(pre_model(x), dim=1)
+            pre_soft_outpus = F.softmax(pre_model(x), dim=1) #TODO zhl:premodel 建议改为pretrain_model
         inter_loss = self.criterionKL(logsoft_outputs, inter_soft_outpus)  # 公式4 inter损失
         pre_loss = self.criterionKL(logsoft_outputs, pre_soft_outpus)  # 公式5 intra损失
         loss_hard = ctx.criterion(outputs, label)  # 交叉熵损失

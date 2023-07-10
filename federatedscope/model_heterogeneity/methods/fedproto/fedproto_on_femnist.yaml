@@ -16,13 +16,13 @@ data:
   splits: [ 0.6,0.2,0.2 ]
   transform: [ [ 'ToTensor' ], [ 'Normalize', { 'mean': [ 0.9637 ], 'std': [ 0.1592 ] } ] ]
 dataloader:
-  batch_size: 256
+  batch_size: 32 #32 64 128 256
 train:
   local_update_steps: 1
   batch_or_epoch: epoch
   optimizer:
-    type: Adam
-    lr: 0.001
+    type: SGD
+    lr: 0.01
     weight_decay: 1e-4
 criterion:
   type: CrossEntropyLoss
