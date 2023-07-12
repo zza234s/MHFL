@@ -182,8 +182,9 @@ class Client(BaseClient):
                 'port': self.comm_manager.port
             }
 
-        #######统计下载量自用#######
+        #######非官方--自用#######
         self.download_track=dict()
+        self.trainer.ctx.client_ID = self.ID
         #########################
 
     def _gen_timestamp(self, init_timestamp, instance_number):
