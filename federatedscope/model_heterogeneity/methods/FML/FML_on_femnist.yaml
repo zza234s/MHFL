@@ -23,6 +23,7 @@ fml:
     T: 4
 model:
   type: LeNet5
+  T: 4
   out_channels: 62
 train:
   local_update_steps: 1
@@ -43,3 +44,9 @@ eval:
   report : ['weighted_avg', 'avg']
   best_res_update_round_wise_key: test_acc
 exp_name: 'FML_5_clients_on_femnist_low_heterogeneity'
+wandb:
+  use: False
+  name_user: niudaidai
+  name_project: Main_HPO_FEMNIST_CIFAR10
+  online_track: False
+  client_train_info: True

@@ -19,7 +19,7 @@ data:
   test_transform: [ [ 'ToTensor' ], [ 'Normalize', { 'mean': [ 0.4914, 0.4822, 0.4465 ], 'std': [ 0.2470, 0.2435, 0.2616 ] } ] ]
   args: [ { 'download': True } ]
   splitter: 'lda'
-  splitter_args: [ { 'alpha': 100.0 } ]
+  splitter_args: [ { 'alpha': 1.0 } ]
 dataloader:
   batch_size: 256
 fml:
@@ -48,3 +48,9 @@ eval:
   report : ['weighted_avg', 'avg']
   best_res_update_round_wise_key: test_acc
 exp_name: 'HPO_FML_5_clients_on_cifa10_low_heterogeneity'
+wandb:
+  use: False
+  name_user: niudaidai
+  name_project: Main_HPO_FML_CIFAR10
+  online_track: True
+  client_train_info: True

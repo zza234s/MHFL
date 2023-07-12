@@ -60,10 +60,6 @@ class FML_CV_Trainer(GeneralTorchTrainer):
                                    trigger="on_fit_end",
                                    insert_pos=-1)
 
-        self.register_hook_in_eval(new_hook=self._hook_on_fit_end_free_cuda,
-                                   trigger="on_fit_end",
-                                   insert_pos=-1)
-
         self.KL_Loss = nn.KLDivLoss(reduction='batchmean')
         self.Softmax = nn.Softmax(dim=1)
         self.LogSoftmax = nn.LogSoftmax(dim=1)
@@ -177,7 +173,7 @@ class FML_CV_Trainer(GeneralTorchTrainer):
         y_pred = np.argmax(y_prob, axis=1)
 
         acc=eval_acc(y_true,y_pred)
-        logger.info(f'meme_model acc :{acc}')
+        logger.info(f'client#{self.ctx.client_ID} {ctx.cur_split} meme_model acc :{acc}')
         # ctx.local_model.to(torch.device("cpu"))
 
 def eval_acc(y_true, y_pred, **kwargs):
