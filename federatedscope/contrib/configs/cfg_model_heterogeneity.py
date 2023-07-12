@@ -34,6 +34,9 @@ def extend_model_heterogeneous_cfg(cfg):
     cfg.result_floder = 'model_heterogeneity/result/csv'
     cfg.exp_name = 'test'
 
+    # 可视化相关参数
+    cfg.show_label_distribution = False
+
     '''benchmark中各方法所需的参数'''
     # ---------------------------------------------------------------------- #
     # fedproto related options
@@ -61,6 +64,8 @@ def extend_model_heterogeneous_cfg(cfg):
     cfg.fml = CN()
     cfg.fml.alpha = 0.5
     cfg.fml.beta = 0.5
+    cfg.model.T =5 #临时变量
+
 
     # Model related options
     cfg.fml.meme_model = CN()

@@ -16,7 +16,7 @@ from federatedscope.core.auxiliaries.worker_builder import get_client_cls, \
 from federatedscope.core.configs.config import global_cfg, CfgNode
 from federatedscope.core.auxiliaries.runner_builder import get_runner
 
-from federatedscope.contrib.common_utils import result_to_csv
+from federatedscope.contrib.common_utils import result_to_csv,plot_num_of_samples_per_classes
 
 if os.environ.get('https_proxy'):
     del os.environ['https_proxy']
@@ -49,9 +49,10 @@ if __name__ == '__main__':
     data, modified_cfg = get_data(config=init_cfg.clone(),
                                   client_cfgs=client_cfgs)
     init_cfg.merge_from_other_cfg(modified_cfg)
-
-    init_cfg.freeze(inform=False)#TODO:添加是否显示主cfg详细配置的变量
-
+    if init_cfg.show_label_distribution:
+        #是否可视化train/test dataset的标签分布
+        plot_num_of_samples_per_classes(data,modified_cfg)
+    init_cfg.freeze(inform=False)  # TODO:添加是否显示主cfg详细配置的变量
     runner = get_runner(data=data,
                         server_class=get_server_cls(init_cfg),
                         client_class=get_client_cls(init_cfg),
@@ -66,5 +67,5 @@ if __name__ == '__main__':
     client_summarized_test_acc = _['client_summarized_avg']['test_acc']
     # client_summarized_weighted_avg = _['client_summarized_weighted_avg']['test_acc']
     print(f'client_summarized_test_acc:{client_summarized_test_acc}')
-    result_to_csv(_,init_cfg,best_round)
+    result_to_csv(_, init_cfg, best_round)
     # print(f'client_summarized_weighted_avg:{client_summarized_weighted_avg}')

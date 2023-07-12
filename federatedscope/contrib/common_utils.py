@@ -1,3 +1,5 @@
+import copy
+
 import torch
 import torch.nn as nn
 import numpy as np
@@ -6,8 +8,51 @@ import logging
 import pandas as pd
 from datetime import datetime
 import os
+import matplotlib.pyplot as plt
+import numpy as np
+from collections import Counter
 
 logger = logging.getLogger(__name__)
+
+
+def plot_num_of_samples_per_classes(data, modified_cfg,scaling=10.0):
+    client_num = modified_cfg.federate.client_num
+    class_num = modified_cfg.model.out_channels
+    client_list = [i for i in range(1, client_num + 1)]
+    train_label_distribution = {i: {j: 0 for j in range(class_num)} for i in range(1, client_num + 1)}
+    test_label_distribution = copy.deepcopy(train_label_distribution)
+    fig, axs = fig, axs = plt.subplots(1, 2, figsize=(10, 4), sharex=True, sharey=True)
+
+    # 输出训练集标签分布
+    for idx in range(1, client_num + 1):
+        train_dataset = data[idx].train_data
+        train_label_distribution_new = [j[1].item() if isinstance(j[1], torch.Tensor) else j[1] for j in train_dataset]
+        train_label_distribution_new = dict(Counter(train_label_distribution_new))
+        train_label_distribution[idx].update(train_label_distribution_new)
+
+        size = [ count/scaling for count in list(train_label_distribution[idx].values())]
+
+        axs[0].scatter([idx] * class_num, list(train_label_distribution[idx].keys()),
+                       s=size, color='red')
+    axs[0].set_title(f'Train Dataset label distribution')
+
+    # 输出验证集标签分布
+    if modified_cfg.data.local_eval_whole_test_dataset:
+        dataset = data[1].test_data
+        test_label_distribution_new = [j[1] for j in dataset]
+        print(Counter(test_label_distribution_new))
+    else:
+        for idx in range(1, client_num + 1):
+            test_dataset = data[idx].test_data
+            test_label_distribution_new = [j[1].item() if isinstance(j[1], torch.Tensor) else j[1] for j in
+                                           test_dataset]
+            test_label_distribution_new = dict(Counter(test_label_distribution_new))
+            test_label_distribution[idx].update(test_label_distribution_new)
+            axs[1].scatter([idx] * class_num, list(test_label_distribution[idx].keys()),
+                           s=list(test_label_distribution[idx].values()), color='blue')
+
+    axs[1].set_title(f'Test Dataset label distribution')
+    plt.show()
 
 
 def get_public_dataset(dataset):
