@@ -27,7 +27,7 @@ The code of this project is under construction.
 | FSFL         | Few-Shot Model Agnostic Federated Learning                   | ACM MM 2022           | [[pub](https://dl.acm.org/doi/abs/10.1145/3503161.3548764)] [[repository](https://github.com/FangXiuwen/FSMAFL)] |
 | FCCL         | Learn from Others and Be Yourself in Heterogeneous Federated Learning | CVPR 2022             | [[pub](https://openaccess.thecvf.com/content/CVPR2022/papers/Huang_Learn_From_Others_and_Be_Yourself_in_Heterogeneous_Federated_Learning_CVPR_2022_paper.pdf)] [[repository](https://github.com/WenkeHuang/FCCL)] |
 
-#### **Methods based on data-free Knowledge distillation (without public dataset)**
+#### **Methods without public dataset**
 
 | Abbreviation | Title                                                        | Venue      | Materials                                                    |
 | ------------ | ------------------------------------------------------------ | ---------- | ------------------------------------------------------------ |
