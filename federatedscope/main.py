@@ -66,5 +66,5 @@ if __name__ == '__main__':
     client_summarized_test_acc = _['client_summarized_avg']['test_acc']
     # client_summarized_weighted_avg = _['client_summarized_weighted_avg']['test_acc']
     print(f'client_summarized_test_acc:{client_summarized_test_acc}')
-    result_to_csv(_,init_cfg)
+    result_to_csv(_,init_cfg,best_round)
     # print(f'client_summarized_weighted_avg:{client_summarized_weighted_avg}')
