@@ -23,7 +23,7 @@ class LeNet5(nn.Module):
 
 def call_LeNet5(model_config, local_data):
     if 'LeNet5' in model_config.type:
-        model = LeNet5(input_channels=local_data[1],out_channels=model_config.out_channels,T=model_config.T)
+        model = LeNet5(input_channels=local_data[1],out_channels=model_config.out_channels,T=5)
         return model
 
 register_model('LeNet5', call_LeNet5)

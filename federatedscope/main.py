@@ -50,7 +50,7 @@ if __name__ == '__main__':
                                   client_cfgs=client_cfgs)
     init_cfg.merge_from_other_cfg(modified_cfg)
 
-    init_cfg.freeze()
+    init_cfg.freeze(inform=False)#TODO:添加是否显示主cfg详细配置的变量
 
     runner = get_runner(data=data,
                         server_class=get_server_cls(init_cfg),

@@ -1,11 +1,11 @@
 use_gpu: True
 device: 0
 early_stop:
-  patience: 15
+  patience: 50
 seed: 0
 federate:
   mode: standalone
-  total_round_num: 200
+  total_round_num: 500
   sample_client_rate: 1.0
   client_num: 5
   make_global_eval: False
@@ -21,15 +21,18 @@ fml:
     type: LeNet5
     out_channels: 62
     T: 4
+model:
+  type: LeNet5
+  out_channels: 62
 train:
   local_update_steps: 1
   batch_or_epoch: epoch
   optimizer:
-    type: SGD
-    lr: 0.001
+    type: Adam
+    lr: 0.01
     weight_decay: 1e-4
-#grad:
-#  grad_clip: 5.0
+grad:
+  grad_clip: 5.0
 criterion:
   type: CrossEntropyLoss
 trainer:

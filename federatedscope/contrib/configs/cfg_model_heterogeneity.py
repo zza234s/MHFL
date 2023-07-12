@@ -56,7 +56,7 @@ def extend_model_heterogeneous_cfg(cfg):
     cfg.fedproto.test_shots = 15
 
     # ---------------------------------------------------------------------- #
-    # FML related options
+    # Federated Mutual Learning (FML) related options
     # ---------------------------------------------------------------------- #
     cfg.fml = CN()
     cfg.fml.alpha = 0.5
@@ -71,6 +71,7 @@ def extend_model_heterogeneous_cfg(cfg):
     cfg.fml.meme_model.out_channels = 1
     cfg.fml.meme_model.layer = 2
     cfg.fml.meme_model.T = 5 #TODO: 临时变量
+
 
     # ---------------------------------------------------------------------- #
     # FedHeNN related options

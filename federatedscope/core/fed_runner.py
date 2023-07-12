@@ -196,7 +196,7 @@ class BaseRunner(object):
             client_specific_config.defrost()
             client_specific_config.merge_from_other_cfg(
                 self.client_cfgs.get('client_{}'.format(client_id)))
-            client_specific_config.freeze()
+            client_specific_config.freeze(inform=False)#TODO:添加控制是否显示client_cfg详细配置的变量
         client_device = self._server_device if \
             self.cfg.federate.share_local_model else \
             self.gpu_manager.auto_choice()
