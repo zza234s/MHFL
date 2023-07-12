@@ -23,10 +23,6 @@ data:
   splitter_args: [{'alpha': 100}] #please set alpha to 100,1 and 0.1. The smaller alpha, the greater the heterogeneity
 dataloader:
   batch_size: 256
-model:
-  hidden: 2048
-  out_channels: 10
-  dropout: 0.5
 train:
   local_update_steps: 1
   batch_or_epoch: epoch

@@ -2,7 +2,6 @@ set -e
 cd ../../../ #到federatedscope目录
 gpu=$1
 dataset=$2
-exp_name=HPO_LOCAL
 result_floder=model_heterogeneity/result/csv
 
 #wandb
@@ -12,12 +11,11 @@ wandb_online_track=False
 wandb_client_train_info=True
 #set wandb.name_project in the following if statement.
 
-alpha=(100)
-local_update_step=(5 10)
+local_update_step=(1 5 10)
 lrs=(0.01 0.001)
 optimizer=('Adam' 'SGD')
 seed=(0 1 2)
-total_round=$3
+total_round=200
 patience=50
 
 
