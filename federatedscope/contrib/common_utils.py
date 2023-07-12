@@ -97,7 +97,7 @@ class EarlyStopMonitor(object):
         self.last_best = None
 
 
-def result_to_csv(result, init_cfg):
+def result_to_csv(result, init_cfg, best_round):
     # 获取当前时间
     current_time = datetime.now()
     time_string = current_time.strftime("%Y-%m-%d %H:%M")
@@ -112,7 +112,8 @@ def result_to_csv(result, init_cfg):
         'splitter': [init_cfg.data.splitter],
         'client_num': [init_cfg.federate.client_num],
         'local_updates': [init_cfg.train.local_update_steps],
-        'test_acc': [result['client_summarized_avg']['test_acc']]
+        'test_acc': [result['client_summarized_avg']['test_acc']],
+        'best_round': [best_round]
     }
 
     if len(init_cfg.data.splitter_args) != 0 and 'alpha' in init_cfg.data.splitter_args[0]:
