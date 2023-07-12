@@ -50,7 +50,7 @@ The code of this project is under construction.
 
 ## Model and Dataset
 
-Currently, we simply conduct experiments on two FL benchmark datasets: CIFAR-10 and FEMINIST.
+Currently, we simply conduct experiments on two FL benchmark datasets: CIFAR-10 and FEMNIST.
 
 
 
