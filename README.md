@@ -2,7 +2,7 @@
 
 This is an evaluation work for Model Heterogeneous Federated Learning (MHFL). It also aims to provide an easy-to-use MHFL benchmark.
 
-这是一个模型异构联邦学习的评估性工作, 同时旨在为社区提供一个易于使用的模型异构联邦学习基准。
+这是一个模型异构联邦学习的评估性工作, 同时旨在提供一个易于使用的模型异构联邦学习基准。
 
 
 
