@@ -425,7 +425,13 @@ def result_to_csv(result, init_cfg, best_round):
         'client_num': [init_cfg.federate.client_num],
         'local_updates': [init_cfg.train.local_update_steps],
         'test_acc': [result['client_summarized_avg']['test_acc']],
-        'best_round': [best_round]
+        'best_round': [best_round],
+        'fml_alpha': [init_cfg.fml.alpha],
+        'fml_beta': [init_cfg.fml.beta],
+        'fedmd_public_subset_size': [init_cfg.fedmd.public_subset_size],
+        'fedmd_digest_epochs': [init_cfg.fedmd.digest_epochs],
+        'fedhenn_eta': [init_cfg.fedhenn.eta],
+
     }
 
     if len(init_cfg.data.splitter_args) != 0 and 'alpha' in init_cfg.data.splitter_args[0]:
@@ -433,6 +439,8 @@ def result_to_csv(result, init_cfg, best_round):
 
     if out_dict['method'][0] == 'fedproto':
         out_dict['proto_weight'] = init_cfg.fedproto.proto_weight
+
+
 
     out_dict['local_eval_whole_test_dataset'] = [init_cfg.data.local_eval_whole_test_dataset]
 
