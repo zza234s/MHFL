@@ -42,7 +42,7 @@ The code of this project is under construction.
 | Abbreviation | Title                                                        | Venue        | progress bar    |
 | ------------ | ------------------------------------------------------------ | ------------ | --------------- |
 | FEDAUX       | [FedAUX: Leveraging Unlabeled Auxiliary Data in Federated Learning](https://arxiv.org/abs/2102.02514) | TNNLS 2021   | [#----------]0% |
-| DENSE        | [DENSE: Data-Free One-Shot Federated Learning](https://arxiv.org/abs/2112.12371) | NeurIPS 2022 | [###-------]30% |
+| DENSE        | [DENSE: Data-Free One-Shot Federated Learning](https://arxiv.org/abs/2112.12371) | NeurIPS 2022 | [########--]80% |
 | FedPCL       | [Federated Learning from Pre-Trained Models: A Contrastive Learning Approach](https://arxiv.org/abs/2209.10083) | NeurIPS 2022 | [########--]90% |
 | TBD          | .....                                                        |              |                 |
 
