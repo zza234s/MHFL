@@ -18,24 +18,23 @@ seed=(0 1 2)
 total_round=200
 patience=50
 momentum=0.9
-# FML额外优化的超参
-fml_alpha=(0.3 0.5 1.0)
-fml_beta=(0.3 0.5 1.0)
+#FedMD需要额外微调的超参
+public_subset_size=(2500 5000) #10000
+digest_epochs=(1 5 10)
 
 if [[ $dataset = 'femnist' ]]; then
-  main_cfg=model_heterogeneity/methods/FML/FML_on_femnist.yaml
-  client_file=model_heterogeneity/methods/FML/model_setting_5_client_on_FEMNIST_low_heterogeneity.yaml
-  exp_name=HPO_FML_FEMNIST
-  wandb_name_project=HPO_FML_FEMNIST
-  T=4
+  main_cfg=model_heterogeneity/methods/FedMD/FedMD_on_femnist.yaml
+  client_file=model_heterogeneity/methods/FedMD/model_setting_5_client_on_FEMNIST_low_heterogeneity.yaml
+  exp_name=HPO_FedMD_FEMNIST_
+  wandb_name_project=HPO_FedMD_FEMNIST_
   for ((op = 0; op < ${#optimizer[@]}; op++)); do
     for ((lr = 0; lr < ${#lrs[@]}; lr++)); do
       for ((l = 0; l < ${#local_update_step[@]}; l++)); do
-        for ((fml_a = 0; fml_a < ${#fml_alpha[@]}; fml_a++)); do
-          for ((fml_b = 0; fml_b < ${#fml_beta[@]}; fml_b++)); do
+        for ((ps = 0; ps < ${#public_subset_size[@]}; ps++)); do
+          for ((de = 0; de < ${#digest_epochs[@]}; de++)); do
             for ((k = 0; k < ${#seed[@]}; k++)); do
-              #Adam
               if [[ ${optimizer[$op]} = 'Adam' ]]; then
+                # Adam
                 python main.py --cfg ${main_cfg} --client_cfg ${client_file} \
                   federate.total_round_num ${total_round} \
                   early_stop.patience ${patience} \
@@ -51,10 +50,8 @@ if [[ $dataset = 'femnist' ]]; then
                   wandb.name_project ${wandb_name_project} \
                   wandb.online_track ${wandb_online_track} \
                   wandb.client_train_info ${wandb_client_train_info} \
-                  fml.meme_model.T ${T} \
-                  model.T ${T} \
-                  fml.alpha ${fml_alpha[$fml_a]} \
-                  fml.beta ${fml_beta[$fml_beta]}
+                  fedmd.public_subset_size ${public_subset_size[$ps]} \
+                  fedmd.digest_epochs ${digest_epochs[$de]}
               else
                 # SGD optimizer with momentum=0.9
                 python main.py --cfg ${main_cfg} --client_cfg ${client_file} \
@@ -73,10 +70,8 @@ if [[ $dataset = 'femnist' ]]; then
                   wandb.name_project ${wandb_name_project} \
                   wandb.online_track ${wandb_online_track} \
                   wandb.client_train_info ${wandb_client_train_info} \
-                  fml.meme_model.T ${T} \
-                  model.T ${T} \
-                  fml.alpha ${fml_alpha[$fml_a]} \
-                  fml.beta ${fml_beta[$fml_beta]}
+                  fedmd.public_subset_size ${public_subset_size[$ps]} \
+                  fedmd.digest_epochs ${digest_epochs[$de]}
               fi
             done
           done
@@ -84,21 +79,23 @@ if [[ $dataset = 'femnist' ]]; then
       done
     done
   done
-elif [[ $dataset = 'cifar10' ]]; then
-  main_cfg=model_heterogeneity/methods/FML/FML_on_cifar10.yaml
-  client_file=model_heterogeneity/methods/FML/model_setting_5_client_on_cifar10_low_heterogeneity.yaml
-  exp_name=HPO_FML_CIFAR10
-  wandb_name_project=HPO_FML_CIFAR10
+elif
+  [[ $dataset = 'cifar10' ]]
+then
+  main_cfg=model_heterogeneity/methods/FedMD/FedMD_on_cifar10.yaml
+  client_file=model_heterogeneity/methods/FedMD/model_setting_5_client_on_cifar10_low_heterogeneity.yaml
+  exp_name=HPO_FedMD_CIFAR10_
+  wandb_name_project=HPO_FedMD_CIFAR10_
   lda_alpha=(100 1.0 0.1)
   for ((op = 0; op < ${#optimizer[@]}; op++)); do
     for ((lr = 0; lr < ${#lrs[@]}; lr++)); do
       for ((l = 0; l < ${#local_update_step[@]}; l++)); do
         for ((a = 0; a < ${#lda_alpha[@]}; a++)); do
-          for ((fml_a = 0; fml_a < ${#fml_alpha[@]}; fml_a++)); do
-            for ((fml_b = 0; fml_b < ${#fml_beta[@]}; fml_b++)); do
+          for ((ps = 0; ps < ${#public_subset_size[@]}; ps++)); do
+            for ((de = 0; de < ${#digest_epochs[@]}; de++)); do
               for ((k = 0; k < ${#seed[@]}; k++)); do
-                #Adam
                 if [[ ${optimizer[$op]} = 'Adam' ]]; then
+                  # Adam
                   python main.py --cfg ${main_cfg} --client_cfg ${client_file} \
                     federate.total_round_num ${total_round} \
                     early_stop.patience ${patience} \
@@ -115,12 +112,10 @@ elif [[ $dataset = 'cifar10' ]]; then
                     wandb.name_project ${wandb_name_project} \
                     wandb.online_track ${wandb_online_track} \
                     wandb.client_train_info ${wandb_client_train_info} \
-                    fml.meme_model.T ${T} \
-                    model.T ${T} \
-                    fml.alpha ${fml_alpha[$fml_a]} \
-                    fml.beta ${fml_beta[$fml_beta]}
+                    fedmd.public_subset_size ${public_subset_size[$ps]} \
+                    fedmd.digest_epochs ${digest_epochs[$de]}
                 else
-                  # SGD with momentum=0.9
+                  # SGD optimizer with momentum=0.9
                   python main.py --cfg ${main_cfg} --client_cfg ${client_file} \
                     federate.total_round_num ${total_round} \
                     early_stop.patience ${patience} \
@@ -138,10 +133,8 @@ elif [[ $dataset = 'cifar10' ]]; then
                     wandb.name_project ${wandb_name_project} \
                     wandb.online_track ${wandb_online_track} \
                     wandb.client_train_info ${wandb_client_train_info} \
-                    fml.meme_model.T ${T} \
-                    model.T ${T} \
-                    fml.alpha ${fml_alpha[$fml_a]} \
-                    fml.beta ${fml_beta[$fml_beta]}
+                    fedmd.public_subset_size ${public_subset_size[$ps]} \
+                    fedmd.digest_epochs ${digest_epochs[$de]}
                 fi
               done
             done
@@ -150,5 +143,4 @@ elif [[ $dataset = 'cifar10' ]]; then
       done
     done
   done
-
 fi

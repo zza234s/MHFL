@@ -37,7 +37,7 @@ trainer:
 grad:
   grad_clip: 5.0
 eval:
-  freq: 5
+  freq: 1
   metrics: ['acc', 'correct']
   report : ['weighted_avg', 'avg', 'raw']
   best_res_update_round_wise_key: test_acc

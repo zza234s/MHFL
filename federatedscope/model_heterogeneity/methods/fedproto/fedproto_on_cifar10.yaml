@@ -1,7 +1,7 @@
 use_gpu: True
 device: 0
 early_stop:
-  patience: 15
+  patience: 50
 seed: 0
 check_completeness: False
 federate:
@@ -30,9 +30,10 @@ train:
   local_update_steps: 1
   batch_or_epoch: epoch
   optimizer:
-    type: Adam
+    type: SGD
     lr: 0.001
     weight_decay: 1e-4
+    momentum: 0.9
 criterion:
   type: CrossEntropyLoss
 trainer:
@@ -40,7 +41,7 @@ trainer:
 grad:
   grad_clip: 5.0
 eval:
-  freq: 20
+  freq: 1
   metrics: ['acc']
   report : ['weighted_avg', 'avg']
   best_res_update_round_wise_key: test_acc

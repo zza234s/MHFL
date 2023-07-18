@@ -38,11 +38,10 @@ class FSFL_Server(Server):
         super(FSFL_Server, self).__init__(ID, state, config, data, model, client_num, total_round_num,
                                           device, strategy, unseen_clients_id, **kwargs)
         r"""
-            FSFL+ consists of three of training stages.
+            FSFL consists of three of training stages.
             Stage1: local pre-train for the private model using public and private dataset .
             Stage2: rounds 0 to DI_epochs, federated training for domain identifier.
             Stage3: -> 2 * fedgen_epoch + total_round_num: federated training
-            for GraphSAGE Classifier
         """
         self.FSFL_cfg = config.fsfl
 

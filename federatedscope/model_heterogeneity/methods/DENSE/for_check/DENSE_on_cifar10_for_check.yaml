@@ -1,0 +1,57 @@
+use_gpu: True
+device: 0
+early_stop:
+  patience: 50
+seed: 0
+federate:
+  method: dense
+  mode: standalone
+  total_round_num: 200
+  sample_client_rate: 1.0
+  client_num: 5
+  make_global_eval: False
+data:
+  root: data/
+  local_eval_whole_test_dataset: True #important! Whether the test dataset for each client is equivalent to the test dataset for the unsplit dataset
+  type: 'CIFAR10@torchvision'
+  splits: [ 1.0, 0.0, 0.0 ]
+  num_workers: 0
+  # -------------------------------------------------------------------------------------------------------------------------------
+  # Data augmentation based on the source code of DENSE; the enhancement method is slightly different from that in our benchmark
+  transform: [ [ 'RandomCrop', { 'size': 32, 'padding': 4 } ], [ 'RandomHorizontalFlip' ], [ 'ToTensor' ] ]
+  test_transform: [ [ 'ToTensor' ] ]
+  # -------------------------------------------------------------------------------------------------------------------------------
+  args: [ { 'download': True } ]
+  splitter: 'lda'
+  splitter_args: [ { 'alpha': 1.0 } ]
+dataloader:
+  batch_size: 256
+DENSE:
+  model_heterogeneous: True # Dense
+  pretrain_epoch: 2
+model:
+  type: CNN_2layers
+  out_channels: 10
+train:
+  local_update_steps: 1
+  batch_or_epoch: epoch
+  optimizer:
+    type: Adam
+    lr: 0.001
+    weight_decay: 1e-4
+grad:
+  grad_clip: 5.0
+criterion:
+  type: CrossEntropyLoss
+eval:
+  freq: 1
+  metrics: [ 'acc' ]
+  report: [ 'weighted_avg', 'avg' ]
+  best_res_update_round_wise_key: test_acc
+exp_name: 'main_test_DENSE_5_clients_on_cifa10_low_heterogeneity'
+wandb:
+  use: False
+  name_user: niudaidai
+  name_project: Main_HPO_DENSE_CIFAR10
+  online_track: True
+  client_train_info: True

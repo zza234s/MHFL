@@ -1,0 +1,52 @@
+use_gpu: True
+device: 0
+early_stop:
+  patience: 50
+seed: 0
+federate:
+  method: fedmd
+  mode: standalone
+  client_num: 5
+  total_round_num: 200
+  sample_client_rate: 1.0
+  make_global_eval: False
+data:
+  root: data/
+  local_eval_whole_test_dataset: True # Whether the test dataset for each client is equivalent to the test dataset for the unsplit dataset
+  type: 'CIFAR10@torchvision'
+  splits: [1.0, 0.0, 0.0]
+  transform: [['ToTensor'], ['Normalize', {'mean': [0.4914, 0.4822, 0.4465], 'std': [0.2470, 0.2435, 0.2616]}]]
+  test_transform: [['ToTensor'], ['Normalize', {'mean': [0.4914, 0.4822, 0.4465], 'std': [0.2470, 0.2435, 0.2616]}]]
+  args: [{'download': True}]
+  splitter: 'lda'
+  splitter_args: [{'alpha': 100}] #please set alpha to 100,1 and 0.1. The smaller alpha, the greater the heterogeneity
+dataloader:
+  batch_size: 256
+MHFL:
+  save_pretraining_model: True
+  public_dataset: cifar100
+fedmd:
+  pre_training:
+    rePretrain: False
+    public_epochs: 2
+    public_batch_size: 512
+    private_epochs: 2
+    private_batch_size: 512
+train:
+  local_update_steps: 1
+  batch_or_epoch: epoch
+  optimizer:
+    type: Adam
+    lr: 0.001
+    weight_decay: 1e-4
+grad:
+  grad_clip: 5.0
+criterion:
+  type: CrossEntropyLoss
+trainer:
+  type: cvtrainer
+eval:
+  freq: 1
+  metrics: ['acc']
+  report : ['avg']
+  best_res_update_round_wise_key: test_acc

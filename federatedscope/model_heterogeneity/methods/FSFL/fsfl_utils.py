@@ -37,7 +37,7 @@ class DomainDataset(Dataset):
 
 def divide_dataset_epoch(dataset, epochs, num_samples_per_epoch=5000):
     """
-    这个函数将会返回一个名为epoch_group的字典，用来指定模型异构联邦学习的过程中每个client在不同epoch中使用公共数据集的哪些样本
+    这个函数将会返回一个名为epoch_group的字典，用来的指定每个client在不同epoch中使用公共数据集中的哪些样本，从而确保每个client上传的logits基于同样的数据数据（即对齐）
     key是epoch编号: 0，2，..., collaborative_epoch-1
     values是一个list: 保存着对应的epoch要用到的公共数据集的样本编号。
     Note:让每个client确定每一轮用哪些公共数据集的样本直觉上看起来并非是一个高效的做法，但是为了加快实现速度，我暂时没有对这一部分做改进
