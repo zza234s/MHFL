@@ -6,6 +6,7 @@ from kornia import augmentation
 from torchvision import transforms
 from tqdm import tqdm
 import torchvision.utils as vutils
+from federatedscope.contrib.common_utils import ImagePool, DeepInversionHook, average_weights, kldiv
 class DENSE_Generator(nn.Module):
     '''
     source: https://github.com/NaiboWang/Data-Free-Ensemble-Selection-For-One-Shot-Federated-Learning/blob/master/DENSE/models/generator.py
@@ -37,6 +38,44 @@ class DENSE_Generator(nn.Module):
         out = out.view(out.shape[0], -1, self.init_size, self.init_size)
         img = self.conv_blocks(out)
         return img
+
+
+class MultiTransform:
+    """Create two crops of the same image"""
+
+    def __init__(self, transform):
+        self.transform = transform
+
+    def __call__(self, x):
+        return [t(x) for t in self.transform]
+
+    def __repr__(self):
+        return str(self.transform)
+
+def reset_model(model):
+    for m in model.modules():
+        if isinstance(m, (nn.ConvTranspose2d, nn.Linear, nn.Conv2d)):
+            nn.init.normal_(m.weight, 0.0, 0.02)
+            if m.bias is not None:
+                nn.init.constant_(m.bias, 0)
+        if isinstance(m, (nn.BatchNorm2d)):
+            nn.init.normal_(m.weight, 1.0, 0.02)
+            nn.init.constant_(m.bias, 0)
+
+class Ensemble_A(torch.nn.Module):
+    def __init__(self, model_list):
+        super(Ensemble_A, self).__init__()
+        self.models = model_list
+
+    def forward(self, x):
+        logits_total = 0
+        for i in range(len(self.models)):
+            logits = self.models[i](x)
+            logits_total += logits
+        logits_e = logits_total / len(self.models)
+
+        return logits_e
+
 
 class AdvSynthesizer():
     def __init__(self, teacher, model_list, student, generator, nz, num_classes, img_size,

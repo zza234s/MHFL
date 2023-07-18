@@ -284,7 +284,6 @@ class Trainer(BaseTrainer):
 
     @lifecycle(LIFECYCLE.EPOCH)
     def _run_epoch(self, hooks_set):
-        logger.info(f'v{getattr(self.ctx, f"num_{self.ctx.cur_split}_epoch")}')
         for epoch_i in range(
                 getattr(self.ctx, f"num_{self.ctx.cur_split}_epoch")):
             self.ctx.cur_epoch_i = CtxVar(epoch_i, "epoch")

@@ -2,12 +2,17 @@ from federatedscope.register import register_worker
 from federatedscope.core.workers import Server, Client
 from federatedscope.core.message import Message
 from federatedscope.core.auxiliaries.model_builder import get_model
-from federatedscope.contrib.common_utils import Ensemble,KLDiv
-from federatedscope.contrib.model.Generator import DENSE_Generator,AdvSynthesizer
+from federatedscope.contrib.common_utils import Ensemble, KLDiv, save_checkpoint,test
+from federatedscope.contrib.model.Generator import DENSE_Generator, AdvSynthesizer
+from federatedscope.core.auxiliaries.sampler_builder import get_sampler
+from federatedscope.contrib.model.DENSE_resnet import resnet18
 import logging
 import torch
 import os
 import copy
+import sys
+from tqdm import tqdm
+import pickle
 from federatedscope.core.auxiliaries.utils import merge_dict_of_results, \
     Timeout, merge_param_dict
 
@@ -30,10 +35,15 @@ class DENSE_Server(Server):
         super(DENSE_Server, self).__init__(ID, state, config, data, model, client_num, total_round_num,
                                            device, strategy, unseen_clients_id, **kwargs)
         self.local_models = dict()  # key:client_ID, values: torch.model
-        self.global_model = get_model(model_config=config.model, local_data=data)
+        self.global_model = get_model(model_config=config.model, local_data=data) #TODO: global model换成resnet18和源码统一
         self.nz = config.DENSE.nz
+        self.test_loader =self.data['test']
         self.nc = 3 if "CIFAR" in config.data.type or config.data.type == "svhn" else 1
+        self.other = config.data.type #TODO: 源代码中other的含义还是再要确认一下
+        self.model_weight_dir = os.path.join(config.MHFL.model_weight_dir, 'df_ckpt')
 
+        if not os.path.exists(self.model_weight_dir):
+            os.mkdir(self.model_weight_dir)  # 生成保存预训练模型权重所需的文件夹
     def callback_funcs_for_join_in(self, message: Message):
         """
             额外增加处理每个client个性化模型的内容
@@ -49,12 +59,24 @@ class DENSE_Server(Server):
         self.comm_manager.add_neighbors(neighbor_id=sender,
                                         address=address)
 
-        self.start_global_distillation()
+        self.trigger_for_start()
 
+
+    def trigger_for_start(self):
+        """
+        To start the FL course when the expected number of clients have joined
+        """
+        if self.check_client_join_in():
+            logger.info(
+                '----------- Starting Global Distillation -------------'.
+                format(self.state))
+            self.start_global_distillation()
     def start_global_distillation(self):
         model_list = list(self.local_models.values())  # TODO: 按client_id 对字典排序
+        for model in model_list:
+            model.to(self.device)
         ensemble_model = Ensemble(model_list)
-        global_model=self.global_model
+        global_model = resnet18(num_classes=10).to(self.device)
 
         # data generator
         nz = self._cfg.DENSE.nz
@@ -69,10 +91,40 @@ class DENSE_Server(Server):
                                      nz=nz, num_classes=num_class, img_size=img_size2,
                                      iterations=self._cfg.DENSE.g_steps, lr_g=self._cfg.DENSE.lr_g,
                                      synthesis_batch_size=self._cfg.DENSE.synthesis_batch_size,
-                                     sample_batch_size=self._cfg.DENSE.sample_batch_size,#todo：是否可以用cfg.dataloader的batch_size来替换这里的batchsize?
+                                     sample_batch_size=self._cfg.DENSE.sample_batch_size,
+                                     # todo：是否可以用cfg.dataloader的batch_size来替换这里的batchsize?
                                      adv=self._cfg.DENSE.adv, bn=self._cfg.DENSE.bn, oh=self._cfg.DENSE.oh,
-                                     save_dir=self._cfg.DENSE.save_dir, dataset=self._cfg.data.type)#todo: 这里的data.type是类似“CIFAR100@torchvision”这种格式，可能不满足函数要求
-        # criterion = KLDiv(T=self._cfg..T)
+                                     save_dir=self._cfg.DENSE.save_dir,
+                                     dataset=self._cfg.data.type)  # todo: 这里的data.type是类似“CIFAR100@torchvision”这种格式，可能不满足函数要求
+        criterion = KLDiv(T=self._cfg.DENSE.T)
+        optimizer = torch.optim.SGD(global_model.parameters(), lr=self._cfg.train.optimizer.lr,
+                                    momentum=0.9)  # todo:是否要用其他变量开控制这里的学习率?
+        global_model.train()
+        distill_acc = []
+        bst_acc=-1
+        for epoch in tqdm(range(self._cfg.federate.total_round_num)):  # todo:是否要用其他变量来控制这里的epoch总数?
+            # 1. Data synthesis
+            synthesizer.gen_data(cur_ep)  # g_steps
+            cur_ep += 1
+            kd_train(synthesizer, [global_model, ensemble_model], criterion, optimizer)  # # kd_steps
+            acc, test_loss = test(global_model, self.test_loader,self.device)
+            distill_acc.append(acc)
+            is_best = acc > bst_acc
+            bst_acc = max(acc, bst_acc)
+            _best_ckpt = f"{self.model_weight_dir}/{self.other}.pth"
+            print("best acc:{}".format(bst_acc))
+            save_checkpoint({
+                'state_dict': global_model.state_dict(),
+                'best_acc': float(bst_acc),
+            }, is_best, _best_ckpt)
+            # wandb.log({'accuracy': acc})
+
+        # wandb.log({"global_accuracy" : wandb.plot.line_series(
+        #     xs=[ i for i in range(args.epochs) ],
+        #     ys=distill_acc,
+        #     keys="DENSE",
+        #     title="Accuacy of DENSE")})
+        # np.save("distill_acc_{}.npy".format(args.dataset), np.array(distill_acc))
 
 
 class DENSE_Client(Client):
@@ -132,6 +184,38 @@ class DENSE_Client(Client):
 
             logger.info(f"Client #{self.ID} pre-train finish. Save the model weight file")
             torch.save(self.model.state_dict(), save_path)
+
+
+def kd_train(synthesizer, model, criterion, optimizer):
+    """
+    source: https://github.com/NaiboWang/Data-Free-Ensemble-Selection-For-One-Shot-Federated-Learning/blob/master/DENSE/heter_fl.py
+    """
+    student, teacher = model
+    student.train()
+    teacher.eval()
+    description = "loss={:.4f} acc={:.2f}%"
+    total_loss = 0.0
+    correct = 0.0
+    with tqdm(synthesizer.get_data()) as epochs:
+        for idx, (images) in enumerate(epochs):
+            optimizer.zero_grad()
+            images = images.cuda()
+            with torch.no_grad():
+                t_out = teacher(images)
+            s_out = student(images.detach())
+            loss_s = criterion(s_out, t_out.detach())
+
+            loss_s.backward()
+            optimizer.step()
+
+            total_loss += loss_s.detach().item()
+            avg_loss = total_loss / (idx + 1)
+            pred = s_out.argmax(dim=1)
+            target = t_out.argmax(dim=1)
+            correct += pred.eq(target.view_as(pred)).sum().item()
+            acc = correct / len(synthesizer.data_loader.dataset) * 100
+
+            epochs.set_description(description.format(avg_loss, acc))
 
 
 def call_my_worker(method):

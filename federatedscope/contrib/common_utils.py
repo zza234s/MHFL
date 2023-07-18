@@ -72,6 +72,7 @@ def divide_dataset_epoch(dataset, epochs, num_samples_per_epoch=5000):
         # all_idxs = list(set(all_idxs) - dict_epoch[i])
     return dict_epoch
 
+
 def get_public_dataset(dataset):
     # TODO:核对每个数据集Normalize的值是否正确
     data_dir = './data'
@@ -140,6 +141,29 @@ def eval_CV(model, criterion, test_loader, device, client_id, epoch):
     return val_loss, acc
 
 
+
+def test(model, test_loader, device):
+    """
+    source: https://github.com/NaiboWang/Data-Free-Ensemble-Selection-For-One-Shot-Federated-Learning/blob/master/DENSE/helpers/utils.py
+    """
+    model.eval()
+    test_loss = 0
+    correct = 0
+    with torch.no_grad():
+        for data, target in test_loader:
+            data, target = data.to(device), target.cuda()
+            output = model(data)
+            test_loss += F.cross_entropy(output, target, size_average=False).item()  # sum up batch loss
+            pred = torch.max(output, 1)[1]
+            correct += pred.eq(target.view_as(pred)).sum().item()
+
+    test_loss /= len(test_loader.dataset)
+    acc = 100. * correct / len(test_loader.dataset)
+    # print('\n Test_set: Average loss: {:.4f}, Accuracy: {:.4f}\n'
+    #       .format(test_loss, acc))
+    return acc, test_loss
+
+
 class EarlyStopMonitor(object):
     def __init__(self, max_round=10, higher_better=True, tolerance=1e-10):
         self.max_round = max_round
@@ -174,10 +198,12 @@ class EarlyStopMonitor(object):
         self.best_epoch = 0
         self.last_best = None
 
+
 class Ensemble(torch.nn.Module):
     """
     source: https://github.com/NaiboWang/Data-Free-Ensemble-Selection-For-One-Shot-Federated-Learning/blob/master/DENSE/helpers/synthesizers.py
     """
+
     def __init__(self, model_list):
         super(Ensemble, self).__init__()
         self.models = model_list
@@ -190,6 +216,7 @@ class Ensemble(torch.nn.Module):
         logits_e = logits_total / len(self.models)
 
         return logits_e
+
 
 def pack_images(images, col=None, channel_last=False, padding=1):
     """
@@ -215,6 +242,7 @@ def pack_images(images, col=None, channel_last=False, padding=1):
         pack[:, h:h + H, w:w + W] = img
     return pack
 
+
 def _collect_all_images(root, postfix=['png', 'jpg', 'jpeg', 'JPEG']):
     """
     source: https://github.com/NaiboWang/Data-Free-Ensemble-Selection-For-One-Shot-Federated-Learning/blob/master/DENSE/helpers/utils.py
@@ -229,10 +257,12 @@ def _collect_all_images(root, postfix=['png', 'jpg', 'jpeg', 'JPEG']):
                     images.append(os.path.join(dirpath, f))
     return images
 
+
 class UnlabeledImageDataset(torch.utils.data.Dataset):
     """
     source: https://github.com/NaiboWang/Data-Free-Ensemble-Selection-For-One-Shot-Federated-Learning/blob/master/DENSE/helpers/utils.py
     """
+
     def __init__(self, root, transform=None):
         self.root = os.path.abspath(root)
         self.images = _collect_all_images(self.root)  # [ os.path.join(self.root, f) for f in os.listdir( root ) ]
@@ -243,11 +273,14 @@ class UnlabeledImageDataset(torch.utils.data.Dataset):
         if self.transform:
             img = self.transform(img)
         return img
+
     def __len__(self):
         return len(self.images)
+
     def __repr__(self):
         return 'Unlabeled data:\n\troot: %s\n\tdata mount: %d\n\ttransforms: %s' % (
             self.root, len(self), self.transform)
+
 
 def save_image_batch(imgs, output, col=None, size=None, pack=True):
     """
@@ -280,10 +313,12 @@ def save_image_batch(imgs, output, col=None, size=None, pack=True):
                 img = Image.fromarray(img.transpose(1, 2, 0))
             img.save(output_filename + '-%d.png' % (idx))
 
+
 class ImagePool(object):
     """
     source: https://github.com/NaiboWang/Data-Free-Ensemble-Selection-For-One-Shot-Federated-Learning/blob/master/DENSE/helpers/utils.py
     """
+
     def __init__(self, root):
         self.root = os.path.abspath(root)
         os.makedirs(self.root, exist_ok=True)
@@ -296,12 +331,14 @@ class ImagePool(object):
     def get_dataset(self, transform=None, labeled=True):
         return UnlabeledImageDataset(self.root, transform=transform)
 
+
 class DeepInversionHook():
     '''
     source: https://github.com/NaiboWang/Data-Free-Ensemble-Selection-For-One-Shot-Federated-Learning/blob/master/DENSE/helpers/utils.py
     Implementation of the forward hook to track feature statistics and compute a loss on them.
     Will compute mean and variance, and will use l2 as a loss
     '''
+
     def __init__(self, module):
         self.hook = module.register_forward_hook(self.hook_fn)
         self.module = module
@@ -320,6 +357,7 @@ class DeepInversionHook():
     def remove(self):
         self.hook.remove()
 
+
 def average_weights(w):
     """
     source: https://github.com/NaiboWang/Data-Free-Ensemble-Selection-For-One-Shot-Federated-Learning/blob/master/DENSE/helpers/utils.py
@@ -335,10 +373,12 @@ def average_weights(w):
             w_avg[key] = torch.div(w_avg[key], len(w))
     return w_avg
 
+
 class KLDiv(nn.Module):
     """
     source: https://github.com/NaiboWang/Data-Free-Ensemble-Selection-For-One-Shot-Federated-Learning/blob/master/DENSE/helpers/utils.py
     """
+
     def __init__(self, T=1.0, reduction='batchmean'):
         """
 
@@ -359,6 +399,14 @@ def kldiv(logits, targets, T=1.0, reduction='batchmean'):
     q = F.log_softmax(logits / T, dim=1)
     p = F.softmax(targets / T, dim=1)
     return F.kl_div(q, p, reduction=reduction) * (T * T)
+
+
+def save_checkpoint(state, is_best, filename='checkpoint.pth'):
+    """
+    source: https://github.com/NaiboWang/Data-Free-Ensemble-Selection-For-One-Shot-Federated-Learning/blob/master/DENSE/heter_fl.py
+    """
+    if is_best:
+        torch.save(state, filename)
 
 
 def result_to_csv(result, init_cfg, best_round):

@@ -17,7 +17,7 @@ data:
   splits: [ 1.0, 0.0, 0.0 ]
   num_workers: 0
   # -------------------------------------------------------------------------------------------------------------------------------
-  # Data augmentation based on the source code of DENSE; the enhancement method is slightly different from that in our benchmark
+  # This data augmentation strategy is based on the source code of DENSE, and it is slightly different from that in our benchmark
   transform: [ [ 'RandomCrop', { 'size': 32, 'padding': 4 } ], [ 'RandomHorizontalFlip' ], [ 'ToTensor' ] ]
   test_transform: [ [ 'ToTensor' ] ]
   # -------------------------------------------------------------------------------------------------------------------------------
@@ -28,7 +28,18 @@ dataloader:
   batch_size: 256
 DENSE:
   model_heterogeneous: True # Dense
-  pretrain_epoch: 2
+  pretrain_epoch: 400
+  nz: 256  # number of total iterations in each epoch
+  g_steps: 2  # number of iterations for generation
+  lr_g: 1e-3  # initial learning rate for generation
+  synthesis_batch_size: 256
+  sample_batch_size: 256
+  adv: 0  # scaling factor for adv loss
+  bn: 0  # scaling factor for BN regularization
+  oh: 0  # scaling factor for one hot loss (cross entropy)
+  act: 0  # scaling factor for activation loss used in DAFL
+  save_dir: './contrib/synthesis'
+  T: 1.0
 model:
   type: CNN_2layers
   out_channels: 10
@@ -36,9 +47,9 @@ train:
   local_update_steps: 1
   batch_or_epoch: epoch
   optimizer:
-    type: Adam
+    type: SGD
     lr: 0.001
-    weight_decay: 1e-4
+    momentum: 0.9
 grad:
   grad_clip: 5.0
 criterion:

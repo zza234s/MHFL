@@ -168,6 +168,7 @@ def extend_model_heterogeneous_cfg(cfg):
     cfg.DENSE.oh = 0  # scaling factor for one hot loss (cross entropy)
     cfg.DENSE.act = 0  # scaling factor for activation loss used in DAFL
     cfg.DENSE.save_dir = './contrib/synthesis'
+    cfg.DENSE.T = 1.0
 
 
 register_config("model_heterogeneity", extend_model_heterogeneous_cfg)
