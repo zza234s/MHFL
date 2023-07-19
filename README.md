@@ -111,17 +111,8 @@ We are grateful for their outstanding work.
 
 ## PS
 
-If you have any questions, or if there is anything I can do to help you, please feel free to contact me.
+Please feel free to contact me.
 
 My email is: hanlinzhou@zjut.edu.cn
 
 My WeChat is: poipoipoi8886
-
-
-
-如果您有任何疑问，或者是任何我可以帮到您的地方，请随时联系我。
-
-我的邮箱是：hanlinzhou@zjut.edu.cn
-
-我的微信是：poipoipoi8886
-
