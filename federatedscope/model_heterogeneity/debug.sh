@@ -24,6 +24,19 @@ model_heterogeneity/methods/FedPCL/for_check/FedPCL_on_office_caltech.yaml
 model_heterogeneity/methods/FedPCL/proto_model_setting_5_client_on_cifar10_low_heterogeneity.yaml
 ##################################################################################################
 
+
+#---------------------------------------------------FSFL----------------------------------------------
+#--FEMNIST
+--cfg
+model_heterogeneity/methods/FSFL/FSFL_on_femnist.yaml
+--client_cfg
+model_heterogeneity/methods/model_setting_5_client_on_FEMNIST_low_heterogeneity.yaml
+exp_name
+Manual_test_FSFL_FEMNIST
+#------------------------------------------------------------------------------------------------------
+
+
+
 # FML
 #--CIFAR10
 --cfg
@@ -61,24 +74,18 @@ main_test_FedMD_5_clients_on_cifar10_low_heterogeneity
 --client_cfg model_heterogeneity/methods/FedMD/model_setting_5_client_on_FEMNIST_low_heterogeneity.yaml
 
 #FedHeNN
-#--cfg
-#D:\ZHL_WORK\Architecture_heterogeneous_FL\FS3\federatedscope\model_heterogeneity\methods\FedHeNN\fedhenn_on_cifar10.yaml
-#--client_cfg
-#D:\ZHL_WORK\Architecture_heterogeneous_FL\FS3\federatedscope\model_heterogeneity\methods\FedHeNN\fedhenn_per_client_on_cifar10.yaml
+--cfg
+D:\ZHL_WORK\Architecture_heterogeneous_FL\FS3\federatedscope\model_heterogeneity\methods\FedHeNN\fedhenn_on_cifar10.yaml
+--client_cfg
+D:\ZHL_WORK\Architecture_heterogeneous_FL\FS3\federatedscope\model_heterogeneity\methods\FedHeNN\fedhenn_per_client_on_cifar10.yaml
 
 
-#FSFL
-
-#--cfg
-#D:\ZHL_WORK\Architecture_heterogeneous_FL\FS3\federatedscope\model_heterogeneity\methods\FSFL\FSFL_on_femnist.yaml
-#--client_cfg
-#D:\ZHL_WORK\Architecture_heterogeneous_FL\FS3\federatedscope\model_heterogeneity\methods\FSFL\FSFL_per_client_on_femnist.yaml
 
 #FCCL
-#--cfg
-#/data/hxh2022/FederatedScope/FedMM/federatedscope/model_heterogeneity/methods/FCCL/FCCL_on_officehome.yaml
-#--client_cfg
-#/data/hxh2022/FederatedScope/FedMM/federatedscope/model_heterogeneity/methods/FCCL/FCCL_per_client_on_officehome.yaml
+--cfg
+/data/hxh2022/FederatedScope/FedMM/federatedscope/model_heterogeneity/methods/FCCL/FCCL_on_officehome.yaml
+--client_cfg
+/data/hxh2022/FederatedScope/FedMM/federatedscope/model_heterogeneity/methods/FCCL/FCCL_per_client_on_officehome.yaml
 =======
 --cfg
 D:\ZHL_WORK\Architecture_heterogeneous_FL\FS3\federatedscope\model_heterogeneity\methods\FSFL\FSFL_on_femnist.yaml
