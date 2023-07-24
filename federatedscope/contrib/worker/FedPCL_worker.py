@@ -255,7 +255,11 @@ class FedPCL_Client(Client):
         # logger.info(f'client #{self.ID}, round:{state}: 接收到全局原型')
         self.trainer.ctx.global_avg_protos = message.content[0]
         self.trainer.ctx.global_protos = message.content[1]
-
+    def callback_funcs_for_finish(self, message: Message):
+        logger.info(
+            f"================= client {self.ID} received finish message "
+            f"=================")
+        self._monitor.finish_fl()
 
 def call_my_worker(method):
     if method == 'fedpcl':

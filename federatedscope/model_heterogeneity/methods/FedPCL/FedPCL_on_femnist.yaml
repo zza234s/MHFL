@@ -10,6 +10,9 @@ federate:
   total_round_num: 200
   sample_client_rate: 1.0
   make_global_eval: False
+fedpcl:
+  debug: False
+  show_verbose: False # Weather display verbose loss information
 data:
   root: data/
   type: femnist
@@ -30,9 +33,15 @@ trainer:
   type: fedpcl_cv_trainer
 grad:
   grad_clip: 10.0
+model:
+  type: CNN_3layers_proto
+  out_channels: 10
+  dropout: 0.
+  hidden: 256
+  filter_channels: [128,64,64]
 eval:
-  freq: 1
-  metrics: ['acc']
+  freq: 20
+  metrics: ['acc','acc_based_on_local_prototype']
   report : ['weighted_avg', 'avg']
-  best_res_update_round_wise_key: test_acc
+  best_res_update_round_wise_key: test_acc_based_on_local_prototype
 exp_name: 'FedPCL_5_clients_on_femnist_low_heterogeneity'

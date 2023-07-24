@@ -1,7 +1,8 @@
 from federatedscope.core.configs.config import CN
 from federatedscope.core.configs.yacs_config import Argument
 from federatedscope.register import register_config
-
+import logging
+logger = logging.getLogger(__name__)
 
 def extend_model_heterogeneous_cfg(cfg):
     '''模型异构联邦学习用到的通用参数'''
@@ -99,6 +100,7 @@ def extend_model_heterogeneous_cfg(cfg):
 
     cfg.fedpcl.debug = False
 
+    cfg.fedpcl.show_verbose = False # Weather display verbose loss information
 
     # ---------------------------------------------------------------------- #
     # (FML) Federated Mutual Learning related options
@@ -188,12 +190,16 @@ def extend_model_heterogeneous_cfg(cfg):
     cfg.DENSE.save_dir = './contrib/synthesis'
     cfg.DENSE.T = 1.0
 
+    # --------------- register corresponding check function ----------
+    cfg.register_cfg_check_fun(assert_mdfh_cfg)
 
 def assert_mdfh_cfg(cfg):
     if cfg.model.num_classes != cfg.model.out_channels:
-        raise ValueError(f"The values of cfg.model.num_classes and cfg.model.out_channels must be equal."
-                         f"Now the cfg.model.num_classes is{cfg.model.num_classes},"
-                         f" cfg.model.out_channels is {cfg.model.out_channels}")
+        cfg.model.num_classes = cfg.model.out_channels
+        logger.warning(f"The values of cfg.model.num_classes and cfg.model.out_channels must be equal."
+                         f" Now the cfg.model.num_classes is {cfg.model.num_classes},"
+                         f" but cfg.model.out_channels is {cfg.model.out_channels}")
+        logger.warning(f"now we set cfg.model.num_classes as cfg.model.out_channels={cfg.model.out_channels}")
 
 
 register_config("model_heterogeneity", extend_model_heterogeneous_cfg)

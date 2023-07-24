@@ -11,6 +11,9 @@ federate:
   total_round_num: 200
   sample_client_rate: 1.0
   make_global_eval: False
+fedpcl:
+  debug: False
+  show_verbose: False # Weather display verbose loss information
 data:
   root: data/
   local_eval_whole_test_dataset: True #important! Whether the test dataset for each client is equivalent to the test dataset for the unsplit dataset
@@ -44,7 +47,7 @@ model:
   filter_channels: [128,64,64]
 eval:
   freq: 1
-  metrics: ['acc']
+  metrics: ['acc','acc_based_on_local_prototype']
   report : ['weighted_avg', 'avg']
-  best_res_update_round_wise_key: test_acc
+  best_res_update_round_wise_key: test_acc_based_on_local_prototype
 exp_name: 'FedPCL_5_clients_on_cifa10_low_heterogeneity'

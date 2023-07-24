@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
-def agg_local_proto(protos):
+def agg_local_proto(protos,num_classes=62):
     """
     Average the protos for each local user
     """
@@ -22,6 +22,11 @@ def agg_local_proto(protos):
     for [label, proto_list] in protos.items():
         proto = torch.stack(proto_list)
         agg_protos[label] = torch.mean(proto, dim=0).data
+
+    # 对于未见类，生成全zero tensor上传server
+    for label in range(num_classes):
+        if label not in agg_protos:
+            agg_protos[label] = torch.zeros(agg_protos[0].shape[0],device=agg_protos[0].device)
 
     return agg_protos
 
@@ -66,6 +71,8 @@ class FedPCL_CV_Trainer(GeneralTorchTrainer):
                                    dim=0)  # lp1==lp2 完全相等 ，猜测lp代表log_probs: [batchsize, num_class]
             loss1=self.nll_loss(lp1, labels)
         else:
+            # TODO:目前在yaml文件中强制限制了dropout rate为0，如果不为0的话下面的lp1和lp2以及f1和f2会不相等。
+            # TODO:原文代码中的local model 不涉及dropout层，不会出现这个问题
             probs, features = ctx.model(images)
             features = F.normalize(features, dim=1)
 
@@ -84,20 +91,19 @@ class FedPCL_CV_Trainer(GeneralTorchTrainer):
             for i in range(1, self.num_users + 1):
                 for label in ctx.global_avg_protos.keys():
                     if label not in ctx.global_protos[i].keys():
-                        ctx.global_protos[i][label] = ctx.global_avg_protos[label]
+                        ctx.global_protos[i][label] = ctx.global_avg_protos[label] #TODO: 原文没有考虑所有客户端的训练数据都没见过某个class样本的情况
                 L_p += self.loss_CL(features, labels, ctx.global_protos[i])
         else:
             f1, f2 = torch.split(features, [bsz, bsz], dim=0)
         # TODO: 源代码中 loss=loss2 (L_p) ，没用上loss1 (CE_LOSS);
         # TODO: 此外，正如用户TsingZ0在FedPCL的仓库的issue里提到的：--原文中的基于全局原型的损失Eq.(8)在源代码中缺失了
         loss = L_p
-        logger.info(
-            f'client#{ctx.client_ID} {ctx.cur_split} round:{ctx.cur_state} \t CE_loss:{loss1}, \t L_p:{L_p}\t total_loss:{loss}')
-
+        if self._cfg.fedpcl.show_verbose:
+            logger.info(
+                f'client#{ctx.client_ID} {ctx.cur_split} round:{ctx.cur_state} \t CE_loss:{loss1}, \t L_p:{L_p}\t total_loss:{loss}')
         # loss = loss1 + L_p + L_g
         # logger.info(
         #     f'client#{ctx.client_ID} {ctx.cur_split} round:{ctx.cur_state} \t CE_loss:{loss1}, \t L_p:{L_p} \t L_g:{L_g} \t total_loss:{loss}')
-        # TODO: 使用本地原型进行推理 (√)
         ctx.y_true = CtxVar(labels, LIFECYCLE.BATCH)
         ctx.y_prob = CtxVar(lp1, LIFECYCLE.BATCH)
         ctx.loss_batch = CtxVar(loss, LIFECYCLE.BATCH)
@@ -127,7 +133,6 @@ class FedPCL_CV_Trainer(GeneralTorchTrainer):
 
     @torch.no_grad()
     def get_aggprotos(self):
-        # TODO 确保evaluate阶段不会进入这个函数
         ctx = self.ctx
         reps_dict = {}
         ctx.model.eval()
@@ -159,7 +164,7 @@ class FedPCL_CV_Trainer(GeneralTorchTrainer):
                     else:
                         reps_dict[labels[i].item()] = [features[i, :]]
 
-        ctx.agg_protos_label = agg_local_proto(reps_dict)
+        ctx.agg_protos_label = agg_local_proto(reps_dict,num_classes=ctx.cfg.model.num_classes)
 
 
 def call_my_torch_trainer(trainer_type):

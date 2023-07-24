@@ -49,9 +49,10 @@ if __name__ == '__main__':
     data, modified_cfg = get_data(config=init_cfg.clone(),
                                   client_cfgs=client_cfgs)
     init_cfg.merge_from_other_cfg(modified_cfg)
+
     if init_cfg.show_label_distribution:
-        #是否可视化train/test dataset的标签分布
-        plot_num_of_samples_per_classes(data,modified_cfg)
+        plot_num_of_samples_per_classes(data,modified_cfg) #是否可视化train/test dataset的标签分布
+
     init_cfg.freeze(inform=False)  # TODO:添加是否显示主cfg详细配置的变量
     runner = get_runner(data=data,
                         server_class=get_server_cls(init_cfg),

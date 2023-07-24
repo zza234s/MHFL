@@ -1,3 +1,6 @@
+# Experiment under the feature & label shift non-IID setting for Office-10
+# The number of backbone is one
+# The resulting test accuracy is about 0.418, which is similar to that reported in the original paper
 use_gpu: True
 device: 0
 early_stop:
@@ -40,7 +43,6 @@ model:
     output_dim: 256
 eval:
   freq: 1
-#  metrics: ['acc']
   metrics: ['acc','acc_based_on_local_prototype']
   report : ['weighted_avg', 'avg']
   best_res_update_round_wise_key: test_acc_based_on_local_prototype
