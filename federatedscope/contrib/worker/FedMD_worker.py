@@ -138,7 +138,7 @@ class FedMD_client(Client):
         self.private_epochs = config.fedmd.pre_training.private_epochs
         self.public_batch_size = config.fedmd.pre_training.public_batch_size
         self.private_batch_size = config.fedmd.pre_training.private_batch_size
-        if self.cfg_MHFL.save_pretraining_model and not os.path.exists(self.model_weight_dir):
+        if self.cfg_MHFL.save_model and not os.path.exists(self.model_weight_dir):
             os.mkdir(self.model_weight_dir)  # 生成保存预训练模型权重所需的文件夹
 
         # load public dataset for pretraining
@@ -224,7 +224,7 @@ class FedMD_client(Client):
         self.model.to('cpu')
 
     def _pretrain_on_private_datset(self, model_file=None):
-        logger.info(f'Client:{self.ID} pretrain on private dataset')
+        logger.info(f'Client#{self.ID}: train to convergence on the private datasets')
         early_stopper = EarlyStopMonitor(max_round=self._cfg.early_stop.patience, higher_better=True)
         for epoch in range(self.private_epochs):
             sample_size, model_para, results = self.trainer_local_pretrain.train()
@@ -234,15 +234,16 @@ class FedMD_client(Client):
                 f"train_acc:{results['train_acc']}\t "
                 f"test_acc:{eval_metrics['test_acc']} ")
 
-            if early_stopper.early_stop_check(eval_metrics['test_acc']):
+            early_stop_now, update_best_this_round = early_stopper.early_stop_check(eval_metrics['test_acc'])
+
+            if update_best_this_round and model_file is not None:
+                torch.save(self.model.state_dict(), model_file)
+                logger.info(
+                    f'client#{self.ID}: save the pre-trained model weight with the test_acc {early_stopper.last_best}')
+            if early_stop_now:
                 logger.info(f'No improvment over {early_stopper.max_round} epochs, stop training')
                 logger.info(f"the best epoch is {early_stopper.best_epoch},test_acc: {early_stopper.last_best}")
                 break
-
-        if model_file is not None:
-            torch.save(self.model.state_dict(), model_file)
-            logger.info(
-                f'client#{self.ID} save the pre-trained model weight to {model_file}')
 
     @torch.no_grad()
     def get_class_scores(self, trainloader):
