@@ -10,6 +10,11 @@ The code of this project is under construction.
 
 项目的代码正在完善中~~
 
+## Acknowledgment
+
+All code implementations are based on the FederatedScope V0.3.0: https://github.com/alibaba/FederatedScope 
+
+We are grateful for their outstanding work.
 
 
 ## Currently Supported Algorithms
@@ -99,13 +104,6 @@ cd federatedscope/model_heterogeneity/methods/fedprotos
 bash run_fedproto_low_heterogeneity_FEMNIST.sh
 ```
 
-
-
-## Acknowledgment
-
-All code implementations are based on the FederatedScope V0.3.0: https://github.com/alibaba/FederatedScope 
-
-We are grateful for their outstanding work.
 
 
 
