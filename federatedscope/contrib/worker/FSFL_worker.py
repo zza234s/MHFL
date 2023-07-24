@@ -2,7 +2,7 @@ from federatedscope.register import register_worker
 from federatedscope.core.workers import Server, Client
 from federatedscope.core.message import Message
 from federatedscope.contrib.common_utils import get_public_dataset, EarlyStopMonitor, train_CV, eval_CV
-from federatedscope.contrib.model.FSFL_DomainIdentifier_CV import DomainIdentifier
+from federatedscope.contrib.model.FSFL_DomainIdentifier_CV import AdaptiveDomainIdentifier
 from federatedscope.core.auxiliaries.optimizer_builder import get_optimizer
 from federatedscope.core.auxiliaries.sampler_builder import get_sampler
 from federatedscope.core.auxiliaries.utils import merge_dict_of_results, \
@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 
 from federatedscope.model_heterogeneity.methods.FSFL.fsfl_utils import DomainDataset, divide_dataset_epoch, \
     DigestDataset
+from federatedscope.core.auxiliaries.trainer_builder import get_trainer
 
 
 class FSFL_Server(Server):
@@ -45,7 +46,8 @@ class FSFL_Server(Server):
         """
         self.FSFL_cfg = config.fsfl
 
-        self.DI_model = DomainIdentifier()
+        # self.DI_model = DomainIdentifier()
+        self.DI_model = AdaptiveDomainIdentifier()
 
         self.DI_epochs = self.FSFL_cfg.domain_identifier_epochs
         self.collaborative_epoch = self.FSFL_cfg.collaborative_epoch
@@ -266,19 +268,55 @@ class FSFL_Client(Client):
         self.register_handlers('setup',
                                self.callback_funcs_for_setup, ['logits'])
         self.register_handlers('avg_logits', self.callback_funcs_avg_logits, ['logits'])
-        self.task = self._cfg.MHFL.task
 
-        # public dataset
-        pulic_dataset_name = self._cfg.MHFL.public_dataset
-        self.public_train_data, _ = get_public_dataset(pulic_dataset_name)
-        private_length = len(self.data.train_data)
+        MHFL = config.MHFL
+        self.cfg_MHFL = MHFL
+
+        self.task = MHFL.task
+        self.model_weight_dir = MHFL.model_weight_dir
+        self.local_update_steps = config.train.local_update_steps
+
+        # Local pretraining related settings
+        self.public_dataset_name = MHFL.public_dataset
+        self.rePretrain = MHFL.pre_training.rePretrain
+
+        self.public_epochs = MHFL.pre_training.public_epochs
+        self.private_epochs = MHFL.pre_training.private_epochs
+        self.public_batch_size = MHFL.pre_training.public_batch_size
+
+        if MHFL.pre_training.save_model and not os.path.exists(self.model_weight_dir):
+            os.mkdir(self.model_weight_dir)  # 生成保存预训练模型权重所需的文件夹
+
+        # Public dataset and dataloader
+        self.pub_train_dataset, self.pub_test_dataset = get_public_dataset(self.public_dataset_name)
+        self.pub_train_loader = DataLoader(self.pub_train_dataset, batch_size=self.public_batch_size,
+                                           shuffle=True, num_workers=4)
+        self.pub_test_loader = DataLoader(self.pub_test_dataset, batch_size=self.public_batch_size, shuffle=False,
+                                          num_workers=4)
 
         # DomianIdentifier相关变量:
-        self.DI_model = DomainIdentifier()
-        self.DI_batch_size = self._cfg.fsfl.domain_identifier_batch_size
-        self.num_DI_epoch = self._cfg.fsfl.domain_identifier_epochs
-        self.DI_dict_epoch = divide_dataset_epoch(dataset=self.public_train_data, epochs=self.num_DI_epoch,
+        private_length = len(self.data.train_data)
+        self.DI_model = AdaptiveDomainIdentifier()
+        # self.DI_model.fc = nn.Sequential(nn.Linear(43264, 128), nn.BatchNorm1d(128), nn.ReLU())
+        self.DI_batch_size = config.fsfl.domain_identifier_batch_size
+        self.num_DI_epoch = config.fsfl.domain_identifier_epochs
+        self.DI_dict_epoch = divide_dataset_epoch(dataset=self.pub_train_dataset, epochs=self.num_DI_epoch,
                                                   num_samples_per_epoch=private_length)
+
+        # For Digest
+        self.digest_epochs = config.fedmd.digest_epochs
+
+        # define additional local trainer for pretraining
+        local_cfg = config.clone()
+        local_cfg.defrost()
+        local_cfg.train.local_update_steps = 1
+        local_cfg.freeze(inform=False)
+        self.trainer_local_pretrain = get_trainer(model=model,
+                                                  data=data,
+                                                  device=device,
+                                                  config=local_cfg,
+                                                  is_attacker=self.is_attacker,
+                                                  monitor=self._monitor)
 
         # MAFL-模型异构联邦学习用到的成员变量
         self.MAFL_epoch_cnt = 0
@@ -287,64 +325,24 @@ class FSFL_Client(Client):
     def callback_funcs_for_local_pre_training(self, message: Message):
         round = message.state
         self.state = round
+        self.selected_sample_per_epochs = message.content
 
-        cfg_MHFL = self._cfg.MHFL
-        device = self._cfg.device
-        epochs = self._cfg.fsfl.pre_training_epochs
+        model_file = os.path.join(self.model_weight_dir,
+                                  'FSFL_' + self.public_dataset_name + '_client_' + str(self.ID) + '.pth')
 
-        dataset = cfg_MHFL.public_dataset
-        task = cfg_MHFL.task
-        model_dir = cfg_MHFL.model_weight_dir
-        train_batch_size = cfg_MHFL.public_train.batch_size
-        test_batch_size = cfg_MHFL.public_train.batch_size
-
-        if task == 'CV':
-            train_data, test_data = get_public_dataset(dataset)
-            train_loader = DataLoader(train_data, batch_size=train_batch_size, shuffle=True)
-            test_loader = DataLoader(test_data, batch_size=test_batch_size, shuffle=True)
-
-        # train on public dataset
-        self.model.to(device)
-        optimizer = get_optimizer(model=self.model, **cfg_MHFL.public_train.optimizer)
-        criterion = nn.NLLLoss().to(device)
-
-        if cfg_MHFL.save_pretraining_model and not os.path.exists(model_dir):
-            logger.info(f'create {model_dir} folder！')
-            os.mkdir(model_dir)
-
-        logger.info(f'Client#{self.ID}: training on th public dataset {dataset}')
-        early_stopper = EarlyStopMonitor(higher_better=False)
-        for epoch in tqdm(range(1)):
-            train_loss = train_CV(model=self.model, optimizer=optimizer, criterion=criterion, train_loader=train_loader,
-                                  device=device, client_id=self.ID, epoch=epoch)
-            val_loss, acc = eval_CV(model=self.model, criterion=criterion, test_loader=test_loader, device=device,
-                                    client_id=self.ID, epoch=epoch)
-
-            if early_stopper.early_stop_check(val_loss):
-                if cfg_MHFL.save_pretraining_model:
-                    torch.save(self.model.state_dict(), f'{model_dir}/{dataset}_model_{self.ID}.pt')
-                    logger.info(f'No improvment over {early_stopper.max_round} epochs, stop training')
-                    logger.info(
-                        f'client#{self.ID}： save pre-training model to ./model_weight/{dataset}_model_{self.ID}.pt')
-                break
-
-        early_stopper.reset()  # 重置early_stopper的成员变量
-        # TODO: 释放GPU？
-        # TODO:  Train to convergence on femnist
-        for epoch in tqdm(range(epochs)):
-            sample_size, model_para, results = self.trainer.train()  # TODO:模型的output_channels明显大于 public_dataset的output_channels
-            eval_metrics = self.trainer.evaluate(target_data_split_name='val')
-            logger.info(f'client:{self.ID} private dataset pre training')
-            logger.info(f"epoch:{epoch}\t"
-                        f"train_loss:{results['train_loss']} \t train_acc:{results['train_acc']}\t "
-                        f"val_loss:{eval_metrics['val_avg_loss']}\t val_acc:{eval_metrics['val_acc']} ")
-            if early_stopper.early_stop_check(eval_metrics['val_avg_loss']):
-                logger.info('No improvment over {} epochs, stop training'.format(early_stopper.max_round))
-                logger.info(f'the best epoch is {early_stopper.best_epoch}')
-                torch.save(self.model.state_dict(), f'{model_dir}/{dataset}_private_model_{self.ID}.pt')
-                logger.info(
-                    f'client{self.ID}#存储在公共数据集上预训练的模型至./model_weight/{dataset}_private_model_{self.ID}.pt')  # TODO:提示变成英语
-                break
+        if os.path.exists(model_file) and not self.rePretrain:
+            # 如果已经存在预训练好的模型权重并且不要求重新预训练
+            self.model.load_state_dict(torch.load(model_file, self.device))
+            eval_metrics = self.trainer.evaluate(target_data_split_name='test')
+            logger.info(
+                f"Load the pretrained model weight."
+                f"The accuracy of the pretrained model on the local test dataset is {eval_metrics['test_acc']}")
+        else:
+            logger.info(
+                f'Client#{self.ID}: training on the public dataset {self.public_dataset_name} and its private dataset')
+            self.model.to(self.device)
+            self._pretrain_on_public_datset()
+            self._pretrain_on_private_datset(model_file)
 
         self.DI_training()
 
@@ -356,7 +354,7 @@ class FSFL_Client(Client):
             local_losses = []
             "Create dataset"
             public_indices = list(self.DI_dict_epoch[epoch])
-            traindataset = DomainDataset(publicadataset=Subset(self.public_train_data, public_indices),
+            traindataset = DomainDataset(publicadataset=Subset(self.pub_train_dataset, public_indices),
                                          privatedataset=self.data.train_data,
                                          localindex=self.ID,
                                          step1=False)  # stel1为True代表公共数据集标签为0，私有数据集标签为client ID；为False则相反
@@ -377,8 +375,9 @@ class FSFL_Client(Client):
             for batch_idx, (images, domain_labels) in enumerate(tqdm(trainloader)):
                 images, domain_labels = images.to(self.device), domain_labels.to(self.device)
                 optimizer.zero_grad()
-                temp_outputs = self.model(images, True)  # TODO: self.model 和 self.ctx.model里是一个东西吗，会同步吗？
-                domain_outputs = self.DI_model(temp_outputs, self.ID)
+                temp_outputs = self.model(images, True)
+                domain_outputs = self.DI_model(temp_outputs)
+                # domain_outputs = self.DI_model(temp_outputs, self.ID)
                 loss = criterion(domain_outputs, domain_labels)
                 loss.backward()
                 optimizer.step()
@@ -394,7 +393,7 @@ class FSFL_Client(Client):
         epoch = self.state
         public_indices = list(self.DI_dict_epoch[epoch])
         batch_size = self._cfg.fsfl.domain_identifier_batch_size
-        traindataset = DomainDataset(publicadataset=Subset(self.public_train_data, public_indices),
+        traindataset = DomainDataset(publicadataset=Subset(self.pub_train_dataset, public_indices),
                                      privatedataset=self.data.train_data,
                                      localindex=self.ID,
                                      step1=True)
@@ -413,7 +412,8 @@ class FSFL_Client(Client):
             images, domain_labels = images.to(self.device), domain_labels.to(self.device)
             optimizer.zero_grad()
             temp_outputs = model(images, True)
-            domain_outputs = self.DI_model(temp_outputs, self.ID)
+            domain_outputs = self.DI_model(temp_outputs)
+            # domain_outputs = self.DI_model(temp_outputs, self.ID)
             loss = criterion(domain_outputs, domain_labels)
             loss.backward()
             optimizer.step()
@@ -477,7 +477,7 @@ class FSFL_Client(Client):
         epoch = self.MAFL_epoch_cnt
 
         # 取出之前计算logits的数据集
-        original_dataset = Subset(self.public_train_data, list(self.MAFL_epoch_dict[epoch]))
+        original_dataset = Subset(self.pub_train_dataset, list(self.MAFL_epoch_dict[epoch]))
         traindataset = DigestDataset(original_dataset, new_labels=avg_logits)
         trainloader = DataLoader(traindataset, batch_size=self._cfg.fsfl.MAFL_batch_size,
                                  shuffle=False)
@@ -511,14 +511,14 @@ class FSFL_Client(Client):
     def calculate_logits(self, epoch):
         self.model.to(self.device)
 
-        train_dataset = Subset(self.public_train_data, list(self.MAFL_epoch_dict[epoch]))
+        train_dataset = Subset(self.pub_train_dataset, list(self.MAFL_epoch_dict[epoch]))
         trainloader = DataLoader(train_dataset, batch_size=self._cfg.fsfl.MAFL_batch_size,
                                  shuffle=False)  # 为了对齐每个client算出来logits，设置shuffle为False
 
         logist_list = []
         for batch_idx, (images, _) in enumerate(tqdm(trainloader)):
-            if batch_idx==1:
-                self.temp= images.copy()
+            # if batch_idx == 1:
+            #     self.temp = images.copy()
             images = images.to(self.device)
             outputs = self.model(images)
             logist_list.append(outputs.cpu())
@@ -528,6 +528,48 @@ class FSFL_Client(Client):
         self.model.to('cpu')
 
         return logists
+
+    def _pretrain_on_public_datset(self):
+        self.model.to(self.device)
+        optimizer = get_optimizer(model=self.model, **self.cfg_MHFL.public_train.optimizer)
+        criterion = nn.CrossEntropyLoss()
+        train_loader, test_loader = self.pub_train_loader, self.pub_test_loader
+        early_stopper = EarlyStopMonitor(max_round=self._cfg.early_stop.patience, higher_better=True)
+        for epoch in range(self.public_epochs):
+            train_loss = train_CV(model=self.model, optimizer=optimizer, criterion=criterion, train_loader=train_loader,
+                                  device=self.device, client_id=self.ID, epoch=epoch)
+            if epoch % 10 == 0:
+                test_loss, test_acc = eval_CV(model=self.model, criterion=criterion, test_loader=test_loader,
+                                              device=self.device,
+                                              client_id=self.ID, epoch=epoch)
+
+                if early_stopper.early_stop_check(test_acc):
+                    logger.info(f'client#{self.ID}: No improvment over {early_stopper.max_round} epochs.'
+                                f'Stop pretraining on public dataset')
+                    break
+        self.model.to('cpu')
+
+    def _pretrain_on_private_datset(self, model_file=None):
+        logger.info(f'Client#{self.ID}: train to convergence on the private datasets')
+        early_stopper = EarlyStopMonitor(max_round=self._cfg.early_stop.patience, higher_better=True)
+        for epoch in range(self.private_epochs):
+            sample_size, model_para, results = self.trainer_local_pretrain.train()
+            eval_metrics = self.trainer_local_pretrain.evaluate(target_data_split_name='test')
+            logger.info(
+                f"epoch:{epoch}\t"
+                f"train_acc:{results['train_acc']}\t "
+                f"test_acc:{eval_metrics['test_acc']} ")
+
+            early_stop_now, update_best_this_round = early_stopper.early_stop_check(eval_metrics['test_acc'])
+
+            if update_best_this_round and model_file is not None:
+                torch.save(self.model.state_dict(), model_file)
+                logger.info(
+                    f'client#{self.ID}: save the pre-trained model weight with the test_acc {early_stopper.last_best}')
+            if early_stop_now:
+                logger.info(f'No improvment over {early_stopper.max_round} epochs, stop training')
+                logger.info(f"the best epoch is {early_stopper.best_epoch},test_acc: {early_stopper.last_best}")
+                break
 
 
 def call_my_worker(method):
