@@ -10,7 +10,7 @@ def extend_model_heterogeneous_cfg(cfg):
     cfg.MHFL = CN()
     cfg.MHFL.task = 'CV'  # choice:['CV','NLP']
 
-    cfg.MHFL.save_pretraining_model = True  # 是否保存预训练模型
+
     cfg.MHFL.public_train = CN()  # 在公共数据集上训练相关的参数
     cfg.MHFL.public_dataset = 'mnist'
     cfg.MHFL.public_path = './data'
@@ -29,7 +29,14 @@ def extend_model_heterogeneous_cfg(cfg):
     cfg.model.filter_channels = [64, 64, 64]
 
     # Pretrain related option
-    cfg.MHFL.rePretrain = True
+    cfg.MHFL.pre_training = CN()
+    cfg.MHFL.pre_training.public_epochs = 1
+    cfg.MHFL.pre_training.private_epochs = 1
+    cfg.MHFL.pre_training.public_batch_size = 256
+    cfg.MHFL.pre_training.private_batch_size = 256
+    cfg.MHFL.pre_training.rePretrain = True
+    cfg.MHFL.pre_training.save_model = True # 是否保存预训练模型
+
 
     # 数据集相关参数
     cfg.data.local_eval_whole_test_dataset = False
@@ -42,9 +49,13 @@ def extend_model_heterogeneous_cfg(cfg):
 
     # Other option
     cfg.train.optimizer.momentum = 0.9
-
-    # num_class
     cfg.model.num_classes = 10  # FS中原本似乎没有这个变量，但是这个变量在创建模型时很常用，故添加
+
+
+
+    # Wait to delete
+    cfg.MHFL.save_pretraining_model = True  # 是否保存预训练模型
+
 
     '''benchmark中各方法所需的参数'''
     # ---------------------------------------------------------------------- #
@@ -127,7 +138,7 @@ def extend_model_heterogeneous_cfg(cfg):
     cfg.fedhenn.eta = 0.001  # weight of proto loss
 
     # ---------------------------------------------------------------------- #
-    # FSFL related options
+    # (FSFL) Few-Shot Model Agnostic Federated Learning
     # ---------------------------------------------------------------------- #
     cfg.fsfl = CN()
 
