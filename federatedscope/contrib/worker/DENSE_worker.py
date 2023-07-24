@@ -165,7 +165,7 @@ class DENSE_Client(Client):
         save_path = os.path.join(self.model_weight_dir,
                                  'DENSE_' + self.dataset_name + '_client_' + str(self.ID) + '.pth')
 
-        if os.path.exists(save_path) and not self._cfg.MHFL.rePretrain:
+        if os.path.exists(save_path) and not self._cfg.MHFL.pre_training.rePretrain:
             self.model.load_state_dict(torch.load(save_path, self.device))
             eval_metrics = self.trainer.evaluate(target_data_split_name='test')
 
