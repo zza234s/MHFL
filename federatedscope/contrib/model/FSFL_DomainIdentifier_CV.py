@@ -6,7 +6,7 @@ class DomainIdentifier(nn.Module):
     """
     源代码参考自：https://github.com/FangXiuwen/FSMAFL/blob/main/models.py
     需要根据每个客户端的模型来修改resize_layer_zero中第一个FC层的输入维度。
-    resize_layer_one代表第1个客户端对应的DI
+    resize_layer_one代表第1个客户端对应的DomainIdentifier
     """
     def __init__(self):
         super(DomainIdentifier, self).__init__()
@@ -36,6 +36,24 @@ class DomainIdentifier(nn.Module):
     def forward(self, x, index):
         x = x.view(x.shape[0], -1)
         x = self.resize_list[index](x)
+        x = F.leaky_relu(self.fc1(x))
+        x = F.leaky_relu(self.fc2(x))
+        return x
+
+class AdaptiveDomainIdentifier(nn.Module):
+    """
+    将上面DomainIdentifier中的resize_layer的第一个线性层替换为nn.AdaptiveAvgPool1d
+    这样就无需手工配置resize_dict和resize_list了
+    """
+    def __init__(self):
+        super(AdaptiveDomainIdentifier, self).__init__()
+        self.fc = nn.Sequential(nn.AdaptiveAvgPool1d(128), nn.BatchNorm1d(128), nn.ReLU())
+        self.fc1 = nn.Linear(128, 64)
+        self.fc2 = nn.Linear(64, 11)
+
+    def forward(self, x):
+        x = x.view(x.shape[0], -1)
+        x = self.fc(x)
         x = F.leaky_relu(self.fc1(x))
         x = F.leaky_relu(self.fc2(x))
         return x
