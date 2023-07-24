@@ -61,11 +61,12 @@ if __name__ == '__main__':
     _ = runner.run()
     client_summarized_test_acc = _['client_summarized_avg']['test_acc']
     client_summarized_weighted_avg = _['client_summarized_weighted_avg']['test_acc']
-    print(f'client_summarized_test_acc:{client_summarized_test_acc}')
-    print(f'client_summarized_weighted_avg:{client_summarized_weighted_avg}')
+    print(f'client_summarized_avg_test_acc:{client_summarized_test_acc}') # acc求平均
+    print(f'client_summarized_weighted_avg_test_acc:{client_summarized_weighted_avg}') #加权平均acc
     best_round = runner.server.best_round
-    client_summarized_test_acc = _['client_summarized_avg']['test_acc']
-    # client_summarized_weighted_avg = _['client_summarized_weighted_avg']['test_acc']
-    print(f'client_summarized_test_acc:{client_summarized_test_acc}')
     result_to_csv(_, init_cfg, best_round)
+    # client_summarized_test_acc = _['client_summarized_avg']['test_acc']
+    # # client_summarized_weighted_avg = _['client_summarized_weighted_avg']['test_acc']
+    # print(f'client_summarized_test_acc:{client_summarized_test_acc}')
+
     # print(f'client_summarized_weighted_avg:{client_summarized_weighted_avg}')

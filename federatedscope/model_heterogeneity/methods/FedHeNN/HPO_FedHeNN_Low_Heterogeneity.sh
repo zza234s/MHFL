@@ -1,11 +1,11 @@
 set -e
 cd ../../../ #到federatedscope目录
-gpu=0
-dataset=cifar10
+gpu=$1
+dataset=$2
 result_floder=model_heterogeneity/result/csv
 
 #wandb
-wandb_use=True
+wandb_use=False
 wandb_name_user=niudaidai
 wandb_online_track=False
 wandb_client_train_info=True
@@ -21,7 +21,7 @@ momentum=0.9
 
 #FedHeNN需要额外微调的超参
 eta=(0.001 0.01 0.1)
-
+temp=0
 if [[ $dataset = 'femnist' ]]; then
   main_cfg=model_heterogeneity/methods/FedHeNN/fedhenn_on_femnist.yaml
   client_file=model_heterogeneity/methods/FedHeNN/proto_model_setting_5_client_on_FEMNIST_low_heterogeneity.yaml
@@ -90,6 +90,11 @@ then
           for ((e = 0; e < ${#eta[@]}; e++)); do
             for ((k = 0; k < ${#seed[@]}; k++)); do
               if [[ ${optimizer[$op]} = 'Adam' ]]; then
+                let temp+=1
+                echo "$temp"
+                if [ $temp -le 11 ]; then
+                  continue
+                fi
                 # Adam
                 python main.py --cfg ${main_cfg} --client_cfg ${client_file} \
                   federate.total_round_num ${total_round} \

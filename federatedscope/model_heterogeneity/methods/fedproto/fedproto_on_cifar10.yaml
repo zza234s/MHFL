@@ -33,7 +33,6 @@ train:
     type: SGD
     lr: 0.001
     weight_decay: 1e-4
-    momentum: 0.9
 criterion:
   type: CrossEntropyLoss
 trainer:

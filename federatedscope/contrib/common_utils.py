@@ -141,7 +141,6 @@ def eval_CV(model, criterion, test_loader, device, client_id, epoch):
     return val_loss, acc
 
 
-
 def test(model, test_loader, device):
     """
     source: https://github.com/NaiboWang/Data-Free-Ensemble-Selection-For-One-Shot-Federated-Learning/blob/master/DENSE/helpers/utils.py
@@ -409,6 +408,17 @@ def save_checkpoint(state, is_best, filename='checkpoint.pth'):
         torch.save(state, filename)
 
 
+# For FedPCL ------------------------------------------------------------
+class TwoCropTransform:
+    """Create two crops of the same image"""
+
+    def __init__(self, transform):
+        self.transform = transform
+
+    def __call__(self, x):
+        return [self.transform(x), self.transform(x)]
+
+
 def result_to_csv(result, init_cfg, best_round):
     # 获取当前时间
     current_time = datetime.now()
@@ -440,8 +450,9 @@ def result_to_csv(result, init_cfg, best_round):
     if out_dict['method'][0] == 'fedproto':
         out_dict['proto_weight'] = init_cfg.fedproto.proto_weight
 
-
-
+    if out_dict['method'][0] == 'fedpcl':
+        out_dict['test_acc_based_on_local_proto'] = result['client_summarized_avg']['test_acc_based_on_local_prototype']
+        print(f"client summarized avg test_acc (based on local proto):{out_dict['test_acc_based_on_local_proto']}")
     out_dict['local_eval_whole_test_dataset'] = [init_cfg.data.local_eval_whole_test_dataset]
 
     df = pd.DataFrame(out_dict, columns=out_dict.keys())
@@ -454,7 +465,7 @@ def result_to_csv(result, init_cfg, best_round):
         df.to_csv(csv_path, mode='a', index=False, header=True)
     else:
         df.to_csv(csv_path, mode='a', index=False, header=False)
-    logger.info(f'The results of the experiment have been saved to: {csv_path} file')
-    print(df)
+    logger.info(f'The detailed results of the experiment have been saved to: {csv_path} file')
+    # print(df)
 
     return df

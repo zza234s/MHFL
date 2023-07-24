@@ -1,11 +1,11 @@
 set -e
 cd ../../../ #到federatedscope目录
-gpu=0
-dataset=cifar10
+gpu=$1
+dataset=$2
 result_floder=model_heterogeneity/result/csv
 
 #wandb
-wandb_use=True
+wandb_use=False
 wandb_name_user=niudaidai
 wandb_online_track=False
 wandb_client_train_info=True
@@ -21,7 +21,7 @@ momentum=0.9
 #FedMD需要额外微调的超参
 public_subset_size=(2500 5000) #10000
 digest_epochs=(1 5 10)
-
+temp=0
 if [[ $dataset = 'femnist' ]]; then
   main_cfg=model_heterogeneity/methods/FedMD/FedMD_on_femnist.yaml
   client_file=model_heterogeneity/methods/FedMD/model_setting_5_client_on_FEMNIST_low_heterogeneity.yaml
@@ -34,6 +34,11 @@ if [[ $dataset = 'femnist' ]]; then
           for ((de = 0; de < ${#digest_epochs[@]}; de++)); do
             for ((k = 0; k < ${#seed[@]}; k++)); do
               if [[ ${optimizer[$op]} = 'Adam' ]]; then
+                let temp+=1
+                echo "$temp"
+                if [ $temp -le 44 ]; then
+                  continue
+                fi
                 # Adam
                 python main.py --cfg ${main_cfg} --client_cfg ${client_file} \
                   federate.total_round_num ${total_round} \

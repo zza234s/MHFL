@@ -1,11 +1,11 @@
 set -e
 cd ../../../ #到federatedscope目录
-gpu=0
-dataset=cifar10
+gpu=$1
+dataset=$2
 result_floder=model_heterogeneity/result/csv
 
 #wandb
-wandb_use=True
+wandb_use=False
 wandb_name_user=niudaidai
 wandb_online_track=False
 wandb_client_train_info=True
@@ -20,7 +20,7 @@ patience=50
 momentum=0.9
 # FedProto额外优化的超参
 proto_weight=(0.1 1.0 10)
-
+temp=0
 if [[ $dataset = 'femnist' ]]; then
   main_cfg=model_heterogeneity/methods/fedproto/fedproto_on_femnist.yaml
   client_file=model_heterogeneity/methods/fedproto/proto_model_setting_5_client_on_FEMNIST_low_heterogeneity.yaml
@@ -32,6 +32,11 @@ if [[ $dataset = 'femnist' ]]; then
         for ((p = 0; p < ${#proto_weight[@]}; p++)); do
           for ((k = 0; k < ${#seed[@]}; k++)); do
             if [[ ${optimizer[$op]} = 'Adam' ]]; then
+              let temp+=1
+              echo "$temp"
+              if [ $temp -le 58 ]; then
+                continue
+              fi
               #Adam
               python main.py --cfg ${main_cfg} --client_cfg ${client_file} \
                 federate.total_round_num ${total_round} \

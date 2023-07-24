@@ -5,7 +5,7 @@ dataset=cifar10
 result_floder=model_heterogeneity/result/csv
 
 #wandb
-wandb_use=True
+wandb_use=False
 wandb_name_user=niudaidai
 wandb_online_track=False
 wandb_client_train_info=True
@@ -21,12 +21,13 @@ momentum=0.9
 # FML额外优化的超参
 fml_alpha=(0.3 0.5 1.0)
 fml_beta=(0.3 0.5 1.0)
-
+temp=0
 if [[ $dataset = 'femnist' ]]; then
   main_cfg=model_heterogeneity/methods/FML/FML_on_femnist.yaml
   client_file=model_heterogeneity/methods/FML/model_setting_5_client_on_FEMNIST_low_heterogeneity.yaml
   exp_name=HPO_FML_FEMNIST
   wandb_name_project=HPO_FML_FEMNIST
+  total_round=400
   T=4
   for ((op = 0; op < ${#optimizer[@]}; op++)); do
     for ((lr = 0; lr < ${#lrs[@]}; lr++)); do
@@ -34,6 +35,11 @@ if [[ $dataset = 'femnist' ]]; then
         for ((fml_a = 0; fml_a < ${#fml_alpha[@]}; fml_a++)); do
           for ((fml_b = 0; fml_b < ${#fml_beta[@]}; fml_b++)); do
             for ((k = 0; k < ${#seed[@]}; k++)); do
+              let temp+=1
+              echo "$temp"
+              if [ $temp -le 175 ]; then
+                continue
+              fi
               #Adam
               if [[ ${optimizer[$op]} = 'Adam' ]]; then
                 python main.py --cfg ${main_cfg} --client_cfg ${client_file} \
@@ -54,7 +60,7 @@ if [[ $dataset = 'femnist' ]]; then
                   fml.meme_model.T ${T} \
                   model.T ${T} \
                   fml.alpha ${fml_alpha[$fml_a]} \
-                  fml.beta ${fml_beta[$fml_beta]}
+                  fml.beta ${fml_beta[$fml_b]}
               else
                 # SGD optimizer with momentum=0.9
                 python main.py --cfg ${main_cfg} --client_cfg ${client_file} \
@@ -76,7 +82,7 @@ if [[ $dataset = 'femnist' ]]; then
                   fml.meme_model.T ${T} \
                   model.T ${T} \
                   fml.alpha ${fml_alpha[$fml_a]} \
-                  fml.beta ${fml_beta[$fml_beta]}
+                  fml.beta ${fml_beta[$fml_b]}
               fi
             done
           done
@@ -90,6 +96,7 @@ elif [[ $dataset = 'cifar10' ]]; then
   exp_name=HPO_FML_CIFAR10
   wandb_name_project=HPO_FML_CIFAR10
   lda_alpha=(100 1.0 0.1)
+  T=5
   for ((op = 0; op < ${#optimizer[@]}; op++)); do
     for ((lr = 0; lr < ${#lrs[@]}; lr++)); do
       for ((l = 0; l < ${#local_update_step[@]}; l++)); do
@@ -97,6 +104,12 @@ elif [[ $dataset = 'cifar10' ]]; then
           for ((fml_a = 0; fml_a < ${#fml_alpha[@]}; fml_a++)); do
             for ((fml_b = 0; fml_b < ${#fml_beta[@]}; fml_b++)); do
               for ((k = 0; k < ${#seed[@]}; k++)); do
+                let temp+=1
+                echo "$temp"
+                if [ $temp -le 11 ]; then
+                  continue
+                fi
+
                 #Adam
                 if [[ ${optimizer[$op]} = 'Adam' ]]; then
                   python main.py --cfg ${main_cfg} --client_cfg ${client_file} \
@@ -118,7 +131,7 @@ elif [[ $dataset = 'cifar10' ]]; then
                     fml.meme_model.T ${T} \
                     model.T ${T} \
                     fml.alpha ${fml_alpha[$fml_a]} \
-                    fml.beta ${fml_beta[$fml_beta]}
+                    fml.beta ${fml_beta[$fml_b]}
                 else
                   # SGD with momentum=0.9
                   python main.py --cfg ${main_cfg} --client_cfg ${client_file} \
@@ -141,7 +154,7 @@ elif [[ $dataset = 'cifar10' ]]; then
                     fml.meme_model.T ${T} \
                     model.T ${T} \
                     fml.alpha ${fml_alpha[$fml_a]} \
-                    fml.beta ${fml_beta[$fml_beta]}
+                    fml.beta ${fml_beta[$fml_b]}
                 fi
               done
             done

@@ -10,7 +10,6 @@ def extend_model_heterogeneous_cfg(cfg):
     cfg.MHFL.task = 'CV'  # choice:['CV','NLP']
 
     cfg.MHFL.save_pretraining_model = True  # 是否保存预训练模型
-
     cfg.MHFL.public_train = CN()  # 在公共数据集上训练相关的参数
     cfg.MHFL.public_dataset = 'mnist'
     cfg.MHFL.public_path = './data'
@@ -28,7 +27,7 @@ def extend_model_heterogeneous_cfg(cfg):
 
     cfg.model.filter_channels = [64, 64, 64]
 
-    # Pretraining related option
+    # Pretrain related option
     cfg.MHFL.rePretrain = True
 
     # 数据集相关参数
@@ -39,6 +38,12 @@ def extend_model_heterogeneous_cfg(cfg):
 
     # 可视化相关参数
     cfg.show_label_distribution = False
+
+    # Other option
+    cfg.train.optimizer.momentum = 0.9
+
+    # num_class
+    cfg.model.num_classes = 10  # FS中原本似乎没有这个变量，但是这个变量在创建模型时很常用，故添加
 
     '''benchmark中各方法所需的参数'''
     # ---------------------------------------------------------------------- #
@@ -83,7 +88,20 @@ def extend_model_heterogeneous_cfg(cfg):
     cfg.fedproto.test_shots = 15
 
     # ---------------------------------------------------------------------- #
-    # Federated Mutual Learning (FML) related options
+    # (FedPCL) Federated Learning from Pre-Trained Models: A Contrastive Learning Approach
+    # ---------------------------------------------------------------------- #
+    cfg.fedpcl = CN()
+    # for debug
+    cfg.model.fedpcl = CN()
+    cfg.model.fedpcl.model_weight_dir = './contrib/model_weight'
+    cfg.model.fedpcl.input_size = 512
+    cfg.model.fedpcl.output_dim = 256
+
+    cfg.fedpcl.debug = False
+
+
+    # ---------------------------------------------------------------------- #
+    # (FML) Federated Mutual Learning related options
     # ---------------------------------------------------------------------- #
     cfg.fml = CN()
     cfg.fml.alpha = 0.5
@@ -169,6 +187,13 @@ def extend_model_heterogeneous_cfg(cfg):
     cfg.DENSE.act = 0  # scaling factor for activation loss used in DAFL
     cfg.DENSE.save_dir = './contrib/synthesis'
     cfg.DENSE.T = 1.0
+
+
+def assert_mdfh_cfg(cfg):
+    if cfg.model.num_classes != cfg.model.out_channels:
+        raise ValueError(f"The values of cfg.model.num_classes and cfg.model.out_channels must be equal."
+                         f"Now the cfg.model.num_classes is{cfg.model.num_classes},"
+                         f" cfg.model.out_channels is {cfg.model.out_channels}")
 
 
 register_config("model_heterogeneity", extend_model_heterogeneous_cfg)

@@ -41,6 +41,8 @@ def get_optimizer(model, type, lr, **kwargs):
         del tmp_kwargs['__cfg_check_funcs__']
     if 'is_ready_for_run' in tmp_kwargs:
         del tmp_kwargs['is_ready_for_run']
+    if type=='Adam' and 'momentum' in tmp_kwargs:
+        del tmp_kwargs['momentum']
 
     for func in register.optimizer_dict.values():
         optimizer = func(model, type, lr, **tmp_kwargs)

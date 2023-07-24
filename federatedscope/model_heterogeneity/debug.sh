@@ -1,5 +1,40 @@
 cd ../../ #到项目根目录
 
+# FedPCL
+# --CIFAR10
+--cfg
+model_heterogeneity/methods/FedPCL/FedPCL_on_cifar10.yaml
+--client_cfg
+model_heterogeneity/methods/FedPCL/proto_model_setting_5_client_on_cifar10_low_heterogeneity.yaml
+exp_name
+Manual_test_FedPCL_cifar10
+
+# --FEMNIST
+--cfg
+model_heterogeneity/methods/FedPCL/FedPCL_on_femnist.yaml
+--client_cfg
+model_heterogeneity/methods/FedPCL/proto_model_setting_5_client_on_FEMNIST_low_heterogeneity.yaml
+exp_name
+Manual_test_FedPCL_femnist
+
+## --office_caltech_for_check
+--cfg
+model_heterogeneity/methods/FedPCL/for_check/FedPCL_on_office_caltech.yaml
+--client_cfg
+model_heterogeneity/methods/FedPCL/proto_model_setting_5_client_on_cifar10_low_heterogeneity.yaml
+
+
+# FML
+#--CIFAR10
+--cfg
+model_heterogeneity/methods/FML/FML_on_cifar10.yaml
+--client_cfg
+model_heterogeneity/methods/FML/model_setting_5_client_on_cifar10_low_heterogeneity.yaml
+exp_name
+Manual_HPO_FML_5_clients_on_cifa10_low_heterogeneity
+
+
+
 python federatedscope/main.py --cfg federatedscope/model_heterogeneity/methods/FedHeNN/fedhenn_on_cifar10.yaml \
 --client_cfg federatedscope/model_heterogeneity/methods/FedHeNN/fedhenn_per_client_on_cifar10.yaml
 
