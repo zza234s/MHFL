@@ -38,12 +38,14 @@ class CNN_2layers(Module):
         self.dropout = dropout
         self.return_proto = return_proto
 
-    def forward(self, x):
+    def forward(self, x, GAN=False):
         x = self.bn1(self.conv1(x)) if self.use_bn else self.conv1(x)
         x = self.maxpool(self.relu(x))
         x = self.bn2(self.conv2(x)) if self.use_bn else self.conv2(x)
         x = self.maxpool(self.relu(x))
         x = Flatten()(x)
+        if GAN:
+            return x
         x = F.dropout(x, p=self.dropout, training=self.training)
         x1 = self.relu(self.fc1(x))
         x = F.dropout(x1, p=self.dropout, training=self.training)
@@ -89,7 +91,7 @@ class CNN_3layers(Module):
         self.dropout = dropout
         self.return_proto = return_proto
 
-    def forward(self, x):
+    def forward(self, x, GAN=False):
         x = self.bn1(self.conv1(x)) if self.use_bn else self.conv1(x)
         x = self.maxpool(self.relu(x))
         x = self.bn2(self.conv2(x)) if self.use_bn else self.conv2(x)
@@ -98,6 +100,8 @@ class CNN_3layers(Module):
         x = self.relu(x)
 
         x = Flatten()(x)
+        if GAN:
+            return x
         x = F.dropout(x, p=self.dropout, training=self.training)
         x1 = self.relu(self.fc1(x))
         x = F.dropout(x1, p=self.dropout, training=self.training)
@@ -147,7 +151,7 @@ class CNN_4layers(Module):
 
         self.return_proto = return_proto
 
-    def forward(self, x):
+    def forward(self, x, GAN=False):
         x = self.bn1(self.conv1(x)) if self.use_bn else self.conv1(x)
         x = self.maxpool(self.relu(x))
         x = self.bn2(self.conv2(x)) if self.use_bn else self.conv2(x)
@@ -158,6 +162,8 @@ class CNN_4layers(Module):
         x = self.relu(x)
 
         x = Flatten()(x)
+        if GAN:
+            return x
         x = F.dropout(x, p=self.dropout, training=self.training)
         x1 = self.relu(self.fc1(x))
         x = F.dropout(x1, p=self.dropout, training=self.training)
