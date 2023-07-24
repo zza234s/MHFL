@@ -10,6 +10,11 @@ The code of this project is under construction.
 
 项目的代码正在完善中~~
 
+## Acknowledgment
+
+All code implementations are based on the FederatedScope V0.3.0: https://github.com/alibaba/FederatedScope 
+
+We are grateful for their outstanding work.
 
 
 ## Currently Supported Algorithms
@@ -29,11 +34,12 @@ The code of this project is under construction.
 
 #### **Methods without public dataset**
 
-| Abbreviation | Title                                                        | Venue      | Materials                                                    |
-| ------------ | ------------------------------------------------------------ | ---------- | ------------------------------------------------------------ |
-| FML          | Federated Mutual Learning                                    | ArXiv 2020 | [[pub](https://arxiv.org/abs/2006.16765)] [[repository](https://github.com/ZJU-DAI/Federated-Mutual-Learning)] |
-| FedHeNN      | Architecture Agnostic Federated Learning for Neural Networks | ICML 2022  | [[pub](https://proceedings.neurips.cc/paper/2020/hash/18df51b97ccd68128e994804f3eccc87-Abstract.html)] |
-| FedProto     | FedProto: Federated Prototype Learning across Heterogeneous Clients | AAAI 2022  | [[pub](https://arxiv.org/abs/2105.00243)] [[repository](https://github.com/zza234s/FedProto)] |
+| Abbreviation | Title                                                        | Venue        | Materials                                                    |
+| ------------ | ------------------------------------------------------------ | ------------ | ------------------------------------------------------------ |
+| FML          | Federated Mutual Learning                                    | ArXiv 2020   | [[pub](https://arxiv.org/abs/2006.16765)] [[repository](https://github.com/ZJU-DAI/Federated-Mutual-Learning)] |
+| FedHeNN      | Architecture Agnostic Federated Learning for Neural Networks | ICML 2022    | [[pub](https://proceedings.neurips.cc/paper/2020/hash/18df51b97ccd68128e994804f3eccc87-Abstract.html)] |
+| FedProto     | FedProto: Federated Prototype Learning across Heterogeneous Clients | AAAI 2022    | [[pub](https://arxiv.org/abs/2105.00243)] [[repository](https://github.com/zza234s/FedProto)] |
+| FedPCL       | [Federated Learning from Pre-Trained Models: A Contrastive Learning Approach](https://arxiv.org/abs/2209.10083) | NeurIPS 2022 | [[pub](https://openreview.net/forum?id=mhQLcMjWw75)] [[repository](https://github.com/yuetan031/FedPCL)] |
 
 
 
@@ -42,8 +48,7 @@ The code of this project is under construction.
 | Abbreviation | Title                                                        | Venue        | progress bar    |
 | ------------ | ------------------------------------------------------------ | ------------ | --------------- |
 | FEDAUX       | [FedAUX: Leveraging Unlabeled Auxiliary Data in Federated Learning](https://arxiv.org/abs/2102.02514) | TNNLS 2021   | [#----------]0% |
-| DENSE        | [DENSE: Data-Free One-Shot Federated Learning](https://arxiv.org/abs/2112.12371) | NeurIPS 2022 | [########--]80% |
-| FedPCL       | [Federated Learning from Pre-Trained Models: A Contrastive Learning Approach](https://arxiv.org/abs/2209.10083) | NeurIPS 2022 | [########--]90% |
+| DENSE        | [DENSE: Data-Free One-Shot Federated Learning](https://arxiv.org/abs/2112.12371) | NeurIPS 2022 | [########--]90% |
 | TBD          | .....                                                        |              |                 |
 
 
@@ -99,13 +104,6 @@ cd federatedscope/model_heterogeneity/methods/fedprotos
 bash run_fedproto_low_heterogeneity_FEMNIST.sh
 ```
 
-
-
-## Acknowledgment
-
-All code implementations are based on the FederatedScope V0.3.0: https://github.com/alibaba/FederatedScope 
-
-We are grateful for their outstanding work.
 
 
 
