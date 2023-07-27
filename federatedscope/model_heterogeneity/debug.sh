@@ -33,7 +33,29 @@ model_heterogeneity/methods/FSFL/FSFL_on_femnist.yaml
 model_heterogeneity/methods/model_setting_5_client_on_FEMNIST_low_heterogeneity.yaml
 exp_name
 Manual_test_FSFL_FEMNIST
+
+
+#-- EMNIST for check
+--cfg
+model_heterogeneity/methods/FSFL/for_check/FSFL_on_EMNIST.yaml
+--client_cfg
+model_heterogeneity/methods/model_setting_5_client_on_FEMNIST_low_heterogeneity.yaml
+exp_name
+Manual_test_FSFL_EMNIST
+
+
 #------------------------------------------------------------------------------------------------------
+
+
+########################################################################################################
+#FedProto
+#--FEMNIST
+--cfg
+model_heterogeneity/methods/fedproto/fedproto_on_femnist.yaml
+--client_cfg
+model_heterogeneity/methods/fedproto/proto_model_setting_5_client_on_FEMNIST_low_heterogeneity.yaml
+exp_name
+Manual_FedProto_FEMNIST_
 
 
 

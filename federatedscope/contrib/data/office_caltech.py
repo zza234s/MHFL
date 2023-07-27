@@ -10,7 +10,6 @@ from federatedscope.core.auxiliaries.utils import setup_seed
 from torchvision import datasets, transforms
 from federatedscope.core.data import DummyDataTranslator
 from PIL import Image
-
 """
 基于FedPCL的源码构造的office caltech数据集
 用以验证FedPCL复现的正确性
@@ -33,6 +32,8 @@ def prepare_data_caltech_noniid(config, client_cfgs=None):
 
     data_root = config.data.root
     num_users = config.federate.client_num
+    assert config.data['splitter_args'][0]['alpha']
+    alpha = config.data['splitter_args'][0]['alpha']
     # caltech
     caltech_trainset = OfficeDataset(data_root + 'office/', 'caltech', transform=transform_office, train=True)
     caltech_testset = OfficeDataset(data_root + 'office/', 'caltech', transform=transform_test, train=True)
@@ -47,7 +48,7 @@ def prepare_data_caltech_noniid(config, client_cfgs=None):
         idx_k = np.where(y == k)[0]
         idx_k = idx_k[0:30 * num_users]
         np.random.shuffle(idx_k)
-        proportions = np.random.dirichlet(np.repeat(1.0, num_users)) #TODO: 注意，这里alph固定为1.0
+        proportions = np.random.dirichlet(np.repeat(alpha, num_users)) #TODO: 注意，这里alph固定为1.0
         proportions = np.array([p * (len(idx_j) < N / num_users) for p, idx_j in zip(proportions, idx_batch)])
         proportions = proportions / proportions.sum()
         proportions = (np.cumsum(proportions) * len(idx_k)).astype(int)[:-1]
@@ -71,9 +72,6 @@ def prepare_data_caltech_noniid(config, client_cfgs=None):
 
     # Convert to the data format of federatedscope
     data = {}
-    # data_dict = {
-    #     0: ClientData(self.global_cfg, train=train_dataset, val=None, test=test_dataset)
-    # }
     idxs_users = np.arange(config.federate.client_num)
     for client_id in idxs_users:
         idx_train = user_groups[client_id]
@@ -145,7 +143,7 @@ class DatasetSplit(Dataset):
 
 
 def call_file_data(config, client_cfgs):
-    if config.data.type == "office_caltech_fedpcl":
+    if config.data.type == "office_caltech":
         # All the data (clients and servers) are loaded from one unified files
         data, modified_config = prepare_data_caltech_noniid(config, client_cfgs)
         return data, modified_config

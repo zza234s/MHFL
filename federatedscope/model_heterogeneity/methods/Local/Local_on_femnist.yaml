@@ -32,7 +32,7 @@ trainer:
   type: cvtrainer
 eval:
   freq: 1
-  metrics: [ 'acc', 'correct' ]
+  metrics: [ 'acc']
   report: [ 'weighted_avg', 'avg', 'raw' ]
   best_res_update_round_wise_key: test_acc
 exp_name: local_femnist_5_client_low

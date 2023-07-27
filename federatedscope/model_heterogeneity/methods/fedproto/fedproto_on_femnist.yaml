@@ -21,7 +21,7 @@ train:
   local_update_steps: 1
   batch_or_epoch: epoch
   optimizer:
-    type: SGD
+    type: Adam
     lr: 0.001
     weight_decay: 1e-4
 criterion:
@@ -29,7 +29,7 @@ criterion:
 trainer:
   type: fedproto_trainer
 grad:
-  grad_clip: 5.0
+  grad_clip: 10.0
 eval:
   freq: 1
   metrics: ['acc']

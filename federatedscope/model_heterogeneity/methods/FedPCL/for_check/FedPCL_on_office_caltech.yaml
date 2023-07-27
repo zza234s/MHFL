@@ -18,7 +18,8 @@ fedpcl:
   debug: True
 data:
   root: data/
-  type: 'office_caltech_fedpcl'
+  type: 'office_caltech'
+  splitter_args: [{'alpha': 100.0}]
 dataloader:
   batch_size: 32
 train:

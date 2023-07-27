@@ -2,14 +2,15 @@ from federatedscope.core.configs.config import CN
 from federatedscope.core.configs.yacs_config import Argument
 from federatedscope.register import register_config
 import logging
+
 logger = logging.getLogger(__name__)
+
 
 def extend_model_heterogeneous_cfg(cfg):
     '''模型异构联邦学习用到的通用参数'''
     # MHFL: Model Heterogeneous Federated Learning
     cfg.MHFL = CN()
     cfg.MHFL.task = 'CV'  # choice:['CV','NLP']
-
 
     cfg.MHFL.public_train = CN()  # 在公共数据集上训练相关的参数
     cfg.MHFL.public_dataset = 'mnist'
@@ -35,27 +36,18 @@ def extend_model_heterogeneous_cfg(cfg):
     cfg.MHFL.pre_training.public_batch_size = 256
     cfg.MHFL.pre_training.private_batch_size = 256
     cfg.MHFL.pre_training.rePretrain = True
-    cfg.MHFL.pre_training.save_model = True # 是否保存预训练模型
+    cfg.MHFL.pre_training.save_model = True  # 是否保存预训练模型
 
-
-    # 数据集相关参数
+    # dataset realated option
     cfg.data.local_eval_whole_test_dataset = False
-
     cfg.result_floder = 'model_heterogeneity/result/csv'
     cfg.exp_name = 'test'
 
-    # 可视化相关参数
-    cfg.show_label_distribution = False
-
-    # Other option
+    # other option
     cfg.train.optimizer.momentum = 0.9
     cfg.model.num_classes = 10  # FS中原本似乎没有这个变量，但是这个变量在创建模型时很常用，故添加
-
-
-
-    # Wait to delete
-    cfg.MHFL.save_pretraining_model = True  # 是否保存预训练模型
-
+    cfg.show_label_distribution = False  # 可视化相关参数
+    cfg.show_client_best_individual = True
 
     '''benchmark中各方法所需的参数'''
     # ---------------------------------------------------------------------- #
@@ -111,7 +103,7 @@ def extend_model_heterogeneous_cfg(cfg):
 
     cfg.fedpcl.debug = False
 
-    cfg.fedpcl.show_verbose = False # Weather display verbose loss information
+    cfg.fedpcl.show_verbose = False  # Weather display verbose loss information
 
     # ---------------------------------------------------------------------- #
     # (FML) Federated Mutual Learning related options
@@ -142,11 +134,12 @@ def extend_model_heterogeneous_cfg(cfg):
     # ---------------------------------------------------------------------- #
     cfg.fsfl = CN()
 
-    # 本地模型预训练相关
-    cfg.fsfl.pre_training_epochs = 40
+    # dataset realated option to verify the correctness of the reproduction
+    cfg.fsfl.public_classes = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]  # 参考源代码
+    cfg.fsfl.private_classes = [10, 11, 12, 13, 14, 15]  # 参考源代码
+    cfg.fsfl.N_samples_per_class = 12
 
     # Latent Embedding Adaptation
-
     # Step1: domain identifier realated option
     cfg.fsfl.domain_identifier_epochs = 4
     cfg.fsfl.domain_identifier_batch_size = 30
@@ -201,15 +194,19 @@ def extend_model_heterogeneous_cfg(cfg):
     cfg.DENSE.save_dir = './contrib/synthesis'
     cfg.DENSE.T = 1.0
 
+    # wait to delete
+    cfg.MHFL.save_pretraining_model = True  # 是否保存预训练模型
+
     # --------------- register corresponding check function ----------
     cfg.register_cfg_check_fun(assert_mdfh_cfg)
+
 
 def assert_mdfh_cfg(cfg):
     if cfg.model.num_classes != cfg.model.out_channels:
         cfg.model.num_classes = cfg.model.out_channels
         logger.warning(f"The values of cfg.model.num_classes and cfg.model.out_channels must be equal."
-                         f" Now the cfg.model.num_classes is {cfg.model.num_classes},"
-                         f" but cfg.model.out_channels is {cfg.model.out_channels}")
+                       f" Now the cfg.model.num_classes is {cfg.model.num_classes},"
+                       f" but cfg.model.out_channels is {cfg.model.out_channels}")
         logger.warning(f"now we set cfg.model.num_classes as cfg.model.out_channels={cfg.model.out_channels}")
 
 

@@ -16,7 +16,8 @@ from federatedscope.core.auxiliaries.worker_builder import get_client_cls, \
 from federatedscope.core.configs.config import global_cfg, CfgNode
 from federatedscope.core.auxiliaries.runner_builder import get_runner
 
-from federatedscope.contrib.common_utils import result_to_csv,plot_num_of_samples_per_classes
+from federatedscope.contrib.common_utils import result_to_csv, plot_num_of_samples_per_classes, \
+    show_per_client_best_individual
 
 if os.environ.get('https_proxy'):
     del os.environ['https_proxy']
@@ -51,7 +52,7 @@ if __name__ == '__main__':
     init_cfg.merge_from_other_cfg(modified_cfg)
 
     if init_cfg.show_label_distribution:
-        plot_num_of_samples_per_classes(data,modified_cfg) #是否可视化train/test dataset的标签分布
+        plot_num_of_samples_per_classes(data, modified_cfg)  # 是否可视化train/test dataset的标签分布
 
     init_cfg.freeze(inform=False)  # TODO:添加是否显示主cfg详细配置的变量
     runner = get_runner(data=data,
@@ -60,14 +61,12 @@ if __name__ == '__main__':
                         config=init_cfg.clone(),
                         client_configs=client_cfgs)
     _ = runner.run()
+
+    # show result
     client_summarized_test_acc = _['client_summarized_avg']['test_acc']
     client_summarized_weighted_avg = _['client_summarized_weighted_avg']['test_acc']
-    print(f'client_summarized_avg_test_acc:{client_summarized_test_acc}') # acc求平均
-    print(f'client_summarized_weighted_avg_test_acc:{client_summarized_weighted_avg}') #加权平均acc
+    print(f'client_summarized_avg_test_acc:{client_summarized_test_acc}')  # acc求平均
+    print(f'client_summarized_weighted_avg_test_acc:{client_summarized_weighted_avg}')  # 加权平均acc
     best_round = runner.server.best_round
-    result_to_csv(_, init_cfg, best_round)
-    # client_summarized_test_acc = _['client_summarized_avg']['test_acc']
-    # # client_summarized_weighted_avg = _['client_summarized_weighted_avg']['test_acc']
-    # print(f'client_summarized_test_acc:{client_summarized_test_acc}')
+    result_to_csv(_, init_cfg, best_round,runner)
 
-    # print(f'client_summarized_weighted_avg:{client_summarized_weighted_avg}')

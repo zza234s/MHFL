@@ -1,0 +1,70 @@
+use_gpu: True
+device: 0
+early_stop:
+  patience: 50
+seed: 0
+federate:
+  mode: standalone
+  method: fsfl
+  client_num: 5
+  total_round_num: 200
+  sample_client_rate: 1.0
+  make_global_eval: False
+MHFL:
+  task: CV
+  save_pretraining_model: True
+  public_dataset: mnist
+  model_weight_dir: ./contrib/model_weight
+  pre_training:
+    rePretrain: False
+    public_epochs: 10
+    private_epochs: 200
+    public_batch_size: 256
+    save_model: True
+  public_train:
+    optimizer:
+      type: Adam
+      lr: 0.001
+      weight_decay: 1e-4
+fsfl:
+  # Step1: domain identifier realated option
+  domain_identifier_epochs: 4
+  domain_identifier_batch_size: 30
+  DI_optimizer:
+    type: Adam
+    lr: 0.001
+    weight_decay: 1e-4
+  # Step2: local gan training related option
+  gan_local_epochs: 4
+  DI_optimizer_step_2:
+    type: Adam
+    lr: 0.0001
+    weight_decay: 1e-4
+  # model agnostic federated learning related option
+  collaborative_epoch: 200
+  collaborative_num_samples_epochs: 5000
+  MAFL_batch_size: 256
+data:
+  root: data/
+  type: EMNIST_for_FSFL
+  splits: [ 0.6,0.2,0.2 ]
+  transform: [ [ 'ToTensor' ], [ 'Normalize', { 'mean': [ 0.9637 ], 'std': [ 0.1592 ] } ] ]
+dataloader:
+  batch_size: 256 #32 64 128 256
+train:
+  local_update_steps: 5
+  batch_or_epoch: epoch
+  optimizer:
+    type: Adam
+    lr: 0.001
+    weight_decay: 1e-4
+criterion:
+  type: CrossEntropyLoss
+grad:
+  grad_clip: 10.0
+eval:
+  freq: 5
+  metrics: ['acc']
+  report : ['weighted_avg', 'avg']
+  best_res_update_round_wise_key: test_acc
+exp_name: 'FedPCL_5_clients_on_femnist_low_heterogeneity'

@@ -421,7 +421,7 @@ class TwoCropTransform:
         return [self.transform(x), self.transform(x)]
 
 
-def result_to_csv(result, init_cfg, best_round):
+def result_to_csv(result, init_cfg, best_round, runner):
     # 获取当前时间
     current_time = datetime.now()
     time_string = current_time.strftime("%Y-%m-%d %H:%M")
@@ -457,6 +457,10 @@ def result_to_csv(result, init_cfg, best_round):
         print(f"client summarized avg test_acc (based on local proto):{out_dict['test_acc_based_on_local_proto']}")
     out_dict['local_eval_whole_test_dataset'] = [init_cfg.data.local_eval_whole_test_dataset]
 
+    if init_cfg.show_client_best_individual:
+        avg_test_acc, avg_val_acc = show_per_client_best_individual(runner)
+        out_dict['individual_best_test_acc_avg'] = avg_test_acc
+
     df = pd.DataFrame(out_dict, columns=out_dict.keys())
     folder_path = init_cfg.result_floder
     csv_path = f'{folder_path}/{init_cfg.exp_name}.csv'
@@ -471,3 +475,25 @@ def result_to_csv(result, init_cfg, best_round):
     # print(df)
 
     return df
+
+def show_per_client_best_individual(runner):
+    client_num = runner.cfg.federate.client_num
+    total_test_acc, total_val_acc = 0.0, 0.0
+    best_test_acc,best_val_acc =0.0,0.0
+    for client_id in range(1, client_num + 1):
+        best_results = runner.client[client_id].best_results
+        best_results = list(best_results.values())[0]
+        if 'val_acc' in best_results.keys():
+            best_val_acc = best_results['val_acc']
+            total_val_acc += best_val_acc
+        if 'test_acc' in best_results.keys():
+            best_test_acc = best_results['test_acc']
+            total_test_acc += best_test_acc
+        logger.info(
+            f" 'Client {client_id}',\tindividual_best_test_acc: {best_test_acc} \t individual_val_acc {best_val_acc}")
+
+    avg_test_acc = total_test_acc / client_num
+    avg_val_acc = total_val_acc / client_num
+
+    print(f"Final: best_individual_avg_test_acc: {avg_test_acc} \t best_individual_avg_val_acc:{avg_val_acc}")
+    return avg_test_acc, avg_val_acc
