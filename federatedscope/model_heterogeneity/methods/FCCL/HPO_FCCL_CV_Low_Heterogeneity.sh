@@ -33,7 +33,7 @@ freq=1
 # FCCL-specific parameters
 off_diag_weight=(0.0051 0.00032)
 loss_dual_weight=(cifar100 0.1 1 10)
-public_dataset=(fashion_minist minist)
+public_dataset=(cifar100 fashion_minist minist)
 out_channels=100
 
 # Define function for model training
