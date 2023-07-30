@@ -4,8 +4,8 @@ cd ../../../ #到federatedscope目录
 # Configuration
 gpu=$1
 dataset=$2 #cifar10,svhn,office_caltech
-client_file=model_heterogeneity/model_settings/model_setting_CV_low_heterogeneity.yaml
-result_floder=model_heterogeneity/result/new_0729
+client_file=model_heterogeneity/model_settings/model_setting_CV_high_heterogeneity.yaml
+result_floder=model_heterogeneity/result/new_0730
 
 # Method setup
 method=FCCL
@@ -32,8 +32,8 @@ freq=1
 
 # FCCL-specific parameters
 off_diag_weight=(0.0051 0.00032)
-loss_dual_weight=(cifar100 0.1 1 10)
-public_dataset=(fashion_minist minist)
+loss_dual_weight=(0.1 1 10)
+public_dataset=(cifar100 fashion_minist minist)
 out_channels=100
 
 # Define function for model training
