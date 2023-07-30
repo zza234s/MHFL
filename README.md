@@ -92,16 +92,17 @@ pip install -e .[dev]
 
 ### Step 2. Run Algorithm (Take running FedProto as an example)
 
-- Enter the folder corresponding to the selected algorithm
+- Enter the "federatedscope" folder
 
 ```python
-cd federatedscope/model_heterogeneity/methods/fedprotos
+cd federatedscope
 ```
 
-- Run the script file
+- Run the script
 
 ```python
-bash run_fedproto_low_heterogeneity_FEMNIST.sh
+python main.py --cfg model_heterogeneity/methods/fedproto/fedproto_on_cifar10.yaml --client_cfg model_heterogeneity/model_settings/model_setting_CV_low_heterogeneity.yaml
+
 ```
 
 
