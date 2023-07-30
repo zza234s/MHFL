@@ -12,8 +12,8 @@ def generate_models_cfg(init_cfg, models_cfgs, ratios=[0.2, 0.2, 0.2, 0.1, 0.1],
     Args:
         init_cfg: 主cfg的配置文件; (CfgNode对象）
         models_cfgs: 存放所有模型种类的cfg文件；（CfgNode对象）
-        ratios: 每种模型的比例，例如当client总数为10，ration为[0.4,0.6]时，代表4个client是第一种模型，6个client是第2种模型
-        shuffle: 是否打乱分配的模型编号，例如if为false 则[1,1,1,1,0,0,0,0,0,0]
+        ratios: 每种模型的比例。例如:当client总数为10，模型共两种，ration为[0.4,0.6]时，4个client会是第一种模型，6个client会是第2种模型
+        shuffle: 是否打乱所分配的模型编号。例子：为False时 [1,1,1,1,0,0,0,0,0,0]，为True则打乱这个列表
     Returns:
         分配好模型的client_cfg
     """

@@ -9,23 +9,21 @@ import torch
 import logging
 import os
 
-from torch.utils.data import DataLoader,SubsetRandomSampler
+from torch.utils.data import DataLoader, SubsetRandomSampler
 from federatedscope.core.auxiliaries.sampler_builder import get_sampler
 from timm.scheduler.cosine_lr import CosineLRScheduler
 from tqdm import tqdm
 
-
 from federatedscope.register import register_worker
 from federatedscope.core.workers import Server, Client
-
 
 from federatedscope.model_heterogeneity.methods.FCCL.datasets.cifar100 import load_Cifar100
 from federatedscope.model_heterogeneity.methods.FCCL.datasets.fashion_mnist import load_fashion_minist
 from federatedscope.model_heterogeneity.methods.FCCL.datasets.mnist import load_minist
 
-
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
+
 
 # Build your worker here.
 class FCCLServer(Server):
@@ -42,32 +40,31 @@ class FCCLServer(Server):
                  unseen_clients_id=None,
                  **kwargs):
         super(FCCLServer, self).__init__(ID, state, config, data, model, client_num, total_round_num,
-                                             device, strategy, unseen_clients_id, **kwargs)
+                                         device, strategy, unseen_clients_id, **kwargs)
         self.client_models = dict()  # 用于放客户端模型
         self.selected_transform = None
         self.train_dataset = None
 
         # 训练的数据集
-        if self._cfg.MHFL.public_dataset == 'Cifar100':
-            self.train_dataset = load_Cifar100(self._cfg.fccl.pub_aug, self._cfg.MHFL.public_path)
-        elif self._cfg.MHFL.public_dataset == 'fashion_minist':
-            self.train_dataset = load_fashion_minist(self._cfg.fccl.pub_aug, self._cfg.MHFL.public_path)
+        if self._cfg.MHFL.public_dataset == 'cifar100':
+            self.train_dataset = load_Cifar100(self._cfg.fccl.pub_aug, self._cfg.data.root)
+        elif self._cfg.MHFL.public_dataset == 'fashion_minist':  # TODO: cifar10可以作为公共数据集
+            self.train_dataset = load_fashion_minist(self._cfg.fccl.pub_aug, self._cfg.data.root)
         elif self._cfg.MHFL.public_dataset == 'minist':
-            self.train_dataset = load_minist(self._cfg.fccl.pub_aug, self._cfg.MHFL.public_path)
+            self.train_dataset = load_minist(self._cfg.fccl.pub_aug, self._cfg.data.root)
         # 获取dataloaders
         # 随机采样
         n_train = len(self.train_dataset)
         idxs = np.random.permutation((n_train))  # 生成一个长度为n_train的随机排列
         if self._cfg.MHFL.public_len != None:
-            idxs = idxs[0:self._cfg.MHFL.public_len]  # 选取前public_scale的数 TODO:来自zhl的疑问，为啥要指定公共数据集样本数？
+            idxs = idxs[0:self._cfg.MHFL.public_len]  # 选取前public_scale的数
         train_sampler = SubsetRandomSampler(idxs)  # 对idxs进行子集采样
         # 使用采样器在DataLoader中指定子集的采样方式
-        # TODO:num_workers与源代码不一样（源代码为4不好跑）
-        self.train_loader = DataLoader(self.train_dataset, batch_size=self._cfg.MHFL.public_train.batch_size, sampler=train_sampler,
-                                  num_workers=0)
+        self.train_loader = DataLoader(self.train_dataset, batch_size=self._cfg.MHFL.pre_training.public_batch_size,
+                                       sampler=train_sampler,
+                                       num_workers=0)
 
-
-    #每个客户端join时触发
+    # 每个客户端join时触发
     def callback_funcs_for_join_in(self, message: Message):
         """
             额外增加处理每个client模型的内容
@@ -100,7 +97,6 @@ class FCCLServer(Server):
 
         self.trigger_for_start()
 
-
     def trigger_for_start(self):
         """
         所有客户端join in之后触发，只触发一次
@@ -117,8 +113,8 @@ class FCCLServer(Server):
             ####################################################################################
             # 首先在服务器计算Mi和loss
             self.calculate_logits_output()
-            #TODO:lr没改
-            #self._cfg.MHFL.public_train.optimizer.lr *= (1 -  / self._cfg.MHFL.public_train.epochs * 0.9)
+            # TODO:lr没改
+            # self._cfg.MHFL.public_train.optimizer.lr *= (1 -  / self._cfg.MHFL.public_train.epochs * 0.9)
             self.send_per_client_message(msg_type='model_para')
             ####################################################################################
 
@@ -126,11 +122,10 @@ class FCCLServer(Server):
                 '----------- Starting training (Round #{:d}) -------------'.
                 format(self.state))
 
-
-    #服务器向客户端传各自的模型
+    # 服务器向客户端传各自的模型
     def send_per_client_message(self, msg_type,
-                                  sample_client_num=-1,
-                                  filter_unseen_clients=True):
+                                sample_client_num=-1,
+                                filter_unseen_clients=True):
         if filter_unseen_clients:
             # to filter out the unseen clients when sampling
             self.sampler.change_state(self.unseen_clients_id, 'unseen')
@@ -145,7 +140,7 @@ class FCCLServer(Server):
 
         rnd = self.state - 1 if msg_type == 'evaluate' else self.state
 
-        for client_id,client_model in self.client_models.items():
+        for client_id, client_model in self.client_models.items():
             self.comm_manager.send(
                 Message(msg_type=msg_type,
                         sender=self.ID,
@@ -158,7 +153,7 @@ class FCCLServer(Server):
             # restore the state of the unseen clients within sampler
             self.sampler.change_state(self.unseen_clients_id, 'seen')
 
-    #TODO：是否要复制一些父类有的代码
+    # TODO：是否要复制一些父类有的代码
     def check_and_move_on(self,
                           check_eval_result=False,
                           min_received_num=None):
@@ -178,7 +173,7 @@ class FCCLServer(Server):
                 #################################################################
                 # update model parameters
                 for model_idx, model in self.client_models.items():
-                    model.load_state_dict(self.msg_buffer['train'][self.state][model_idx][1],strict=True)#TODO: 增加strict=True
+                    model.load_state_dict(self.msg_buffer['train'][self.state][model_idx][1], strict=True)
                 self.calculate_logits_output()
 
                 #################################################################
@@ -223,10 +218,10 @@ class FCCLServer(Server):
         device = self._cfg.device
         lr = self._cfg.MHFL.public_train.optimizer.lr
 
-        #服务器端根据output计算Mi矩阵和loss
+        # 服务器端根据output计算Mi矩阵和loss
         for batch_idx, (images, _) in enumerate(self.train_loader):
             # 获取output Zi
-            linear_output_list = dict()  # TODO:这俩是不是应该在外面啊--正确
+            linear_output_list = dict()
             linear_output_target_list = dict()
             images = images.to(device)
             for model_idx, model in self.client_models.items():
@@ -236,11 +231,12 @@ class FCCLServer(Server):
                 linear_output_target_list[model_idx] = linear_output.clone().detach()
                 linear_output_list[model_idx] = linear_output
 
-            #计算Mi矩阵和损失
-            for model_idx, model in self.client_models.items():#TODO: model.train()?
+            # 计算Mi矩阵和损失
+            for model_idx, model in self.client_models.items():
+                model.train()
                 optimizer = optim.Adam(model.parameters(), lr=lr)
                 linear_output_target_avg_list = []
-                for k,val in linear_output_target_list.items():
+                for k, val in linear_output_target_list.items():
                     linear_output_target_avg_list.append(val)
                 linear_output_target_avg = torch.mean(torch.stack(linear_output_target_avg_list), 0)
                 linear_output = linear_output_list[model_idx]
@@ -251,8 +247,8 @@ class FCCLServer(Server):
                 c = z_1_bn.T @ z_2_bn
                 c.div_(len(images))
 
-                #TODO：服务器loss的计算会受optimizer上的影响吗
-                #公式2 根据Mi计算loss
+                # TODO：服务器loss的计算会受optimizer上的影响吗
+                # 公式2 根据Mi计算loss
                 on_diag = torch.diagonal(c).add_(-1).pow_(2).sum()
                 off_diag = self._off_diagonal(c).add_(1).pow_(2).sum()  # _off_diagonal()自定义函数将非对角线数字放在数组中
                 optimizer.zero_grad()
@@ -263,14 +259,11 @@ class FCCLServer(Server):
                 col_loss.backward()
                 optimizer.step()
 
-
-    #一个在计算loss时会用到的函数
-    def _off_diagonal(self,x):
+    # 一个在计算loss时会用到的函数
+    def _off_diagonal(self, x):
         n, m = x.shape
         assert n == m
         return x.flatten()[:-1].view(n - 1, n + 1)[:, 1:].flatten()
-
-
 
 
 class FCCLClient(Client):
@@ -287,42 +280,45 @@ class FCCLClient(Client):
                  *args,
                  **kwargs):
         super(FCCLClient, self).__init__(ID, server_id, state, config, data, model, device,
-                                             strategy, is_unseen_client, *args, **kwargs)
-        self.inter_model = None
+                                         strategy, is_unseen_client, *args, **kwargs)
         self.pre_model = None
-        # self.pretrain == True
+        self.model_name = config.model.type
+        self.model_weight_dir = config.MHFL.model_weight_dir
+        if config.MHFL.pre_training.save_model and not os.path.exists(self.model_weight_dir):
+            os.mkdir(self.model_weight_dir)  # 生成保存预训练模型权重所需的文件夹
+
+        self.rePretrain = config.MHFL.pre_training.rePretrain
+        self.public_dataset_name = config.MHFL.public_dataset
 
     def join_in(self):
         """
         To send ``join_in`` message to the server for joining in the FL course.
         额外发送本地的个性化模型至client端
         """
-        #预训练
+        # 预训练
         self._pretrain_nets()
         local_init_model = copy.deepcopy(self.model.cpu())
-        self.inter_model = copy.deepcopy(self.model) #todo: 变成self.ctx.inter_model
+        self.trainer.ctx.inter_model = copy.deepcopy(self.model)
         self.comm_manager.send(
             Message(msg_type='join_in',
                     sender=self.ID,
                     receiver=[self.server_id],
                     timestamp=0,
-                    content=[self.local_address,local_init_model]))
-
+                    content=[self.local_address, local_init_model]))
 
     def callback_funcs_for_model_para(self, message: Message):
         round = message.state
         sender = message.sender
         content = message.content
         self.state = round
-        #根据服务器传过来的参数更新本地模型
+        # 根据服务器传过来的参数更新本地模型
         self.trainer.update(content,
                             strict=True)
-        #把worker中的值赋给trainer
-        self.trainer.ctx.inter_model = self.inter_model #TODO: inter model 每次是否被更新？？？？ evalute的时候，这个inter_model是否被更新？ 不用self.inter_model这个中间变量，只用ctx.inter_model会更好？
+        # 把worker中的值赋给trainer
+        # self.trainer.ctx.inter_model = self.inter_model #TODO: inter model 每次是否被更新？？？？ evalute的时候，这个inter_model是否被更新？ 不用self.inter_model这个中间变量，只用ctx.inter_model会更好？
         self.trainer.ctx.pre_model = self.pre_model
         sample_size, model_para, results = self.trainer.train()
-        #TODO:worker中的model是否和trainer中一样
-        self.inter_model.load_state_dict(self.model.state_dict())
+        self.trainer.ctx.inter_model.load_state_dict(self.model.state_dict())
 
         train_log_res = self._monitor.format_eval_res(
             results,
@@ -336,29 +332,32 @@ class FCCLClient(Client):
                     sender=self.ID,
                     receiver=[sender],
                     state=self.state,
-                    content=(sample_size,model_para)))
+                    content=(sample_size, model_para)))
 
     def _pretrain_nets(self):
         self.pre_model = copy.deepcopy(self.model)
-        pretrain_path = os.path.join('./pretrain/', self._cfg.fccl.pretrain_path)
-        ckpt_files = os.path.join(pretrain_path, str(self.ID)+'.ckpt')
+        # print(os.getcwd())
+        ckpt_files = os.path.join(self.model_weight_dir,
+                                  'FCCL_' + self.model_name + '_on_' + self.public_dataset_name + '_client_' + str(
+                                      self.ID) + '.ckpt')
 
-        if not os.path.exists(pretrain_path):
-            os.makedirs(pretrain_path)
-        if not os.path.exists(ckpt_files):
-            self._pretrain_net(self._cfg.fccl.pretrain_epoch)
-            save_path = os.path.join(pretrain_path,str(self.ID)+'.ckpt')
-            torch.save(self.pre_model.state_dict(),save_path)
+        if not os.path.exists(ckpt_files) or self.rePretrain:
+            self._pretrain_net(self._cfg.MHFL.pre_training.private_epochs)
+            torch.save(self.pre_model.state_dict(), ckpt_files)
+            print(f'###save_path:{ckpt_files}')
         else:
-            save_path = os.path.join(pretrain_path, str(self.ID) + '.ckpt')
-            self.pre_model.load_state_dict(torch.load(save_path,self.device))
+            print(f'###save_path:{ckpt_files}')
+            self.pre_model.load_state_dict(torch.load(ckpt_files, self.device))
             self._evaluate_net()
-        self.model.load_state_dict(torch.load(ckpt_files,self.device))
+        self.model.load_state_dict(torch.load(ckpt_files, self.device))
 
-    def _pretrain_net(self,epoch):
+    def _pretrain_net(self, epoch):
+        """
+            Train to convergence on the client's private dataset
+        """
         device = self._cfg.device
         model = self.pre_model.to(device)
-        optimizer = optim.Adam(model.parameters(), lr=0.001) # TODO: 预训练学习率软编码（）
+        optimizer = optim.Adam(model.parameters(), lr=0.001)  # TODO: 预训练学习率软编码（）
         # scheduler = CosineLRScheduler(optimizer, t_initial=epoch, decay_rate=1., lr_min=1e-6)
         scheduler = CosineLRScheduler(optimizer, t_initial=epoch, lr_min=1e-6)
         criterion = nn.CrossEntropyLoss()
@@ -372,22 +371,22 @@ class FCCLClient(Client):
                 loss = criterion(outputs, labels)
                 optimizer.zero_grad()
                 loss.backward()
-                iterator.desc = "Local Pariticipant %d loss = %0.3f" % (self.ID,loss)
+                iterator.desc = "Local Pariticipant %d loss = %0.3f" % (self.ID, loss)
                 optimizer.step()
             # if epoch_index %10 ==0:
             acc = self._evaluate_net()
             scheduler.step(epoch_index)
-                # if acc >80:
-                #     break
+            # if acc >80:
+            #     break
 
     @torch.no_grad()
     def _evaluate_net(self):
         device = self._cfg.device
         model = self.pre_model.to(device)
         dl = self.data['test']
-        status = model.training  #TODO:没有training这个变量 Oh好像有的
+        status = model.training
         model.eval()
-        correct, total,top1,top5 = 0.0, 0.0,0.0,0.0
+        correct, total, top1, top5 = 0.0, 0.0, 0.0, 0.0
         for batch_idx, (images, labels) in enumerate(dl):
             images, labels = images.to(device), labels.to(device)
             outputs = model(images)
@@ -397,12 +396,11 @@ class FCCLClient(Client):
             top5 += (labels == max5).sum().item()
             total += labels.size(0)
 
-        top1acc= round(100 * top1 / total,2)
-        top5acc= round(100 * top5 / total,2)
-        print('The '+str(self.ID)+'participant top1acc:'+str(top1acc)+'_top5acc:'+str(top5acc))
+        top1acc = round(100 * top1 / total, 2)
+        top5acc = round(100 * top5 / total, 2)
+        print('The ' + str(self.ID) + 'participant top1acc:' + str(top1acc) + '_top5acc:' + str(top5acc))
         model.train(status)
         return top1acc
-
 
 
 def call_my_worker(method):

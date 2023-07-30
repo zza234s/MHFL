@@ -14,9 +14,6 @@ def extend_model_heterogeneous_cfg(cfg):
 
     cfg.MHFL.public_train = CN()  # 在公共数据集上训练相关的参数
     cfg.MHFL.public_dataset = 'mnist'
-    cfg.MHFL.public_path = './data'
-    cfg.MHFL.public_train.batch_size = 128  # 训练、测试公共数据集的batch_size
-    cfg.MHFL.public_train.epochs = 40
     cfg.MHFL.public_len = 5000  # weak or strong
     cfg.MHFL.model_weight_dir = './contrib/model_weight'
 
@@ -174,8 +171,6 @@ def extend_model_heterogeneous_cfg(cfg):
     cfg.fccl.structure = 'homogeneity'
     cfg.fccl.beta = 0.1
     cfg.fccl.off_diag_weight = 0.0051
-    cfg.fccl.pretrain_epoch = 50
-    cfg.fccl.pretrain_path = 'low_5_CNN_alpha100'
     cfg.fccl.loss_dual_weight = 1
     cfg.fccl.pub_aug = 'weak'
 
@@ -197,12 +192,12 @@ def extend_model_heterogeneous_cfg(cfg):
     cfg.DENSE.save_dir = './contrib/synthesis'
     cfg.DENSE.T = 1.0
 
-    # ----------------------------------wait to delete----------------------- #
-    cfg.MHFL.save_pretraining_model = True  # 是否保存预训练模型
-
     # --------------- register corresponding check function ----------
     cfg.register_cfg_check_fun(assert_mdfh_cfg)
 
+
+    # ----------------------------------wait to delete----------------------- #
+    # pass
 
 def assert_mdfh_cfg(cfg):
     if cfg.model.num_classes != cfg.model.out_channels:

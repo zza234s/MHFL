@@ -20,15 +20,14 @@ MHFL:
   public_train:
     optimizer:
       type: Adam
-      lr: 0.0001  #0.01
-      weight_decay: 5e-4   #0.0
+      lr: 0.0001
+      weight_decay: 5e-4
 data:
   root: data/
-  local_eval_whole_test_dataset: True #important!
-  type: 'CIFAR10@torchvision'
-  splits: [1.0, 0.0, 0.0]
-  transform: [['ToTensor'], ['Normalize', {'mean': [0.4914, 0.4822, 0.4465], 'std': [0.2470, 0.2435, 0.2616]}]]
-  test_transform: [['ToTensor'], ['Normalize', {'mean': [0.4914, 0.4822, 0.4465], 'std': [0.2470, 0.2435, 0.2616]}]]
+  local_eval_whole_test_dataset: True
+  type: 'SVHN@torchvision'
+  transform: [['ToTensor']]
+  test_transform: [['ToTensor']]
   args: [{'download': True}]
   splitter: 'lda'
   splitter_args: [{'alpha': 100}]

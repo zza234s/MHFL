@@ -80,7 +80,7 @@ Manual_FedProto_FEMNIST_
 --cfg
 model_heterogeneity/methods/fedproto/fedproto_on_cifar10.yaml
 --client_cfg
-model_heterogeneity/methods/proto_model_setting_5_client_on_cifar10_low_heterogeneity.yaml
+model_heterogeneity/model_settings/model_setting_CV_low_heterogeneity.yaml
 
 
 

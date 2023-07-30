@@ -65,7 +65,7 @@ def load_fashion_minist(pubaug, path):
             normalize
         ])
     train_dataset = FashionMNISTData(path, train=True,
-                                     download=False, transform=selected_transform)
+                                     download=True, transform=selected_transform)
     return train_dataset
 
 # class PublicFashionMnist(PublicDataset):

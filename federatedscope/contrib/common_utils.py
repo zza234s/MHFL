@@ -455,6 +455,11 @@ def result_to_csv(result, init_cfg, best_round, runner):
         out_dict['proto_weight'] = init_cfg.fedproto.proto_weight
         out_dict['test_acc_based_on_global_proto'] = result['client_summarized_avg']['test_acc_based_on_global_prototype']
 
+    if out_dict['method'][0] == 'fccl':
+        out_dict['off_diag_weight'] = init_cfg.fccl.off_diag_weight
+        out_dict['loss_dual_weight'] = init_cfg.fccl.loss_dual_weight
+        out_dict['public_dataset_name'] = init_cfg.MHFL.public_dataset
+
     if out_dict['method'][0] == 'fedpcl':
         out_dict['test_acc_based_on_local_proto'] = result['client_summarized_avg']['test_acc_based_on_local_prototype']
         print(f"client summarized avg test_acc (based on local proto):{out_dict['test_acc_based_on_local_proto']}")
