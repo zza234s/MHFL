@@ -2,10 +2,10 @@ use_gpu: True
 device: 0
 early_stop:
   patience: 50
-seed: 0
+seed: 0 #[0,1,2]
 federate:
-  method: fedmd
   mode: standalone
+  method: fedhenn
   client_num: 5
   total_round_num: 200
   sample_client_rate: 1.0
@@ -14,23 +14,13 @@ data:
   root: data/
   type: femnist
   splits: [ 0.6,0.2,0.2 ]
+  subsample: 0.05
   transform: [ [ 'ToTensor' ], [ 'Normalize', { 'mean': [ 0.9637 ], 'std': [ 0.1592 ] } ] ]
 dataloader:
   batch_size: 256
 model:
   out_channels: 62
-MHFL:
-  save_pretraining_model: True
-  public_dataset: mnist
-fedmd:
-  digest_epochs: 1
-  public_subset_size: 5000
-  pre_training:
-    public_epochs: 10
-    public_batch_size: 256
-    private_epochs: 500
-    private_batch_size: 256
-    rePretrain: False
+  return_proto: True # important
 train:
   local_update_steps: 1
   batch_or_epoch: epoch
@@ -38,16 +28,15 @@ train:
     type: Adam
     lr: 0.001
     weight_decay: 1e-4
-grad:
-  grad_clip: 5.0
 criterion:
   type: CrossEntropyLoss
 trainer:
-  type: cvtrainer
+  type: fedhenn_trainer
+grad:
+  grad_clip: 5.0
 eval:
   freq: 1
-  metrics: ['acc']
-  report : ['weighted_avg', 'avg']
+  metrics: [ 'acc', 'correct' ]
+  report: [ 'weighted_avg', 'avg', 'raw' ]
   best_res_update_round_wise_key: test_acc
-
-
+exp_name: 'FedHeNN_5_clients_on_femnist_low_heterogeneity'

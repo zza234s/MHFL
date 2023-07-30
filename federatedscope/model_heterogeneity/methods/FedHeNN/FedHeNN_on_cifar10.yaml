@@ -1,14 +1,18 @@
 use_gpu: True
 device: 0
 early_stop:
-  patience: 50
-seed: 0
+  patience: 15
+seed: 0 #[0,1,2]
 federate:
   mode: standalone
+  method: fedhenn
+  client_num: 5
   total_round_num: 200
   sample_client_rate: 1.0
-  client_num: 5
   make_global_eval: False
+model:
+  out_channels: 10
+  return_proto: True # important
 data:
   root: data/
   local_eval_whole_test_dataset: True #important! Whether the test dataset for each client is equivalent to the test dataset for the unsplit dataset
@@ -19,16 +23,9 @@ data:
   test_transform: [ [ 'ToTensor' ], [ 'Normalize', { 'mean': [ 0.4914, 0.4822, 0.4465 ], 'std': [ 0.2470, 0.2435, 0.2616 ] } ] ]
   args: [ { 'download': True } ]
   splitter: 'lda'
-  splitter_args: [ { 'alpha': 1.0 } ]
+  splitter_args: [ { 'alpha': 1.0 } ] #[100,1.0,0.1]
 dataloader:
   batch_size: 256
-fml:
-  meme_model:
-    type: LeNet5 # If the method is FML, the model of the main cfg file refers to meme_model
-    out_channels: 10
-model:
-  type: LeNet5 # If the method is FML, the model of the main cfg file refers to meme_model
-  out_channels: 10
 train:
   local_update_steps: 1
   batch_or_epoch: epoch
@@ -36,15 +33,15 @@ train:
     type: Adam
     lr: 0.001
     weight_decay: 1e-4
-grad:
-  grad_clip: 5.0
 criterion:
   type: CrossEntropyLoss
 trainer:
-  type: fml_cv_trainer
+  type: fedhenn_trainer
+grad:
+  grad_clip: 5.0
 eval:
   freq: 1
-  metrics: ['acc']
-  report : ['weighted_avg', 'avg']
+  metrics: [ 'acc', 'correct' ]
+  report: [ 'weighted_avg', 'avg', 'raw' ]
   best_res_update_round_wise_key: test_acc
-exp_name: 'HPO_FML_5_clients_on_cifa10_low_heterogeneity'
+exp_name: 'FedHeNN_5_clients_on_cifa10_low_heterogeneity_alpha_1.0'

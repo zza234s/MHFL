@@ -133,12 +133,13 @@ class FedMD_client(Client):
 
         # TODO: FedMD的cfg和MHFL的cfg有重叠部分，需要统一
         # Local pretraining related settings
+        self.model_name = config.model.type
         self.rePretrain = config.fedmd.pre_training.rePretrain
         self.public_epochs = config.fedmd.pre_training.public_epochs
         self.private_epochs = config.fedmd.pre_training.private_epochs
         self.public_batch_size = config.fedmd.pre_training.public_batch_size
         self.private_batch_size = config.fedmd.pre_training.private_batch_size
-        if self.cfg_MHFL.save_model and not os.path.exists(self.model_weight_dir):
+        if self.cfg_MHFL.pre_training.save_model and not os.path.exists(self.model_weight_dir):
             os.mkdir(self.model_weight_dir)  # 生成保存预训练模型权重所需的文件夹
 
         # load public dataset for pretraining
@@ -158,7 +159,7 @@ class FedMD_client(Client):
         local_cfg = config.clone()
         local_cfg.defrost()
         local_cfg.train.local_update_steps = 1
-        local_cfg.freeze()
+        local_cfg.freeze(inform=False)
         self.trainer_local_pretrain = get_trainer(model=model,
                                                   data=data,
                                                   device=device,
@@ -173,7 +174,7 @@ class FedMD_client(Client):
         self.selected_sample_per_epochs = message.content
 
         model_file = os.path.join(self.model_weight_dir,
-                                  'FedMD_' + self.public_dataset_name + '_client_' + str(self.ID) + '.pth')
+                                  'FedMD_' + self.model_name+ '_on_'+self.public_dataset_name + '_client_' + str(self.ID) + '.pth')
         if os.path.exists(model_file) and not self.rePretrain:
             # 如果已经存在预训练好的模型权重并且不要求重新预训练
             self.model.load_state_dict(torch.load(model_file, self.device))

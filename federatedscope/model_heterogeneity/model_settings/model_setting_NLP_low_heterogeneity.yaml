@@ -1,0 +1,33 @@
+# 由于NLP数据集往往涉及到上百个客户端，因此直接显示地定义每个客户端的模型是不合适的
+# 我们改为按比例为每个客户端分配模型：例如下面一共列出了五种模型，假如客户端总数为200，每种模型的比例为0.2。那么最后每个模型对应的客户端数就是200*0.2=40
+type_1:
+  model:
+    type: lstm
+    layer: 2
+    hidden: 256
+    dropout: 0.0
+type_2:
+  model:
+    type: lstm
+    layer: 2
+    embed_size: 16
+    hidden: 128
+    dropout: 0.0
+type_3:
+  model:
+    type: lstm
+    layer: 2
+    hidden: 512
+    dropout: 0.0
+type_4:
+  model:
+    type: lstm
+    layer: 3
+    hidden: 256
+    dropout: 0.0
+type_5:
+  model:
+    type: lstm
+    layer: 3
+    hidden: 64
+    dropout: 0.0

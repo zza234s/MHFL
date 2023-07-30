@@ -15,11 +15,11 @@ fedpcl:
   show_verbose: False # Weather display verbose loss information
 data:
   root: data/
-  type: femnist
-  splits: [ 0.6,0.2,0.2 ]
-  transform: [ [ 'ToTensor' ], [ 'Normalize', { 'mean': [ 0.9637 ], 'std': [ 0.1592 ] } ] ]
+  type: 'office_caltech'
+  splitter_args: [{'alpha': 100.0}]
+  local_eval_whole_test_dataset: True #important! Whether the test dataset for each client is equivalent to the test dataset for the unsplit dataset
 dataloader:
-  batch_size: 256 #32 64 128 256
+  batch_size: 32
 train:
   local_update_steps: 1
   batch_or_epoch: epoch
@@ -32,7 +32,7 @@ criterion:
 trainer:
   type: fedpcl_cv_trainer
 grad:
-  grad_clip: 10.0
+  grad_clip: 5.0
 model:
   type: CNN_3layers_proto
   out_channels: 10
@@ -41,8 +41,7 @@ model:
   filter_channels: [128,64,64]
   return_proto: True
 eval:
-  freq: 20
+  freq: 1
   metrics: ['acc','acc_based_on_local_prototype']
   report : ['weighted_avg', 'avg']
   best_res_update_round_wise_key: test_acc_based_on_local_prototype
-exp_name: 'FedPCL_5_clients_on_femnist_low_heterogeneity'

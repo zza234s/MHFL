@@ -173,10 +173,13 @@ def load_external_data(config=None):
                                          split='train',
                                          **filtered_args,
                                          **transform_funcs)
-            dataset_val = dataset_func(root=config.data.root,
-                                       split='valid',
-                                       **filtered_args,
-                                       **val_transform_funcs)
+            if name in ['SVHN']:
+                dataset_val= Subset(dataset_train, [])
+            else:
+                dataset_val = dataset_func(root=config.data.root,
+                                           split='valid',
+                                           **filtered_args,
+                                           **val_transform_funcs)
             dataset_test = dataset_func(root=config.data.root,
                                         split='test',
                                         **filtered_args,

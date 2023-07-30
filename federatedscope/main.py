@@ -19,6 +19,7 @@ from federatedscope.core.auxiliaries.runner_builder import get_runner
 from federatedscope.contrib.common_utils import result_to_csv, plot_num_of_samples_per_classes, \
     show_per_client_best_individual
 
+from federatedscope.model_heterogeneity.model_settings.generate_model_cfg import generate_models_cfg
 if os.environ.get('https_proxy'):
     del os.environ['https_proxy']
 if os.environ.get('http_proxy'):
@@ -43,6 +44,12 @@ if __name__ == '__main__':
         client_cfgs.merge_from_list(client_cfg_opt)
     else:
         client_cfgs = None
+
+    if args.models_cfg_file:
+        if args.client_cfg_file:
+            raise Exception("Error: --client_cfg 与 --models_cfg不应该同时被设置")
+        models_cfgs = CfgNode.load_cfg(open(args.models_cfg_file, 'r'))
+        client_cfgs=generate_models_cfg(init_cfg,models_cfgs,ratios=[0.2,0.2,0.2,0.2,0.2]) #TODO: ratio写进配置文件
 
     # federated dataset might change the number of clients
     # thus, we allow the creation procedure of dataset to modify the global

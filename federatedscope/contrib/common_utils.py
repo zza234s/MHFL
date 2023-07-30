@@ -53,6 +53,8 @@ def plot_num_of_samples_per_classes(data, modified_cfg, scaling=10.0):
             axs[1].scatter([idx] * class_num, list(test_label_distribution[idx].keys()),
                            s=list(test_label_distribution[idx].values()), color='blue')
 
+            print(f" Client:{idx}, {test_label_distribution_new}")
+
     axs[1].set_title(f'Test Dataset label distribution')
     plt.show()
 
@@ -443,7 +445,7 @@ def result_to_csv(result, init_cfg, best_round, runner):
         'fedmd_public_subset_size': [init_cfg.fedmd.public_subset_size],
         'fedmd_digest_epochs': [init_cfg.fedmd.digest_epochs],
         'fedhenn_eta': [init_cfg.fedhenn.eta],
-
+        'dropout':[init_cfg.model.dropout]
     }
 
     if len(init_cfg.data.splitter_args) != 0 and 'alpha' in init_cfg.data.splitter_args[0]:
@@ -451,6 +453,7 @@ def result_to_csv(result, init_cfg, best_round, runner):
 
     if out_dict['method'][0] == 'fedproto':
         out_dict['proto_weight'] = init_cfg.fedproto.proto_weight
+        out_dict['test_acc_based_on_global_proto'] = result['client_summarized_avg']['test_acc_based_on_global_prototype']
 
     if out_dict['method'][0] == 'fedpcl':
         out_dict['test_acc_based_on_local_proto'] = result['client_summarized_avg']['test_acc_based_on_local_prototype']
@@ -458,9 +461,12 @@ def result_to_csv(result, init_cfg, best_round, runner):
     out_dict['local_eval_whole_test_dataset'] = [init_cfg.data.local_eval_whole_test_dataset]
 
     if init_cfg.show_client_best_individual:
-        avg_test_acc, avg_val_acc = show_per_client_best_individual(runner)
+        avg_test_acc, avg_val_acc, avg_test_acc_local_proto, avg_test_acc_glob_proto = show_per_client_best_individual(
+            runner)
         out_dict['individual_best_test_acc_avg'] = avg_test_acc
-
+        if out_dict['method'][0] == 'fedproto' or out_dict['method'][0] == 'fedpcl':
+            out_dict['individual_avg_test_acc_with_global_prototype'] = avg_test_acc_glob_proto
+            out_dict['individual_avg_test_acc_with_local_prototype'] = avg_test_acc_local_proto
     df = pd.DataFrame(out_dict, columns=out_dict.keys())
     folder_path = init_cfg.result_floder
     csv_path = f'{folder_path}/{init_cfg.exp_name}.csv'
@@ -476,24 +482,60 @@ def result_to_csv(result, init_cfg, best_round, runner):
 
     return df
 
+
 def show_per_client_best_individual(runner):
     client_num = runner.cfg.federate.client_num
-    total_test_acc, total_val_acc = 0.0, 0.0
-    best_test_acc,best_val_acc =0.0,0.0
+    keys = ['val_acc', 'test_acc', 'test_acc_based_on_global_prototype', 'test_acc_based_on_local_prototype']
+    total = {key: 0.0 for key in keys}
+
     for client_id in range(1, client_num + 1):
-        best_results = runner.client[client_id].best_results
-        best_results = list(best_results.values())[0]
-        if 'val_acc' in best_results.keys():
-            best_val_acc = best_results['val_acc']
-            total_val_acc += best_val_acc
-        if 'test_acc' in best_results.keys():
-            best_test_acc = best_results['test_acc']
-            total_test_acc += best_test_acc
-        logger.info(
-            f" 'Client {client_id}',\tindividual_best_test_acc: {best_test_acc} \t individual_val_acc {best_val_acc}")
+        best_results = list(runner.client[client_id].best_results.values())[0]
+        print(f"\nClient {client_id}:")
+        for key in keys:
+            value = best_results.get(key, 0.0)
+            total[key] += value
+            print(f"best_{key}: {value}")
 
-    avg_test_acc = total_test_acc / client_num
-    avg_val_acc = total_val_acc / client_num
+    avg_results = {key: value / client_num for key, value in total.items()}
+    print(
+        f"\n Average: best_individual_avg_test_acc: {avg_results['test_acc']} \n best_individual_avg_val_acc: {avg_results['val_acc']}")
+    return avg_results['test_acc'], avg_results['val_acc'], avg_results['test_acc_based_on_local_prototype'], \
+           avg_results['test_acc_based_on_global_prototype']
 
-    print(f"Final: best_individual_avg_test_acc: {avg_test_acc} \t best_individual_avg_val_acc:{avg_val_acc}")
-    return avg_test_acc, avg_val_acc
+# def show_per_client_best_individual(runner):
+#     client_num = runner.cfg.federate.client_num
+#     total_test_acc, total_val_acc = 0.0, 0.0
+#     best_test_acc, best_val_acc = 0.0, 0.0
+#
+#     total_acc_glob_proto = 0.0
+#     best_acc_glob_proto = 0.0
+#     total_acc_local_proto = 0.0
+#     best_acc_local_proto = 0.0
+#     for client_id in range(1, client_num + 1):
+#         best_results = runner.client[client_id].best_results
+#         best_results = list(best_results.values())[0]
+#         if 'val_acc' in best_results.keys():
+#             best_val_acc = best_results['val_acc']
+#             total_val_acc += best_val_acc
+#         if 'test_acc' in best_results.keys():
+#             best_test_acc = best_results['test_acc']
+#             total_test_acc += best_test_acc
+#         if 'test_acc_based_on_global_prototype' in best_results.keys():
+#             best_acc_glob_proto = best_results['test_acc_based_global_prototype']
+#             total_acc_glob_proto += best_acc_glob_proto
+#         if 'test_acc_based_on_local_prototype' in best_results.keys():
+#             best_acc_local_proto = best_results['test_acc_based_on_local_prototype']
+#             total_acc_local_proto += best_acc_local_proto
+#         print('\n')
+#         print(
+#             f"Client {client_id}:\n"
+#             f"best_test_acc: {best_test_acc}\n"
+#             f"best_val_acc: {best_val_acc}\n"
+#             f"best_test_acc (with_global_prototype): {best_acc_glob_proto}\n"
+#             f"best_test_acc (with_local_prototype): {best_acc_local_proto}")
+#     avg_test_acc = total_test_acc / client_num
+#     avg_val_acc = total_val_acc / client_num
+#     avg_test_acc_local_proto = total_acc_local_proto / client_num
+#     avg_test_acc_glob_proto = total_acc_glob_proto / client_num
+#     print(f"Final: best_individual_avg_test_acc: {avg_test_acc} \t best_individual_avg_val_acc:{avg_val_acc}")
+#     return avg_test_acc, avg_val_acc, avg_test_acc_local_proto, avg_test_acc_glob_proto

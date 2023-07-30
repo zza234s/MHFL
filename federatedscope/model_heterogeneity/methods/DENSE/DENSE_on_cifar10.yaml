@@ -1,0 +1,59 @@
+use_gpu: True
+device: 0
+early_stop:
+  patience: 50
+seed: 0
+federate:
+  method: dense
+  mode: standalone
+  total_round_num: 200
+  sample_client_rate: 1.0
+  client_num: 5
+  make_global_eval: False
+data:
+  root: data/
+  local_eval_whole_test_dataset: True #important! Whether the test dataset for each client is equivalent to the test dataset for the unsplit dataset
+  type: 'CIFAR10@torchvision'
+  splits: [ 1.0, 0.0, 0.0 ]
+  num_workers: 0
+  transform: [['ToTensor'], ['Normalize', {'mean': [0.4914, 0.4822, 0.4465], 'std': [0.2470, 0.2435, 0.2616]}]] #very import
+  test_transform: [['ToTensor'], ['Normalize', {'mean': [0.4914, 0.4822, 0.4465], 'std': [0.2470, 0.2435, 0.2616]}]]
+  args: [{'download': True}]
+  splitter: 'lda'
+  splitter_args: [ { 'alpha': 1.0 } ]
+dataloader:
+  batch_size: 256
+DENSE:
+  model_heterogeneous: True # Dense
+  pretrain_epoch: 400
+  nz: 256  # number of total iterations in each epoch
+  g_steps: 2  # number of iterations for generation
+  lr_g: 1e-3  # initial learning rate for generation
+  synthesis_batch_size: 256
+  sample_batch_size: 256
+  adv: 0  # scaling factor for adv loss
+  bn: 0  # scaling factor for BN regularization
+  oh: 0  # scaling factor for one hot loss (cross entropy)
+  act: 0  # scaling factor for activation loss used in DAFL
+  save_dir: './contrib/synthesis'
+  T: 1.0
+model:
+  type: CNN_2layers
+  out_channels: 10
+train:
+  local_update_steps: 1
+  batch_or_epoch: epoch
+  optimizer:
+    type: SGD
+    lr: 0.001
+    momentum: 0.9
+grad:
+  grad_clip: 5.0
+criterion:
+  type: CrossEntropyLoss
+eval:
+  freq: 1
+  metrics: [ 'acc' ]
+  report: [ 'weighted_avg', 'avg' ]
+  best_res_update_round_wise_key: test_acc
+exp_name: 'main_test_DENSE_5_clients_on_cifa10_low_heterogeneity'

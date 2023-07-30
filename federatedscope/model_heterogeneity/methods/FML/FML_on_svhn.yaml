@@ -12,12 +12,10 @@ federate:
 data:
   root: data/
   local_eval_whole_test_dataset: True #important! Whether the test dataset for each client is equivalent to the test dataset for the unsplit dataset
-  type: 'CIFAR10@torchvision'
-  splits: [ 1.0, 0.0, 0.0 ]
-  num_workers: 0
-  transform: [ [ 'ToTensor' ], [ 'Normalize', { 'mean': [ 0.4914, 0.4822, 0.4465 ], 'std': [ 0.2470, 0.2435, 0.2616 ] } ] ] #very import
-  test_transform: [ [ 'ToTensor' ], [ 'Normalize', { 'mean': [ 0.4914, 0.4822, 0.4465 ], 'std': [ 0.2470, 0.2435, 0.2616 ] } ] ]
-  args: [ { 'download': True } ]
+  type: 'SVHN@torchvision'
+  transform: [['ToTensor']]
+  test_transform: [['ToTensor']]
+  args: [{'download': True}]
   splitter: 'lda'
   splitter_args: [ { 'alpha': 1.0 } ]
 dataloader:
@@ -47,4 +45,3 @@ eval:
   metrics: ['acc']
   report : ['weighted_avg', 'avg']
   best_res_update_round_wise_key: test_acc
-exp_name: 'HPO_FML_5_clients_on_cifa10_low_heterogeneity'

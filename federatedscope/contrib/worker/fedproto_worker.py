@@ -161,7 +161,8 @@ class FedprotoClient(Client):
         timestamp = message.timestamp
         content = message.content
 
-        self.trainer.update(content)
+        if message.msg_type == 'global_proto':
+            self.trainer.update(content)
         self.state = round
         self.trainer.ctx.cur_state = self.state
         sample_size, model_para, results, agg_protos = self.trainer.train()

@@ -17,6 +17,12 @@ def parse_args(args=None):
                         required=False,
                         default=None,
                         type=str)
+    parser.add_argument('--models_cfg',
+                        dest='models_cfg_file',
+                        help='Config file path for models',
+                        required=False,
+                        default=None,
+                        type=str)
     parser.add_argument(
         '--help',
         nargs="?",

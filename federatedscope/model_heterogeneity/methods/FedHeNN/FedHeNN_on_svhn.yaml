@@ -1,0 +1,44 @@
+use_gpu: True
+device: 0
+early_stop:
+  patience: 15
+seed: 0 #[0,1,2]
+federate:
+  mode: standalone
+  method: fedhenn
+  client_num: 5
+  total_round_num: 200
+  sample_client_rate: 1.0
+  make_global_eval: False
+data:
+  root: data/
+  local_eval_whole_test_dataset: True
+  type: 'SVHN@torchvision'
+  transform: [ [ 'ToTensor' ] ]
+  test_transform: [ [ 'ToTensor' ] ]
+  args: [ { 'download': True } ]
+  splitter: 'lda'
+  splitter_args: [ { 'alpha': 1.0 } ] #[100,1.0,0.1]
+dataloader:
+  batch_size: 256
+model:
+  out_channels: 10
+  return_proto: True # important
+train:
+  local_update_steps: 1
+  batch_or_epoch: epoch
+  optimizer:
+    type: Adam
+    lr: 0.001
+    weight_decay: 1e-4
+criterion:
+  type: CrossEntropyLoss
+trainer:
+  type: fedhenn_trainer
+grad:
+  grad_clip: 5.0
+eval:
+  freq: 1
+  metrics: [ 'acc' ]
+  report: [ 'weighted_avg', 'avg', 'raw' ]
+  best_res_update_round_wise_key: test_acc

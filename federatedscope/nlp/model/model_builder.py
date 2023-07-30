@@ -13,6 +13,7 @@ def get_rnn(model_config, input_shape):
             if not model_config.in_channels else model_config.in_channels,
             hidden=model_config.hidden,
             out_channels=model_config.out_channels,
+            n_layers=model_config.layer,
             embed_size=model_config.embed_size,
             dropout=model_config.dropout)
     else:

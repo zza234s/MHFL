@@ -1,0 +1,36 @@
+use_gpu: True
+device: 0
+early_stop:
+  patience: 10
+federate:
+  method: local
+  mode: standalone
+  total_round_num: 100
+  sample_client_num: 10
+  client_num: 813 #TODO:It is not good to directly specify the number of clients here
+data:
+  root: data/
+  type: subreddit
+  subsample: 1.0
+dataloader:
+  batch_size: 5
+model:
+  type: lstm
+  in_channels: 10000
+  out_channels: 10000
+  embed_size: 200
+  dropout: 0.0
+train:
+  local_update_steps: 10
+  optimizer:
+    lr: 8.0
+    weight_decay: 0.0
+criterion:
+  type: CrossEntropyLoss
+trainer:
+  type: nlptrainer
+eval:
+  freq: 10
+  metrics: [ 'acc', 'correct' ]
+result_floder: model_heterogeneity/result/nlp
+exp_name: local_subreddit_test

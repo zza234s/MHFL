@@ -1,0 +1,42 @@
+use_gpu: True
+device: 0
+early_stop:
+  patience: 50
+seed: 0
+check_completeness: False
+federate:
+  mode: standalone
+  method: local
+  client_num: 5
+  total_round_num: 100
+  sample_client_rate: 1.0
+  make_global_eval: False
+data:
+  root: data/
+  type: 'office_caltech'
+  splitter_args: [{'alpha': 100.0}]
+  local_eval_whole_test_dataset: True
+dataloader:
+  batch_size: 32
+train:
+  local_update_steps: 1
+  batch_or_epoch: epoch
+  optimizer:
+    type: Adam
+    lr: 0.001
+    weight_decay: 1e-4
+criterion:
+  type: CrossEntropyLoss
+trainer:
+  type: cvtrainer
+grad:
+  grad_clip: 5.0
+model:
+  out_channels: 10
+eval:
+  freq: 1
+  metrics: ['acc']
+  report : ['weighted_avg', 'avg']
+  best_res_update_round_wise_key: test_acc
+exp_name: 'Local_5_clients_on_office_caltech'
+show_label_distribution: False

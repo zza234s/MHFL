@@ -20,7 +20,7 @@ class DummyDataTranslator(BaseDataTranslator):
             raise TypeError(f'Not support data type {type(dataset)}')
         datadict = {}
         for client_id in dataset.keys():
-            if self.client_cfgs is not None:
+            if self.client_cfgs is not None and client_id!=0:
                 client_cfg = self.global_cfg.clone()
                 client_cfg.merge_from_other_cfg(
                     self.client_cfgs.get(f'client_{client_id}'))

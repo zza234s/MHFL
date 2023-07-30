@@ -4,7 +4,7 @@ early_stop:
   patience: 50
 seed: 0
 federate:
-  method: fedmd
+  method: local
   mode: standalone
   client_num: 5
   total_round_num: 200
@@ -12,25 +12,16 @@ federate:
   make_global_eval: False
 data:
   root: data/
-  type: femnist
-  splits: [ 0.6,0.2,0.2 ]
-  transform: [ [ 'ToTensor' ], [ 'Normalize', { 'mean': [ 0.9637 ], 'std': [ 0.1592 ] } ] ]
+  local_eval_whole_test_dataset: True
+  type: 'SVHN@torchvision'
+  num_workers: 0
+  transform: [['ToTensor']]
+  test_transform: [['ToTensor']]
+  args: [{'download': True}]
+  splitter: 'lda'
+  splitter_args: [{'alpha': 0.1}] #please set alpha to 100,1 and 0.1. The smaller alpha, the greater the heterogeneity
 dataloader:
   batch_size: 256
-model:
-  out_channels: 62
-MHFL:
-  save_pretraining_model: True
-  public_dataset: mnist
-fedmd:
-  digest_epochs: 1
-  public_subset_size: 5000
-  pre_training:
-    public_epochs: 10
-    public_batch_size: 256
-    private_epochs: 500
-    private_batch_size: 256
-    rePretrain: False
 train:
   local_update_steps: 1
   batch_or_epoch: epoch
@@ -38,6 +29,8 @@ train:
     type: Adam
     lr: 0.001
     weight_decay: 1e-4
+model:
+  out_channels: 10
 grad:
   grad_clip: 5.0
 criterion:
@@ -46,8 +39,7 @@ trainer:
   type: cvtrainer
 eval:
   freq: 1
-  metrics: ['acc']
-  report : ['weighted_avg', 'avg']
+  metrics: ['acc', 'correct']
+  report : ['weighted_avg', 'avg', 'raw']
   best_res_update_round_wise_key: test_acc
-
 

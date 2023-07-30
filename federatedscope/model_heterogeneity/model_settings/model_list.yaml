@@ -1,0 +1,25 @@
+type_1:
+  model:
+    type: CNN_2layers
+    hidden: 256
+    filter_channels: [128,256]
+type_2:
+  model:
+    type: CNN_3layers
+    hidden: 256
+    filter_channels: [128,128,192]
+type_3:
+  model:
+    type: CNN_3layers
+    hidden: 256
+    filter_channels: [64,64,64]
+type_4:
+  model:
+    type: CNN_3layers
+    hidden: 256
+    filter_channels: [128,64,64]
+type_5:
+  model:
+    type: CNN_3layers
+    hidden: 256
+    filter_channels: [64,64,128]

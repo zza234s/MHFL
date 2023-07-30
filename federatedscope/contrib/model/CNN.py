@@ -7,6 +7,7 @@ from torch.nn import Linear
 from torch.nn import MaxPool2d
 from torch.nn import ReLU
 
+
 class CNN_2layers(Module):
     def __init__(self,
                  in_channels,
@@ -174,69 +175,37 @@ class CNN_4layers(Module):
         else:
             return x
 
-
 def call_our_cnn(model_config, input_shape):
     if 'CNN_2layers' in model_config.type:
-        if 'proto' in model_config.type:
-            model = CNN_2layers(in_channels=input_shape[-3],
-                                w=input_shape[-2],
-                                h=input_shape[-1],
-                                hidden=model_config.hidden,
-                                class_num=model_config.out_channels,
-                                filters=model_config.filter_channels,
-                                dropout=model_config.dropout,
-                                return_proto=True)
-        else:
-            model = CNN_2layers(in_channels=input_shape[-3],
+        model = CNN_2layers(in_channels=input_shape[-3],
                             w=input_shape[-2],
                             h=input_shape[-1],
                             hidden=model_config.hidden,
                             class_num=model_config.out_channels,
                             filters=model_config.filter_channels,
                             dropout=model_config.dropout,
-                            return_proto=False)
+                            return_proto=model_config.return_proto)
         return model
     elif 'CNN_3layers' in model_config.type:
-        if 'proto' in model_config.type:
-            model = CNN_3layers(in_channels=input_shape[-3],
-                                w=input_shape[-2],
-                                h=input_shape[-1],
-                                hidden=model_config.hidden,
-                                class_num=model_config.out_channels,
-                                filters=model_config.filter_channels,
-                                dropout=model_config.dropout,
-                                return_proto=True)
-        else:
-            model = CNN_3layers(in_channels=input_shape[-3],
-                                w=input_shape[-2],
-                                h=input_shape[-1],
-                                hidden=model_config.hidden,
-                                class_num=model_config.out_channels,
-                                filters=model_config.filter_channels,
-                                dropout=model_config.dropout,
-                                return_proto=False)
+        model = CNN_3layers(in_channels=input_shape[-3],
+                            w=input_shape[-2],
+                            h=input_shape[-1],
+                            hidden=model_config.hidden,
+                            class_num=model_config.out_channels,
+                            filters=model_config.filter_channels,
+                            dropout=model_config.dropout,
+                            return_proto=model_config.return_proto)
         return model
 
     elif 'CNN_4layers' in model_config.type:
-        if 'proto' in model_config.type:
-            model = CNN_4layers(in_channels=input_shape[-3],
-                                w=input_shape[-2],
-                                h=input_shape[-1],
-                                hidden=model_config.hidden,
-                                class_num=model_config.out_channels,
-                                filters=model_config.filter_channels,
-                                dropout=model_config.dropout,
-                                return_proto=True)
-        else:
-            model = CNN_4layers(in_channels=input_shape[-3],
-                                w=input_shape[-2],
-                                h=input_shape[-1],
-                                hidden=model_config.hidden,
-                                class_num=model_config.out_channels,
-                                filters=model_config.filter_channels,
-                                dropout=model_config.dropout,
-                                return_proto=False)
+        model = CNN_4layers(in_channels=input_shape[-3],
+                            w=input_shape[-2],
+                            h=input_shape[-1],
+                            hidden=model_config.hidden,
+                            class_num=model_config.out_channels,
+                            filters=model_config.filter_channels,
+                            dropout=model_config.dropout,
+                            return_proto=model_config.return_proto)
         return model
-
 
 register_model('call_our_cnn', call_our_cnn)

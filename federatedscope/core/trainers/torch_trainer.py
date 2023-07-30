@@ -90,7 +90,8 @@ class GeneralTorchTrainer(Trainer):
         merged_param = merge_param_dict(self.ctx.model.state_dict().copy(),
                                         self._param_filter(model_parameters))
         self.ctx.model.load_state_dict(merged_param, strict=strict)
-
+        if self._param_filter(model_parameters)!={}:
+            logger.info(f"当前本地模型被更新的参数有：{self._param_filter(model_parameters)}")
     def evaluate(self, target_data_split_name="test"):
         with torch.no_grad():
             super(GeneralTorchTrainer, self).evaluate(target_data_split_name)

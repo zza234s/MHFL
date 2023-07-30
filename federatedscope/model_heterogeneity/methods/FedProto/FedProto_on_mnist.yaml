@@ -4,30 +4,36 @@ early_stop:
   patience: 50
 seed: 0
 check_completeness: False
+
 federate:
   mode: standalone
-  method: fedpcl
+  method: fedproto
   client_num: 5
   total_round_num: 200
   sample_client_rate: 1.0
   make_global_eval: False
-fedpcl:
-  debug: False
-  show_verbose: False # Weather display verbose loss information
+fedproto:
+  proto_weight: 0.1 #weight of proto loss;
+  iid: False
 data:
   root: data/
   local_eval_whole_test_dataset: True #important! Whether the test dataset for each client is equivalent to the test dataset for the unsplit dataset
   type: 'CIFAR10@torchvision'
   splits: [1.0, 0.0, 0.0]
-  transform: [['ToTensor'], ['Normalize', {'mean': [0.4914, 0.4822, 0.4465], 'std': [0.2470, 0.2435, 0.2616]}]]
+  num_workers: 0
+  transform: [['ToTensor'], ['Normalize', {'mean': [0.4914, 0.4822, 0.4465], 'std': [0.2470, 0.2435, 0.2616]}]] #very import
   test_transform: [['ToTensor'], ['Normalize', {'mean': [0.4914, 0.4822, 0.4465], 'std': [0.2470, 0.2435, 0.2616]}]]
   args: [{'download': True}]
   splitter: 'lda'
-  splitter_args: [{'alpha': 100.0}]
+  splitter_args: [{'alpha': 100}]
 dataloader:
   batch_size: 256
+model:
+  dropout: 0.5
+  out_channels: 62
+  return_proto: True # important
 train:
-  local_update_steps: 1
+  local_update_steps: 20
   batch_or_epoch: epoch
   optimizer:
     type: Adam
@@ -36,19 +42,12 @@ train:
 criterion:
   type: CrossEntropyLoss
 trainer:
-  type: fedpcl_cv_trainer
+  type: fedproto_trainer
 grad:
-  grad_clip: 10.0
-model:
-  type: CNN_3layers_proto
-  out_channels: 10
-  dropout: 0.
-  hidden: 256
-  filter_channels: [128,64,64]
-  return_proto: True # important
+  grad_clip: 5.0
 eval:
-  freq: 1
-  metrics: ['acc','acc_based_on_local_prototype']
+  freq: 5
+  metrics: ['acc','acc_based_on_global_prototype']
   report : ['weighted_avg', 'avg']
-  best_res_update_round_wise_key: test_acc_based_on_local_prototype
-exp_name: 'FedPCL_5_clients_on_cifa10_low_heterogeneity'
+  best_res_update_round_wise_key: test_acc
+exp_name: 'fedproto_5_clients_on_minist_low_heterogeneity'

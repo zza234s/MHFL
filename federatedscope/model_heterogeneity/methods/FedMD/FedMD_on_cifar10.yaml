@@ -22,6 +22,8 @@ data:
   splitter_args: [{'alpha': 100}] #please set alpha to 100,1 and 0.1. The smaller alpha, the greater the heterogeneity
 dataloader:
   batch_size: 256
+model:
+  out_channels: 100
 MHFL:
   save_pretraining_model: True
   public_dataset: cifar100

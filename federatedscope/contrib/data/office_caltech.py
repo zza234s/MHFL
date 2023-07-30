@@ -6,6 +6,7 @@ import torch
 from torch.utils.data import DataLoader, Dataset
 from federatedscope.register import register_data
 from federatedscope.core.data.utils import convert_data_mode
+from federatedscope.core.data.base_data import ClientData
 from federatedscope.core.auxiliaries.utils import setup_seed
 from torchvision import datasets, transforms
 from federatedscope.core.data import DummyDataTranslator
@@ -21,12 +22,12 @@ source:https://github.com/yuetan031/FedPCL/blob/main/lib/utils.py
 def prepare_data_caltech_noniid(config, client_cfgs=None):
     # Prepare data
     transform_office = transforms.Compose([
-        transforms.Resize([64, 64]),
+        transforms.Resize([32, 32]),
         transforms.ToTensor(),
     ])
 
     transform_test = transforms.Compose([
-        transforms.Resize([64, 64]),
+        transforms.Resize([32, 32]),
         transforms.ToTensor(),
     ])
 
@@ -36,7 +37,7 @@ def prepare_data_caltech_noniid(config, client_cfgs=None):
     alpha = config.data['splitter_args'][0]['alpha']
     # caltech
     caltech_trainset = OfficeDataset(data_root + 'office/', 'caltech', transform=transform_office, train=True)
-    caltech_testset = OfficeDataset(data_root + 'office/', 'caltech', transform=transform_test, train=True)
+    caltech_testset = OfficeDataset(data_root + 'office/', 'caltech', transform=transform_test, train=False)
 
     # generate train idx and test idx
     K = config.model.num_classes
@@ -48,7 +49,7 @@ def prepare_data_caltech_noniid(config, client_cfgs=None):
         idx_k = np.where(y == k)[0]
         idx_k = idx_k[0:30 * num_users]
         np.random.shuffle(idx_k)
-        proportions = np.random.dirichlet(np.repeat(alpha, num_users)) #TODO: 注意，这里alph固定为1.0
+        proportions = np.random.dirichlet(np.repeat(alpha, num_users))
         proportions = np.array([p * (len(idx_j) < N / num_users) for p, idx_j in zip(proportions, idx_batch)])
         proportions = proportions / proportions.sum()
         proportions = (np.cumsum(proportions) * len(idx_k)).astype(int)[:-1]
@@ -66,12 +67,16 @@ def prepare_data_caltech_noniid(config, client_cfgs=None):
     for i in range(num_users):
         np.random.shuffle(idx_batch[i])
         num_samples = len(idx_batch[i])
-        train_len = int(num_samples / 2)
+        train_len = int(num_samples)
+        # train_len = int(num_samples / 2)
         user_groups[i] = idx_batch[i][:train_len]
         user_groups_test[i] = idx_batch[i][train_len:]
 
     # Convert to the data format of federatedscope
-    data = {}
+    # data = {}
+    data = {
+        0: {'train':caltech_trainset, 'val':None, 'test':caltech_testset}
+    }
     idxs_users = np.arange(config.federate.client_num)
     for client_id in idxs_users:
         idx_train = user_groups[client_id]
@@ -79,10 +84,17 @@ def prepare_data_caltech_noniid(config, client_cfgs=None):
         train = DatasetSplit(caltech_trainset, idx_train)
         test = DatasetSplit(caltech_testset, idx_test)
         client_id = client_id + 1  # In federatedscope, the ID of the server is 0, and the ID of the client is 1 to client_num
-        data[client_id] = {'train': train,
+        if config.data.local_eval_whole_test_dataset:
+            data[client_id] = {'train': train,
                            'val': None,
-                           'test': test
+                           'test': caltech_testset
                            }
+        else:
+            data[client_id] = {'train': train,
+                               'val': None,
+                               'test': test
+                               }
+
     translator = DummyDataTranslator(config, client_cfgs)
     data = translator(data)
 

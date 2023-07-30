@@ -44,8 +44,9 @@ def extend_model_heterogeneous_cfg(cfg):
     cfg.exp_name = 'test'
 
     # other option
+    cfg.model.return_proto = False # 用来控制是否在前向传播时输出每个输入对应的表征。FedProto,FedPCL,FedheNN等需要用到
     cfg.train.optimizer.momentum = 0.9
-    cfg.model.num_classes = 10  # FS中原本似乎没有这个变量，但是这个变量在创建模型时很常用，故添加
+    cfg.model.num_classes = 10  # FederatedScope中原代码中没有这个变量，但是这个变量在创建模型时很常用，故添加
     cfg.show_label_distribution = False  # 可视化相关参数
     cfg.show_client_best_individual = True
 
@@ -91,6 +92,8 @@ def extend_model_heterogeneous_cfg(cfg):
     cfg.fedproto.train_shots_max = 110
     cfg.fedproto.test_shots = 15
 
+    # other options
+    cfg.fedproto.show_verbose = False # Weather display verbose loss information
     # ---------------------------------------------------------------------- #
     # (FedPCL) Federated Learning from Pre-Trained Models: A Contrastive Learning Approach
     # ---------------------------------------------------------------------- #
@@ -194,7 +197,7 @@ def extend_model_heterogeneous_cfg(cfg):
     cfg.DENSE.save_dir = './contrib/synthesis'
     cfg.DENSE.T = 1.0
 
-    # wait to delete
+    # ----------------------------------wait to delete----------------------- #
     cfg.MHFL.save_pretraining_model = True  # 是否保存预训练模型
 
     # --------------- register corresponding check function ----------
