@@ -101,7 +101,7 @@ cd federatedscope
 - Run the script
 
 ```python
-python main.py --cfg model_heterogeneity/methods/fedproto/fedproto_on_cifar10.yaml --client_cfg model_heterogeneity/model_settings/model_setting_CV_low_heterogeneity.yaml
+python main.py --cfg model_heterogeneity/methods/FedProto/FedProto_on_cifar10.yaml --client_cfg model_heterogeneity/model_settings/model_setting_CV_low_heterogeneity.yaml
 
 ```
 
