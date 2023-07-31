@@ -4,7 +4,7 @@ import torch.nn.functional as F
 import torch.nn as nn
 
 class MLP(nn.Module):
-    def __init__(self, input_size, num_layers, hidden_size, drop_rate, num_classes):
+    def __init__(self, input_size, num_layers, hidden_size, drop_rate, num_classes,return_features):
         super(MLP, self).__init__()
 
         # init
@@ -26,6 +26,7 @@ class MLP(nn.Module):
 
         self.classifier = nn.Linear(hidden_size, self.num_classes, bias=False)
 
+        self.return_features = return_features
     def _decide_input_feature_size(self):
         if "cifar" in self.dataset:
             return 32 * 32 * 3
@@ -39,14 +40,17 @@ class MLP(nn.Module):
         for i in range(1, self.num_layers + 1):
             out = getattr(self, "layer{}".format(i))(out)
         res = self.classifier(out)
-        return res
+        if self.return_features:
+            return res, out
+        else:
+            return res
 
 
 def call_mlp(model_config, local_data):
-    if 'MLP' in model_config.type and 'proto' not in model_config.type:
+    if 'MLP' in model_config.type:
         input_size = local_data[-1] * local_data[-2] * local_data[-3]
         model = MLP(input_size=input_size, num_layers=model_config.layer, hidden_size=model_config.hidden,
-                    drop_rate=model_config.dropout, num_classes=model_config.out_channels)
+                    drop_rate=model_config.dropout, num_classes=model_config.out_channels,return_features=model_config.return_proto)
         return model
 
 register_model('MLP', call_mlp)

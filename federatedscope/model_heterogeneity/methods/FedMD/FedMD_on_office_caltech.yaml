@@ -18,7 +18,6 @@ data:
 dataloader:
   batch_size: 32
 MHFL:
-  save_pretraining_model: True
   public_dataset: cifar100
 fedmd:
   pre_training:

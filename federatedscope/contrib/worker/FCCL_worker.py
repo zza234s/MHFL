@@ -16,6 +16,8 @@ from tqdm import tqdm
 
 from federatedscope.register import register_worker
 from federatedscope.core.workers import Server, Client
+from federatedscope.core.auxiliaries.utils import merge_dict_of_results, \
+    calculate_time_cost
 
 from federatedscope.model_heterogeneity.methods.FCCL.datasets.cifar100 import load_Cifar100
 from federatedscope.model_heterogeneity.methods.FCCL.datasets.fashion_mnist import load_fashion_minist
@@ -183,7 +185,8 @@ class FCCLServer(Server):
                     #  Evaluate
                     logger.info(f'Server: Starting evaluation at the end '
                                 f'of round {self.state - 1}.')
-                    self.eval()
+                    # self.eval()
+                    self.send_per_client_message(msg_type='evaluate',filter_unseen_clients=False)
 
                 if self.state < self.total_round_num:
                     # Move to next round of training
@@ -200,8 +203,8 @@ class FCCLServer(Server):
                     # Final Evaluate
                     logger.info('Server: Training is finished! Starting '
                                 'evaluation.')
-                    self.eval()
-
+                    # self.eval()
+                    self.send_per_client_message(msg_type='evaluate', filter_unseen_clients=False)
             else:
                 # Receiving enough feedback in the evaluation process
                 self._merge_and_format_eval_results()
@@ -265,6 +268,23 @@ class FCCLServer(Server):
         assert n == m
         return x.flatten()[:-1].view(n - 1, n + 1)[:, 1:].flatten()
 
+    def terminate(self, msg_type='finish'):
+        """
+        To terminate the FL course
+        """
+        self.is_finish = True
+
+        self._monitor.finish_fl()
+
+        for client_id, client_model in self.client_models.items():
+            self.comm_manager.send(
+                Message(msg_type=msg_type,
+                        sender=self.ID,
+                        receiver=client_id,
+                        state=self.state,
+                        timestamp=self.cur_timestamp,
+                        content=client_model.state_dict()))
+
 
 class FCCLClient(Client):
     def __init__(self,
@@ -289,6 +309,8 @@ class FCCLClient(Client):
 
         self.rePretrain = config.MHFL.pre_training.rePretrain
         self.public_dataset_name = config.MHFL.public_dataset
+        self.prive_dataset_name = config.data.type
+        self.task = config.MHFL.task
 
     def join_in(self):
         """
@@ -338,7 +360,7 @@ class FCCLClient(Client):
         self.pre_model = copy.deepcopy(self.model)
         # print(os.getcwd())
         ckpt_files = os.path.join(self.model_weight_dir,
-                                  'FCCL_' + self.model_name + '_on_' + self.public_dataset_name + '_client_' + str(
+                                  'FCCL_' +  self.task + '_' + self.model_name + '_on_' + self.public_dataset_name + '_' + self.prive_dataset_name + '_client_' + str(
                                       self.ID) + '.ckpt')
 
         if not os.path.exists(ckpt_files) or self.rePretrain:
@@ -359,7 +381,7 @@ class FCCLClient(Client):
         model = self.pre_model.to(device)
         optimizer = optim.Adam(model.parameters(), lr=0.001)  # TODO: 预训练学习率软编码（）
         # scheduler = CosineLRScheduler(optimizer, t_initial=epoch, decay_rate=1., lr_min=1e-6)
-        scheduler = CosineLRScheduler(optimizer, t_initial=epoch, lr_min=1e-6)
+        # scheduler = CosineLRScheduler(optimizer, t_initial=epoch, lr_min=1e-6)
         criterion = nn.CrossEntropyLoss()
         criterion.to(device)
         iterator = tqdm(range(epoch))
@@ -375,7 +397,7 @@ class FCCLClient(Client):
                 optimizer.step()
             # if epoch_index %10 ==0:
             acc = self._evaluate_net()
-            scheduler.step(epoch_index)
+            # scheduler.step(epoch_index)
             # if acc >80:
             #     break
 
@@ -401,6 +423,62 @@ class FCCLClient(Client):
         print('The ' + str(self.ID) + 'participant top1acc:' + str(top1acc) + '_top5acc:' + str(top5acc))
         model.train(status)
         return top1acc
+    def callback_funcs_for_evaluate(self, message: Message):
+        """
+        The handling function for receiving the request of evaluating
+
+        Arguments:
+            message: The received message
+        """
+        sender, timestamp = message.sender, message.timestamp
+        self.state = message.state
+        if message.content is not None and self._cfg.federate.method not in ['fedmd']: #TODO:检查fedmd是否会更新模型
+            self.trainer.update(message.content,
+                                strict=True) #仅修改此处，将strict指定为True
+        if self.early_stopper.early_stopped and self._cfg.federate.method in [
+                "local", "global"
+        ]:
+            metrics = list(self.best_results.values())[0]
+        else:
+            metrics = {}
+            if self._cfg.finetune.before_eval:
+                self.trainer.finetune()
+            for split in self._cfg.eval.split:
+                # TODO: The time cost of evaluation is not considered here
+                eval_metrics = self.trainer.evaluate(
+                    target_data_split_name=split)
+
+                if self._cfg.federate.mode == 'distributed':
+                    logger.info(
+                        self._monitor.format_eval_res(eval_metrics,
+                                                      rnd=self.state,
+                                                      role='Client #{}'.format(
+                                                          self.ID),
+                                                      return_raw=True))
+
+                metrics.update(**eval_metrics)
+
+            formatted_eval_res = self._monitor.format_eval_res(
+                metrics,
+                rnd=self.state,
+                role='Client #{}'.format(self.ID),
+                forms=['raw'],
+                return_raw=True)
+            self._monitor.update_best_result(self.best_results,
+                                             formatted_eval_res['Results_raw'],
+                                             results_type=f"client #{self.ID}")
+            self.history_results = merge_dict_of_results(
+                self.history_results, formatted_eval_res['Results_raw'])
+            self.early_stopper.track_and_check(self.history_results[
+                self._cfg.eval.best_res_update_round_wise_key])
+
+        self.comm_manager.send(
+            Message(msg_type='metrics',
+                    sender=self.ID,
+                    receiver=[sender],
+                    state=self.state,
+                    timestamp=timestamp,
+                    content=metrics))
 
 
 def call_my_worker(method):

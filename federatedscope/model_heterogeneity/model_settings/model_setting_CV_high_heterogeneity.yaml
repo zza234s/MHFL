@@ -3,22 +3,16 @@ client_1:
     type: MLP
     hidden: 512
     layer: 4
-    dropout: 0.0
 client_2:
   model:
     type: CNN_2layers
-    dropout: 0.0
 client_3:
   model:
     type: CNN_3layers
-    dropout: 0.0
     hidden: 512
 client_4:
   model:
     type: resnet18
-    dropout: 0.0
 client_5:
   model:
     type: wrn_16_1
-    out_channels: 62
-    dropout: 0.0

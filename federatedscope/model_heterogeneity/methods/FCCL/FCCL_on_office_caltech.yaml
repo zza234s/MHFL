@@ -6,16 +6,15 @@ seed: 0
 federate:
   method: fccl
   mode: standalone
-  total_round_num: 100
+  total_round_num: 200
   sample_client_rate: 1.0
   client_num: 5
   make_global_eval: False
 MHFL:
-  task: CV
   public_dataset: cifar100
   pre_training:
     save_model: True
-    private_epochs: 200
+    private_epochs: 1
     rePretrain: False
   public_train:
     optimizer:
@@ -27,6 +26,7 @@ data:
   type: 'office_caltech'
   splitter_args: [{'alpha': 100.0}]
   local_eval_whole_test_dataset: True
+  drop_last: True
 dataloader:
   batch_size: 32
 model:

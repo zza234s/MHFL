@@ -2,30 +2,31 @@ set -e
 cd ../../../ #到federatedscope目录
 
 # Configuration
-gpu=$1
-dataset=$2 #cifar10,svhn,office_caltech
+gpu=0
+dataset=office_caltech #cifar10,svhn,office_caltech
 client_file=model_heterogeneity/model_settings/model_setting_CV_high_heterogeneity.yaml
-result_floder=model_heterogeneity/result/new_0730
+result_floder=model_heterogeneity/result/new_0731
+task=CV_high_heterogeneity
 
 # Method setup
 method=FCCL
 script_floder="model_heterogeneity/methods/"${method}
 main_cfg=${script_floder}"/${method}""_on_"${dataset}".yaml"
-exp_name="HPO_"$method"_on_"$dataset
+exp_name="HPO_"$method"_on_"$dataset"_high_heterogeneity"
 
 # WandB setup
 wandb_use=False
 wandb_name_user=niudaidai
 wandb_online_track=False
 wandb_client_train_info=True
-wandb_name_project="HPO_"$method"_on_"$dataset
+wandb_name_project="HPO_"$method"_on_"$dataset"_high_heterogeneity"
 
 # Hyperparameters
 local_update_step=(1)
 lrs=(0.01 0.001 0.0001)
 optimizer=('Adam')
 seed=(0)
-total_round=200
+total_round=2
 patience=50
 momentum=0.9
 freq=1
@@ -59,7 +60,8 @@ train_model() {
     fccl.off_diag_weight ${5} \
     fccl.loss_dual_weight ${6} \
     MHFL.public_dataset ${7} \
-    model.out_channels ${out_channels}
+    model.out_channels ${out_channels} \
+    MHFL.task ${task}
 }
 
 # Training parameters based on the dataset

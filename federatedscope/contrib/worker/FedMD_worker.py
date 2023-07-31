@@ -11,6 +11,7 @@ from federatedscope.core.auxiliaries.optimizer_builder import get_optimizer
 from torch.utils.data import Dataset, DataLoader, RandomSampler, SubsetRandomSampler, Subset
 from federatedscope.core.auxiliaries.trainer_builder import get_trainer
 
+
 class FedMD_server(Server):
     def __init__(self,
                  ID=-1,
@@ -103,6 +104,7 @@ class FedMD_server(Server):
 
         return move_on_flag
 
+
 class FedMD_client(Client):
     def __init__(self,
                  ID=-1,
@@ -174,7 +176,8 @@ class FedMD_client(Client):
         self.selected_sample_per_epochs = message.content
 
         model_file = os.path.join(self.model_weight_dir,
-                                  'FedMD_' + self.model_name+ '_on_'+self.public_dataset_name + '_client_' + str(self.ID) + '.pth')
+                                  'FedMD_' + self.task + '_' + self.model_name + '_on_' + self.public_dataset_name + '_client_' + str(
+                                      self.ID) + '.pth')
         if os.path.exists(model_file) and not self.rePretrain:
             # 如果已经存在预训练好的模型权重并且不要求重新预训练
             self.model.load_state_dict(torch.load(model_file, self.device))

@@ -140,6 +140,14 @@ D:\ZHL_WORK\Architecture_heterogeneous_FL\FS3\federatedscope\model_heterogeneity
 
 
 #FCCL
+# office_10
+--cfg
+model_heterogeneity/methods/FCCL/FCCL_on_office_caltech.yaml
+--client_cfg
+model_heterogeneity/model_settings/model_setting_CV_low_heterogeneity.yaml
+exp_name
+debug_fccl
+
 --cfg
 /data/hxh2022/FederatedScope/FedMM/federatedscope/model_heterogeneity/methods/FCCL/FCCL_on_officehome.yaml
 --client_cfg
