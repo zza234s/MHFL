@@ -4,9 +4,9 @@ cd ../../../ #到federatedscope目录
 # Configuration
 gpu=$1
 dataset=$2 #cifar10,svhn,office_caltech
-client_file=model_heterogeneity/model_settings/model_setting_CV_low_heterogeneity.yaml
-result_floder=model_heterogeneity/result/new_0730
-
+client_file=model_heterogeneity/model_settings/model_setting_CV_high_heterogeneity.yaml
+result_floder=model_heterogeneity/result/new_0731
+task=CV_high_heterogeneity
 # Method setup
 method=FedHeNN
 script_floder="model_heterogeneity/methods/"${method}
@@ -56,7 +56,8 @@ train_model() {
     wandb.online_track ${wandb_online_track} \
     wandb.client_train_info ${wandb_client_train_info} \
     eval.freq ${freq} \
-    fedhenn.eta ${5}
+    fedhenn.eta ${5} \
+    MHFL.task ${task}
 }
 
 # Training parameters based on the dataset

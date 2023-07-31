@@ -222,7 +222,7 @@ class Bottleneck(nn.Module):
 
 
 class ResNet(nn.Module):
-    def __init__(self, block, num_blocks, num_classes=10,input_channels=3):
+    def __init__(self, block, num_blocks, num_classes=10, input_channels=3, return_features=False):
         super(ResNet, self).__init__()
         self.in_planes = 64
 
@@ -239,6 +239,8 @@ class ResNet(nn.Module):
         self.layer4 = self._make_layer(block, 512, num_blocks[3], stride=2)
         self.linear = nn.Linear(512 * block.expansion, num_classes)
 
+        self.return_features = return_features
+
     def _make_layer(self, block, planes, num_blocks, stride):
         strides = [stride] + [1] * (num_blocks - 1)
         layers = []
@@ -254,36 +256,41 @@ class ResNet(nn.Module):
         out = self.layer3(out)
         out = self.layer4(out)
         out = F.avg_pool2d(out, 4)
-        out = out.view(out.size(0), -1)
-        out = self.linear(out)
-        return out
+        x1 = out.view(out.size(0), -1)
+        out = self.linear(x1)
+        if self.return_features:
+            return out, x1
+        else:
+            return out
 
 
-def ResNet12(input_channels,num_classes):
-    return ResNet(BasicBlock, [2, 1, 1, 1], num_classes,input_channels=input_channels)
+def ResNet12(input_channels, num_classes, return_features=False):
+    return ResNet(BasicBlock, [2, 1, 1, 1], num_classes, input_channels=input_channels, return_features=return_features)
 
 
-def ResNet18(input_channels,num_classes):
-    return ResNet(BasicBlock, [2, 2, 2, 2], num_classes,input_channels=input_channels)
+def ResNet18(input_channels, num_classes, return_features=False):
+    return ResNet(BasicBlock, [2, 2, 2, 2], num_classes, input_channels=input_channels, return_features=return_features)
 
 
-def ResNet34(input_channels,num_classes):
-    return ResNet(BasicBlock, [3, 4, 6, 3], num_classes,input_channels=input_channels)
+def ResNet34(input_channels, num_classes, return_features=False):
+    return ResNet(BasicBlock, [3, 4, 6, 3], num_classes, input_channels=input_channels, return_features=return_features)
 
 
-def ResNet50(input_channels,num_classes):
-    return ResNet(Bottleneck, [3, 4, 6, 3], num_classes,input_channels=input_channels)
+def ResNet50(input_channels, num_classes, return_features=False):
+    return ResNet(Bottleneck, [3, 4, 6, 3], num_classes, input_channels=input_channels, return_features=return_features)
 
 
-def ResNet101(input_channels,num_classes):
-    return ResNet(Bottleneck, [3, 4, 23, 3], num_classes,input_channels=input_channels)
+def ResNet101(input_channels, num_classes, return_features=False):
+    return ResNet(Bottleneck, [3, 4, 23, 3], num_classes, input_channels=input_channels,
+                  return_features=return_features)
 
 
-def ResNet152(input_channels,num_classes):
-    return ResNet(Bottleneck, [3, 8, 36, 3], num_classes,input_channels=input_channels)
+def ResNet152(input_channels, num_classes, return_features=False):
+    return ResNet(Bottleneck, [3, 8, 36, 3], num_classes, input_channels=input_channels,
+                  return_features=return_features)
 
 
-def preact_resnet(input_channels,model_config):
+def preact_resnet(input_channels, model_config):
     if '18' in model_config.type:
         net = PreActResNet18()
     elif '34' in model_config.type:
@@ -293,24 +300,25 @@ def preact_resnet(input_channels,model_config):
     return net
 
 
-def resnet(input_channels, model_config):
+def resnet(input_channels, model_config, return_features=False):
     if '12' in model_config.type:
-        net = ResNet12(input_channels=input_channels, num_classes=model_config.out_channels)
+        net = ResNet12(input_channels=input_channels, num_classes=model_config.out_channels,
+                       return_features=model_config.return_proto)
     elif '18' in model_config.type:
-        net = ResNet18(input_channels=input_channels, num_classes=model_config.out_channels)
+        net = ResNet18(input_channels=input_channels, num_classes=model_config.out_channels,
+                       return_features=model_config.return_proto)
     elif '34' in model_config.type:
-        net = ResNet34(input_channels=input_channels, num_classes=model_config.out_channels)
+        net = ResNet34(input_channels=input_channels, num_classes=model_config.out_channels,
+                       return_features=model_config.return_proto)
     elif '50' in model_config.type:
-        net = ResNet50(input_channels=input_channels, num_classes=model_config.out_channels)
+        net = ResNet50(input_channels=input_channels, num_classes=model_config.out_channels,
+                       return_features=model_config.return_proto)
     return net
 
 
 def call_resnet(model_config, local_data):
-    #TODO :preact_resnet 有bug
-    if 'resnet' in model_config.type and 'pre' in model_config.type and 'proto' not in model_config.type:
-        model = preact_resnet(input_channels=local_data[1], model_config=model_config)
-        return model
-    elif 'resnet' in model_config.type and 'pre' not in model_config.type and 'proto' not in model_config.type:
+    # TODO :preact_resnet 有bug
+    if 'resnet' in model_config.type and 'pre' not in model_config.type:
         model = resnet(input_channels=local_data[1], model_config=model_config)
         return model
 

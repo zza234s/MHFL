@@ -10,7 +10,7 @@ def extend_model_heterogeneous_cfg(cfg):
     '''模型异构联邦学习用到的通用参数'''
     # MHFL: Model Heterogeneous Federated Learning
     cfg.MHFL = CN()
-    cfg.MHFL.task = 'CV'  # choice:['CV','NLP']
+    cfg.MHFL.task = 'CV_low_heterogeneity'
 
     cfg.MHFL.public_train = CN()  # 在公共数据集上训练相关的参数
     cfg.MHFL.public_dataset = 'mnist'

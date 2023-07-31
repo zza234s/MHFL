@@ -112,6 +112,9 @@ def wrn_16_2(num_classes, input_channels, return_features, dropout_rate=0):
     return WideResNet(depth=16, num_classes=num_classes, widen_factor=2, dropout_rate=dropout_rate,
                       input_channels=input_channels, return_features=return_features)
 
+def wrn_16_8(num_classes, input_channels, return_features, dropout_rate=0):
+    return WideResNet(depth=16, num_classes=num_classes, widen_factor=8, dropout_rate=dropout_rate,
+                      input_channels=input_channels, return_features=return_features)
 
 def wrn_40_1(num_classes, input_channels, return_features, dropout_rate=0):
     return WideResNet(depth=40, num_classes=num_classes, widen_factor=1, dropout_rate=dropout_rate,
@@ -128,10 +131,15 @@ def call_wrn(model_config, input_shape):
         model = wrn_16_1(num_classes=model_config.out_channels, input_channels=input_shape[-3],
                          return_features=model_config.return_proto, dropout_rate=model_config.dropout)
         return model
+    elif 'wrn_16_8' in model_config.type:
+        model = wrn_16_8(num_classes=model_config.out_channels, input_channels=input_shape[-3],
+                         return_features=model_config.return_proto, dropout_rate=model_config.dropout)
+        return model
     elif 'wrn_40_1' in model_config.type:
         model = wrn_40_1(num_classes=model_config.out_channels, input_channels=input_shape[-3],
                          return_features=model_config.return_proto, dropout_rate=model_config.dropout)
         return model
+
 
 
 register_model('call_wide_resnet', call_wrn)

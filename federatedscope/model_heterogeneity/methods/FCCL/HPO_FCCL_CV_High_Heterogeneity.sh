@@ -2,8 +2,8 @@ set -e
 cd ../../../ #到federatedscope目录
 
 # Configuration
-gpu=0
-dataset=office_caltech #cifar10,svhn,office_caltech
+gpu=$1
+dataset=$2 #cifar10,svhn,office_caltech
 client_file=model_heterogeneity/model_settings/model_setting_CV_high_heterogeneity.yaml
 result_floder=model_heterogeneity/result/new_0731
 task=CV_high_heterogeneity
@@ -26,7 +26,7 @@ local_update_step=(1)
 lrs=(0.01 0.001 0.0001)
 optimizer=('Adam')
 seed=(0)
-total_round=2
+total_round=200
 patience=50
 momentum=0.9
 freq=1

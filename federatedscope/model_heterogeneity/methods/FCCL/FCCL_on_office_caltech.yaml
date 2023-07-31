@@ -14,7 +14,7 @@ MHFL:
   public_dataset: cifar100
   pre_training:
     save_model: True
-    private_epochs: 1
+    private_epochs: 200
     rePretrain: False
   public_train:
     optimizer:

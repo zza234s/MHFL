@@ -6,6 +6,7 @@ client_1:
 client_2:
   model:
     type: CNN_2layers
+    hidden: 512
 client_3:
   model:
     type: CNN_3layers
@@ -15,4 +16,4 @@ client_4:
     type: resnet18
 client_5:
   model:
-    type: wrn_16_1
+    type: wrn_16_8

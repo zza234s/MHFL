@@ -16,6 +16,7 @@ data:
   type: 'office_caltech'
   splitter_args: [{'alpha': 100.0}]
   local_eval_whole_test_dataset: True
+  drop_last: True
 dataloader:
   batch_size: 32
 train:

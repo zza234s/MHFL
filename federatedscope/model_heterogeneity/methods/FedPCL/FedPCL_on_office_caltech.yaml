@@ -18,6 +18,7 @@ data:
   type: 'office_caltech'
   splitter_args: [{'alpha': 100.0}]
   local_eval_whole_test_dataset: True #important! Whether the test dataset for each client is equivalent to the test dataset for the unsplit dataset
+  drop_last: True
 dataloader:
   batch_size: 32
 train:
