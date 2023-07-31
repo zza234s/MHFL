@@ -75,7 +75,7 @@ def divide_dataset_epoch(dataset, epochs, num_samples_per_epoch=5000):
     return dict_epoch
 
 
-def get_public_dataset(dataset):
+def get_public_dataset(dataset, labels_offset=0):
     # TODO:核对每个数据集Normalize的值是否正确
     data_dir = './data'
     if dataset == 'mnist':
@@ -98,7 +98,32 @@ def get_public_dataset(dataset):
         ])
         data_train = datasets.CIFAR100(root=data_dir, train=True, download=True, transform=transform_train)
         data_test = datasets.CIFAR100(root=data_dir, train=False, download=True, transform=transform_test)
+
+    if labels_offset != 0:
+        # 增加训练集标签编号的偏移量
+        for i in range(len(data_train)):
+            image, label = data_train[i]
+            data_train.targets[i] = label + labels_offset
+
+        # 增加测试集标签编号的偏移量
+        for i in range(len(data_test)):
+            image, label = data_test[i]
+            data_test.targets[i] = label + labels_offset
+
     return data_train, data_test
+
+
+def get_classes_num(dataset):
+    dataset_mapping = {
+        'CIFAR10@torchvision': 10,
+        'cifar100': 100,
+        'SVHN@torchvision': 10,
+        'office_caltech': 10,
+        'mnist': 10,
+    }
+    if dataset not in dataset_mapping:
+        logger.warning(f"未找到对应 数据集{dataset}，返回默认classes_num:10")
+    return dataset_mapping.get(dataset, 10)
 
 
 def train_CV(model, optimizer, criterion, train_loader, device, client_id, epoch):
@@ -445,7 +470,7 @@ def result_to_csv(result, init_cfg, best_round, runner):
         'fedmd_public_subset_size': [init_cfg.fedmd.public_subset_size],
         'fedmd_digest_epochs': [init_cfg.fedmd.digest_epochs],
         'fedhenn_eta': [init_cfg.fedhenn.eta],
-        'dropout':[init_cfg.model.dropout]
+        'dropout': [init_cfg.model.dropout]
     }
 
     if len(init_cfg.data.splitter_args) != 0 and 'alpha' in init_cfg.data.splitter_args[0]:
@@ -453,7 +478,8 @@ def result_to_csv(result, init_cfg, best_round, runner):
 
     if out_dict['method'][0] == 'fedproto':
         out_dict['proto_weight'] = init_cfg.fedproto.proto_weight
-        out_dict['test_acc_based_on_global_proto'] = result['client_summarized_avg']['test_acc_based_on_global_prototype']
+        out_dict['test_acc_based_on_global_proto'] = result['client_summarized_avg'][
+            'test_acc_based_on_global_prototype']
 
     if out_dict['method'][0] == 'fccl':
         out_dict['off_diag_weight'] = init_cfg.fccl.off_diag_weight

@@ -25,7 +25,7 @@ MHFL:
   public_dataset: cifar100
 fedmd:
   pre_training:
-    rePretrain: False
+    rePretrain: True
     public_epochs: 500
     public_batch_size: 512
     private_epochs: 200

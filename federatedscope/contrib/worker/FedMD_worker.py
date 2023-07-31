@@ -6,7 +6,7 @@ from federatedscope.register import register_worker, logger
 from federatedscope.core.workers import Server, Client
 from federatedscope.core.message import Message
 from federatedscope.contrib.common_utils import get_public_dataset, EarlyStopMonitor, train_CV, eval_CV, \
-    divide_dataset_epoch
+    divide_dataset_epoch,get_classes_num
 from federatedscope.core.auxiliaries.optimizer_builder import get_optimizer
 from torch.utils.data import Dataset, DataLoader, RandomSampler, SubsetRandomSampler, Subset
 from federatedscope.core.auxiliaries.trainer_builder import get_trainer
@@ -129,6 +129,7 @@ class FedMD_client(Client):
         # self.device = config.device
         self.cfg_MHFL = config.MHFL
         self.public_dataset_name = config.MHFL.public_dataset
+        self.private_dataset_name = config.data.type
         self.task = config.MHFL.task
         self.model_weight_dir = config.MHFL.model_weight_dir
         self.local_update_steps = config.train.local_update_steps
@@ -145,7 +146,13 @@ class FedMD_client(Client):
             os.mkdir(self.model_weight_dir)  # 生成保存预训练模型权重所需的文件夹
 
         # load public dataset for pretraining
-        self.pub_train_dataset, self.pub_test_dataset = get_public_dataset(self.public_dataset_name)
+        if config.MHFL.add_label_index:
+            label_offset = get_classes_num(self.private_dataset_name)
+            assert label_offset + get_classes_num(self.public_dataset_name) == config.model.out_channels
+        else:
+            label_offset = 0
+
+        self.pub_train_dataset, self.pub_test_dataset = get_public_dataset(self.public_dataset_name,label_offset)
         self.pub_train_loader = DataLoader(self.pub_train_dataset, batch_size=self.public_batch_size,
                                            shuffle=True, num_workers=4)
         self.pub_test_loader = DataLoader(self.pub_test_dataset, batch_size=self.public_batch_size, shuffle=False,
@@ -221,7 +228,8 @@ class FedMD_client(Client):
                                               device=self.device,
                                               client_id=self.ID, epoch=epoch)
 
-                if early_stopper.early_stop_check(test_acc):
+                early_stop_now, update_best_this_round = early_stopper.early_stop_check(test_acc)
+                if early_stop_now:
                     logger.info(f'client#{self.ID}: No improvment over {early_stopper.max_round} epochs.'
                                 f'Stop pretraining on public dataset')
                     break
@@ -312,6 +320,23 @@ class FedMD_client(Client):
             )
         )
 
+    def callback_funcs_for_finish(self, message: Message):
+        """
+        The handling function for receiving the signal of finishing the FL \
+        course.
+
+        Arguments:
+            message: The received message
+        """
+        logger.info(
+            f"================= client {self.ID} received finish message "
+            f"=================")
+
+        # if message.content is not None:
+        #     self.trainer.update(message.content,
+        #                         strict=self._cfg.federate.share_local_model)
+
+        self._monitor.finish_fl()
 
 def call_my_worker(method):
     if method == 'fedmd':

@@ -46,6 +46,7 @@ def extend_model_heterogeneous_cfg(cfg):
     cfg.model.num_classes = 10  # FederatedScope中原代码中没有这个变量，但是这个变量在创建模型时很常用，故添加
     cfg.show_label_distribution = False  # 可视化相关参数
     cfg.show_client_best_individual = True
+    cfg.MHFL.add_label_index = False
 
     '''benchmark中各方法所需的参数'''
     # ---------------------------------------------------------------------- #

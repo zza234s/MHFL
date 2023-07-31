@@ -4,7 +4,7 @@ early_stop:
   patience: 50
 seed: 0
 federate:
-  method: local
+  method: fedmd
   mode: standalone
   client_num: 5
   total_round_num: 200
@@ -12,10 +12,9 @@ federate:
   make_global_eval: False
 data:
   root: data/
-  local_eval_whole_test_dataset: True #important! Whether the test dataset for each client is equivalent to the test dataset for the unsplit dataset
-  type: 'CIFAR10@torchvision' #'CIFAR10@torchvision','CIFAR10_fedproto'
+  local_eval_whole_test_dataset: True # Whether the test dataset for each client is equivalent to the test dataset for the unsplit dataset
+  type: 'CIFAR10@torchvision'
   splits: [1.0, 0.0, 0.0]
-  num_workers: 0
   transform: [['ToTensor'], ['Normalize', {'mean': [0.4914, 0.4822, 0.4465], 'std': [0.2470, 0.2435, 0.2616]}]]
   test_transform: [['ToTensor'], ['Normalize', {'mean': [0.4914, 0.4822, 0.4465], 'std': [0.2470, 0.2435, 0.2616]}]]
   args: [{'download': True}]
@@ -23,14 +22,26 @@ data:
   splitter_args: [{'alpha': 100}] #please set alpha to 100,1 and 0.1. The smaller alpha, the greater the heterogeneity
 dataloader:
   batch_size: 256
+model:
+  out_channels: 110
+  dropout: 0.5
+MHFL:
+  add_label_index: True #!!!!
+  public_dataset: cifar100
+fedmd:
+  pre_training:
+    rePretrain: True
+    public_epochs: 500
+    public_batch_size: 512
+    private_epochs: 200
+    private_batch_size: 512
 train:
   local_update_steps: 1
   batch_or_epoch: epoch
   optimizer:
+    type: Adam
     lr: 0.001
     weight_decay: 1e-4
-model:
-  out_channels: 10
 grad:
   grad_clip: 5.0
 criterion:
@@ -39,7 +50,6 @@ trainer:
   type: cvtrainer
 eval:
   freq: 1
-  metrics: ['acc', 'correct']
-  report : ['weighted_avg', 'avg', 'raw']
+  metrics: ['acc']
+  report : ['weighted_avg', 'avg']
   best_res_update_round_wise_key: test_acc
-

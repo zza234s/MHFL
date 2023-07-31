@@ -3,17 +3,22 @@ client_1:
     type: MLP
     hidden: 512
     layer: 4
+    dropout: 0.5
 client_2:
   model:
     type: CNN_2layers
     hidden: 512
+    dropout: 0.5
 client_3:
   model:
     type: CNN_3layers
     hidden: 512
+    dropout: 0.5
 client_4:
   model:
     type: resnet18
+    dropout: 0.5
 client_5:
   model:
     type: wrn_16_8
+    dropout: 0.5

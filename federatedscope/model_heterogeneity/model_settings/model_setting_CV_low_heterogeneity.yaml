@@ -3,23 +3,28 @@ client_1:
     type: CNN_2layers
     hidden: 256
     filter_channels: [128,256]
+    dropout: 0.5
 client_2:
   model:
     type: CNN_3layers
     hidden: 256
     filter_channels: [128,128,192]
+    dropout: 0.5
 client_3:
   model:
     type: CNN_3layers
     hidden: 256
     filter_channels: [64,64,64]
+    dropout: 0.5
 client_4:
   model:
     type: CNN_3layers
     hidden: 256
     filter_channels: [128,64,64]
+    dropout: 0.5
 client_5:
   model:
     type: CNN_3layers
     hidden: 256
     filter_channels: [64,64,128]
+    dropout: 0.5

@@ -2,8 +2,8 @@ set -e
 cd ../../../ #到federatedscope目录
 
 # Configuration
-gpu=0
-dataset=cifar10 #cifar10,svhn,office_caltech
+gpu=$1
+dataset=$2 #cifar10,svhn,office_caltech
 client_file=model_heterogeneity/model_settings/model_setting_CV_high_heterogeneity.yaml
 result_floder=model_heterogeneity/result/new_0731
 
