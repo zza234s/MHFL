@@ -287,7 +287,23 @@ class FedHeNN_client(Client):
                     receiver=[self.server_id],
                     timestamp=0,
                     content=[self.local_address, local_init_model]))
+    def callback_funcs_for_finish(self, message: Message):
+        """
+        The handling function for receiving the signal of finishing the FL \
+        course.
 
+        Arguments:
+            message: The received message
+        """
+        logger.info(
+            f"================= client {self.ID} received finish message "
+            f"=================")
+
+        # if message.content is not None:
+        #     self.trainer.update(message.content,
+        #                         strict=self._cfg.federate.share_local_model)
+
+        self._monitor.finish_fl()
 
 def call_my_worker(method):
     if method == 'fedhenn':
