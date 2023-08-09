@@ -28,7 +28,6 @@ We are grateful for their outstanding work.
 | Abbreviation | Title                                                        | Venue                 | Materials                                                    |
 | ------------ | ------------------------------------------------------------ | --------------------- | ------------------------------------------------------------ |
 | FedMD        | FedMD: Heterogenous Federated Learning via Model Distillation | NeurIPS 2019 Workshop | [[pub](https://arxiv.org/abs/1910.03581)] [[repository](https://github.com/diogenes0319/FedMD_clean)] |
-| FedDF        | Ensemble Distillation for Robust Model Fusion in Federated Learning | NeurIPS 2020          | [[pub](https://proceedings.neurips.cc/paper/2020/hash/18df51b97ccd68128e994804f3eccc87-Abstract.html)] [[repository](https://github.com/epfml/federated-learning-public-code/tree/master/codes/FedDF-code)] |
 | FSFL         | Few-Shot Model Agnostic Federated Learning                   | ACM MM 2022           | [[pub](https://dl.acm.org/doi/abs/10.1145/3503161.3548764)] [[repository](https://github.com/FangXiuwen/FSMAFL)] |
 | FCCL         | Learn from Others and Be Yourself in Heterogeneous Federated Learning | CVPR 2022             | [[pub](https://openaccess.thecvf.com/content/CVPR2022/papers/Huang_Learn_From_Others_and_Be_Yourself_in_Heterogeneous_Federated_Learning_CVPR_2022_paper.pdf)] [[repository](https://github.com/WenkeHuang/FCCL)] |
 
@@ -45,17 +44,19 @@ We are grateful for their outstanding work.
 
 #### Methods being implemented (Coming soon)
 
-| Abbreviation | Title                                                        | Venue        | progress bar    |
-| ------------ | ------------------------------------------------------------ | ------------ | --------------- |
-| FEDAUX       | [FedAUX: Leveraging Unlabeled Auxiliary Data in Federated Learning](https://arxiv.org/abs/2102.02514) | TNNLS 2021   | [#----------]0% |
-| DENSE        | [DENSE: Data-Free One-Shot Federated Learning](https://arxiv.org/abs/2112.12371) | NeurIPS 2022 | [########--]90% |
-| TBD          | .....                                                        |              |                 |
+| Abbreviation | Title                                                        | Venue                                               | progress bar    |
+| ------------ | ------------------------------------------------------------ | --------------------------------------------------- | --------------- |
+| FedGH        | [FedGH: Heterogeneous Federated Learning with Generalized Global Header](https://arxiv.org/pdf/2303.13137.pdf) | ACM MM 2023                                         | [#----------]0% |
+| DENSE        | [DENSE: Data-Free One-Shot Federated Learning](https://arxiv.org/abs/2112.12371) | NeurIPS 2022                                        | [########--]95% |
+| FedKD        | [Communication-efficient federated learning via knowledge distillation](https://www.nature.com/articles/s41467-022-29763-x) | NC 2022                                             | [----------]0%  |
+| FedDistill   | [Federated Knowledge Distillation](https://www.cambridge.org/core/books/abs/machine-learning-and-wireless-communications/federated-knowledge-distillation/F679266F85493319EB83635D2B17C2BD) | Machine Learning and Wireless Communications (2022) | [----------]0%  |
+| TBD          | ...                                                          | ...                                                 | ...             |
 
 
 
 ## Model and Dataset
 
-Currently, we simply conduct experiments on two FL benchmark datasets: CIFAR-10 and FEMNIST.
+Currently, we conduct experiments on three FL benchmark datasets: CIFAR-10, SVHN, and office-10.
 
 
 
