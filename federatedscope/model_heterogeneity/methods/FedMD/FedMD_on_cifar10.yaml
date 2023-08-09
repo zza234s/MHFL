@@ -29,7 +29,7 @@ MHFL:
 fedmd:
   pre_training:
     rePretrain: False
-    public_epochs: 500
+    public_epochs: 400
     public_batch_size: 512
     private_epochs: 200
     private_batch_size: 512

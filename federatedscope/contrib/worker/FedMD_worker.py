@@ -6,7 +6,7 @@ from federatedscope.register import register_worker, logger
 from federatedscope.core.workers import Server, Client
 from federatedscope.core.message import Message
 from federatedscope.contrib.common_utils import get_public_dataset, EarlyStopMonitor, train_CV, eval_CV, \
-    divide_dataset_epoch,get_classes_num
+    divide_dataset_epoch, get_classes_num
 from federatedscope.core.auxiliaries.optimizer_builder import get_optimizer
 from torch.utils.data import Dataset, DataLoader, RandomSampler, SubsetRandomSampler, Subset
 from federatedscope.core.auxiliaries.trainer_builder import get_trainer
@@ -152,7 +152,7 @@ class FedMD_client(Client):
         else:
             label_offset = 0
 
-        self.pub_train_dataset, self.pub_test_dataset = get_public_dataset(self.public_dataset_name,label_offset)
+        self.pub_train_dataset, self.pub_test_dataset = get_public_dataset(self.public_dataset_name, label_offset)
         self.pub_train_loader = DataLoader(self.pub_train_dataset, batch_size=self.public_batch_size,
                                            shuffle=True, num_workers=4)
         self.pub_test_loader = DataLoader(self.pub_test_dataset, batch_size=self.public_batch_size, shuffle=False,
@@ -182,9 +182,10 @@ class FedMD_client(Client):
         self.state = round
         self.selected_sample_per_epochs = message.content
 
-        model_file = os.path.join(self.model_weight_dir,
-                                  'FedMD_' + self.task + '_' + self.model_name + '_on_' + self.public_dataset_name + '_client_' + str(
-                                      self.ID) + '.pth')
+        model_file = os.path.join(
+            self.model_weight_dir,
+            f'FedMD_{self.task}_{self.model_name}_on_{self.public_dataset_name}_{self.private_dataset_name}_client_{self.ID}.pth'
+        )
         if os.path.exists(model_file) and not self.rePretrain:
             # 如果已经存在预训练好的模型权重并且不要求重新预训练
             self.model.load_state_dict(torch.load(model_file, self.device))
@@ -219,20 +220,18 @@ class FedMD_client(Client):
         optimizer = get_optimizer(model=self.model, **self.cfg_MHFL.public_train.optimizer)
         criterion = nn.CrossEntropyLoss()
         train_loader, test_loader = self.pub_train_loader, self.pub_test_loader
-        early_stopper = EarlyStopMonitor(max_round=self._cfg.early_stop.patience, higher_better=True)
+        early_stopper = EarlyStopMonitor(max_round=15, higher_better=True)
         for epoch in range(self.public_epochs):
             train_loss = train_CV(model=self.model, optimizer=optimizer, criterion=criterion, train_loader=train_loader,
                                   device=self.device, client_id=self.ID, epoch=epoch)
-            if epoch % 10 == 0:
-                test_loss, test_acc = eval_CV(model=self.model, criterion=criterion, test_loader=test_loader,
-                                              device=self.device,
-                                              client_id=self.ID, epoch=epoch)
-
-                early_stop_now, update_best_this_round = early_stopper.early_stop_check(test_acc)
-                if early_stop_now:
-                    logger.info(f'client#{self.ID}: No improvment over {early_stopper.max_round} epochs.'
-                                f'Stop pretraining on public dataset')
-                    break
+            test_loss, test_acc = eval_CV(model=self.model, criterion=criterion, test_loader=test_loader,
+                                          device=self.device,
+                                          client_id=self.ID, epoch=epoch)
+            early_stop_now, update_best_this_round = early_stopper.early_stop_check(test_acc)
+            if early_stop_now:
+                logger.info(f'client#{self.ID}: No improvment over {early_stopper.max_round} epochs.'
+                            f'Stop pretraining on public dataset')
+                break
         self.model.to('cpu')
 
     def _pretrain_on_private_datset(self, model_file=None):
@@ -337,6 +336,7 @@ class FedMD_client(Client):
         #                         strict=self._cfg.federate.share_local_model)
 
         self._monitor.finish_fl()
+
 
 def call_my_worker(method):
     if method == 'fedmd':

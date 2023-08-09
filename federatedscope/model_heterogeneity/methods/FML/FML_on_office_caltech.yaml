@@ -24,6 +24,7 @@ fml:
 model:
   type: LeNet5 # If the method is FML, the model of the main cfg file refers to meme_model
   out_channels: 10
+  dropout: 0.5
 train:
   local_update_steps: 1
   batch_or_epoch: epoch

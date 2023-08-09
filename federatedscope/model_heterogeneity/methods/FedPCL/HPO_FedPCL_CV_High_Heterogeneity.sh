@@ -5,7 +5,7 @@ cd ../../../ #到federatedscope目录
 gpu=$1
 dataset=$2 #cifar10,svhn,office_caltech
 client_file=model_heterogeneity/model_settings/model_setting_CV_high_heterogeneity.yaml
-result_floder=model_heterogeneity/result/new_0731
+result_floder=model_heterogeneity/result/hpo_0807
 task=CV_high_heterogeneity
 # Method setup
 method=FedPCL
@@ -21,7 +21,7 @@ wandb_client_train_info=True
 wandb_name_project="HPO_"$method"_on_"$dataset"_high_heterogeneity"
 
 # Hyperparameters
-local_update_step=(1 5 10)
+local_update_step=(1 5)
 lrs=(0.01 0.001 0.0001)
 optimizer=('Adam')
 seed=(0)

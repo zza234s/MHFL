@@ -31,6 +31,7 @@ train:
     weight_decay: 1e-4
 model:
   out_channels: 10
+  dropout: 0.5
 grad:
   grad_clip: 5.0
 criterion:

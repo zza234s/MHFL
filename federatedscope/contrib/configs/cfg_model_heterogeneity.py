@@ -48,6 +48,9 @@ def extend_model_heterogeneous_cfg(cfg):
     cfg.show_client_best_individual = True
     cfg.MHFL.add_label_index = False
 
+    cfg.model.warpFC = False # Whether to add a fully connected layer at the end of the local model
+
+
     '''benchmark中各方法所需的参数'''
     # ---------------------------------------------------------------------- #
     # FedMD: Heterogenous Federated Learning via Model Distillation

@@ -5,20 +5,20 @@ cd ../../../ #到federatedscope目录
 gpu=$1
 dataset=$2 #cifar10,svhn,office_caltech
 client_file=model_heterogeneity/model_settings/model_setting_CV_low_heterogeneity.yaml
-result_floder=model_heterogeneity/result/new_0729
-
+result_floder=model_heterogeneity/result/new_0731
+task=CV_low_heterogeneity
 # Method setup
 method=FedProto
 script_floder="model_heterogeneity/methods/"${method}
 main_cfg=${script_floder}"/${method}""_on_"${dataset}".yaml"
-exp_name="HPO_"$method"_on_"$dataset
+exp_name="HPO_"$method"_on_"$dataset"_for_"$task
 
 # WandB setup
 wandb_use=False
 wandb_name_user=niudaidai
 wandb_online_track=False
 wandb_client_train_info=True
-wandb_name_project="HPO_"$method"_on_"$dataset
+wandb_name_project="HPO_"$method"_on_"$dataset"_for_"$task
 
 # Hyperparameters
 local_update_step=(1)
@@ -32,7 +32,7 @@ freq=1
 
 # FedProto-specific parameters
 proto_weight=(0.1 1.0)
-dropout=(0.0 0.5)
+dropout=(0.5)
 temp=0
 
 # Define function for model training

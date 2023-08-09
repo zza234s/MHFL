@@ -3,38 +3,48 @@ cd ../../../ #到federatedscope目录
 
 # Configuration
 gpu=$1
-dataset=$2 #cifar10,svhn,office_caltech
-client_file=model_heterogeneity/model_settings/model_setting_CV_low_heterogeneity.yaml
-result_floder=model_heterogeneity/result/new_0731
-task=CV_low_heterogeneity
+dataset=$2 #cifar10, svhn, office_caltech
+task=$3    #CV_high, CV_low, NLP_high, NLP_low
+result_floder_name=$4
+method=FedPCL
+
 # Method setup
-method=FedHeNN
+client_file="model_heterogeneity/model_settings/model_setting_"$task"_heterogeneity.yaml"
+result_floder=model_heterogeneity/result/$result_floder_name
 script_floder="model_heterogeneity/methods/"${method}
 main_cfg=${script_floder}"/${method}""_on_"${dataset}".yaml"
-exp_name="HPO_"$method"_on_"$dataset"_for_"$task"_for_"$task
+exp_name="RUN_"$method"_on_"$dataset"_"$task
 
 # WandB setup
 wandb_use=False
 wandb_name_user=niudaidai
 wandb_online_track=False
 wandb_client_train_info=True
-wandb_name_project="HPO_"$method"_on_"$dataset"_for_"$task"_for_"$task
+wandb_name_project="RUN_"$method"_on_"$dataset"_"$task
+
+# FedProto-specific parameters
+if [ "$task" = "CV_high" ]; then
+  case "$dataset" in "cifar10")
+    lr=0.001
+    ;;
+  "office_caltech")
+    lr=0.001
+    local_update_step=5
+    ;;
+  *)
+    echo "Unknown public_dataset value: $public_dataset"
+    exit 1
+    ;;
+  esac
+fi
 
 # Hyperparameters
-local_update_step=(1)
-lrs=(0.01 0.001 0.0001)
-optimizer=('Adam')
-seed=(0)
+optimizer='Adam'
+seed=(0 1 2)
 total_round=200
 patience=50
 momentum=0.9
 freq=1
-
-# FedHeNN-specific parameters
-eta=(0.001 0.01 0.1)
-
-# Temp
-temp=0
 
 # Define function for model training
 train_model() {
@@ -44,9 +54,9 @@ train_model() {
     result_floder ${result_floder} \
     exp_name ${exp_name} \
     seed ${1} \
-    train.local_update_steps ${2} \
-    train.optimizer.type ${3} \
-    train.optimizer.lr ${4} \
+    train.local_update_steps ${local_update_step} \
+    train.optimizer.type ${optimizer} \
+    train.optimizer.lr ${lr} \
     train.optimizer.momentum ${momentum} \
     device ${gpu} \
     ${splitter_args} \
@@ -56,25 +66,21 @@ train_model() {
     wandb.online_track ${wandb_online_track} \
     wandb.client_train_info ${wandb_client_train_info} \
     eval.freq ${freq} \
-    fedhenn.eta ${5}
+    MHFL.task ${task}
 }
 
 # Training parameters based on the dataset
-declare -A lda_alpha_map=(["femnist"]=100 ["cifar10"]="100 1.0 0.1" ["svhn"]="100 1.0 0.1" ["office_caltech"]="100 1.0 0.1")
+declare -A lda_alpha_map=(
+  ["cifar10"]="100 1.0 0.1"
+  ["svhn"]="100 1.0 0.1"
+  ["office_caltech"]="100 1.0 0.1"
+)
 lda_alpha=(${lda_alpha_map[$dataset]})
 
 # Loop over parameters for HPO
 for alpha in "${lda_alpha[@]}"; do
-  for opt in "${optimizer[@]}"; do
-    for lr in "${lrs[@]}"; do
-      for ls in "${local_update_step[@]}"; do
-        for e in "${eta[@]}"; do
-          for s in "${seed[@]}"; do
-            splitter_args="data.splitter_args ""[{'alpha':${alpha}}]"
-            train_model "$s" "$ls" "$opt" "$lr" "$e"
-          done
-        done
-      done
-    done
+  for s in "${seed[@]}"; do
+    splitter_args="data.splitter_args ""[{'alpha':${alpha}}]"
+    train_model "$s"
   done
 done

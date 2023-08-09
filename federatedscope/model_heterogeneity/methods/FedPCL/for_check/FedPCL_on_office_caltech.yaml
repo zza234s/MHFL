@@ -20,7 +20,7 @@ data:
   root: data/
   type: 'office_caltech'
   splitter_args: [{'alpha': 100.0}]
-  local_eval_whole_test_dataset: False #If it is False, it is consistent with the original text (accuracy is about 41.8%). If it is true the accuracy is about 27%
+  local_eval_whole_test_dataset: False #If it is False, it is consistent with the original paper (accuracy is about 41.8%). If it is true the accuracy is about 27%
 dataloader:
   batch_size: 32
 train:

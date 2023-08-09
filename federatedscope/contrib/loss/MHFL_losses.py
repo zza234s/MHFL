@@ -17,9 +17,7 @@ class ConLoss(nn.Module):
     def forward(self, features, labels=None, global_protos=None, mask=None):
         """Compute contrastive loss between feature and global prototype
         """
-        device = (torch.device('cuda')
-                  if features.is_cuda
-                  else torch.device('cpu'))
+        device = features.device
 
         if len(features.shape) < 3:
             raise ValueError('`features` needs to be [bsz, n_views, ...],'

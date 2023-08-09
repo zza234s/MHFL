@@ -6,7 +6,7 @@ gpu=$1
 dataset=$2 #cifar10,svhn,office_caltech
 client_file=model_heterogeneity/model_settings/model_setting_CV_low_heterogeneity.yaml
 result_floder=model_heterogeneity/result/new_0729
-
+task=CV_low_heterogeneity
 # Method setup
 method=Local
 script_floder="model_heterogeneity/methods/"${method}

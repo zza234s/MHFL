@@ -5,7 +5,7 @@ cd ../../../ #到federatedscope目录
 gpu=$1
 dataset=$2 #cifar10,svhn,office_caltech
 client_file=model_heterogeneity/model_settings/model_setting_CV_high_heterogeneity.yaml
-result_floder=model_heterogeneity/result/new_0731
+result_floder=model_heterogeneity/result/hpo_0807
 task=CV_high_heterogeneity
 # Method setup
 method=FedMD
@@ -32,8 +32,6 @@ freq=1
 
 # FedMD-specific parameters
 digest_epochs=(1 5)
-dropout=(0.0 0.5)
-
 # Temp
 temp=0
 
@@ -58,7 +56,6 @@ train_model() {
     wandb.client_train_info ${wandb_client_train_info} \
     eval.freq ${freq} \
     fedmd.digest_epochs ${5} \
-    model.dropout ${6} \
     MHFL.task ${task}
 }
 
@@ -72,11 +69,9 @@ for alpha in "${lda_alpha[@]}"; do
     for lr in "${lrs[@]}"; do
       for ls in "${local_update_step[@]}"; do
         for de in "${digest_epochs[@]}"; do
-          for dp in "${dropout[@]}"; do
-            for s in "${seed[@]}"; do
-              splitter_args="data.splitter_args ""[{'alpha':${alpha}}]"
-              train_model "$s" "$ls" "$opt" "$lr" "$de" "$dp"
-            done
+          for s in "${seed[@]}"; do
+            splitter_args="data.splitter_args ""[{'alpha':${alpha}}]"
+            train_model "$s" "$ls" "$opt" "$lr" "$de"
           done
         done
       done

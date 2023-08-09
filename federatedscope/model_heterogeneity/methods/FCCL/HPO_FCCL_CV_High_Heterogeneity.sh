@@ -5,7 +5,7 @@ cd ../../../ #到federatedscope目录
 gpu=$1
 dataset=$2 #cifar10,svhn,office_caltech
 client_file=model_heterogeneity/model_settings/model_setting_CV_high_heterogeneity.yaml
-result_floder=model_heterogeneity/result/new_0731
+result_floder=model_heterogeneity/result/hpo_0807
 task=CV_high_heterogeneity
 
 # Method setup
@@ -34,7 +34,7 @@ freq=1
 # FCCL-specific parameters
 off_diag_weight=(0.0051 0.00032)
 loss_dual_weight=(0.1 1 10)
-public_dataset=(cifar100 fashion_minist minist)
+public_dataset=(cifar100)
 out_channels=100
 
 # Define function for model training
@@ -85,11 +85,6 @@ for alpha in "${lda_alpha[@]}"; do
                   out_channels=10
                   ;;
                 *)
-                  # Handle the case when public_dataset is neither "cifar100", "fashion_minist", nor "minist"
-                  # You can set a default value or raise an error based on your requirement.
-                  # For example, you could do:
-                  # out_channels=0
-                  # echo "Unknown public_dataset value. Setting out_channels to 0."
                   echo "Unknown public_dataset value: $public_dataset"
                   exit 1
                   ;;

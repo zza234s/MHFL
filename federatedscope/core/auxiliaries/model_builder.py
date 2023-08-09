@@ -200,6 +200,8 @@ def get_model(model_config, local_data=None, backend='torch'):
     else:
         raise ValueError('Model {} is not provided'.format(model_config.type))
 
+
+
     return model
 
 
