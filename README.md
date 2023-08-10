@@ -60,7 +60,7 @@ We are grateful for their outstanding work.
 
 ## Models & Dataset
 
-#### Model setting
+### Model setting
 
 We hope to test whether the above methods work well under different model heterogeneous setups. To this end, we conduct experiments with the following two settings.
 
@@ -69,11 +69,11 @@ We hope to test whether the above methods work well under different model hetero
 
 
 
-For details of the model architecture, please refer to: MHFL/federatedscope/model_heterogeneity/model_settings
+For details of the model architecture, please refer to [model setting files](https://github.com/zza234s/MHFL/tree/main/federatedscope/model_heterogeneity/model_settings) and [model definition files](https://github.com/zza234s/MHFL/tree/main/federatedscope/contrib/model)
 
 
 
-#### Dataset
+### Dataset
 
 Currently, we conduct experiments on three benchmark datasets: CIFAR-10, SVHN, and office-10.
 
