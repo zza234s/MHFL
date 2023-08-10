@@ -38,7 +38,8 @@ We are grateful for their outstanding work.
 | FML          | Federated Mutual Learning                                    | ArXiv 2020   | [[pub](https://arxiv.org/abs/2006.16765)] [[repository](https://github.com/ZJU-DAI/Federated-Mutual-Learning)] |
 | FedHeNN      | Architecture Agnostic Federated Learning for Neural Networks | ICML 2022    | [[pub](https://proceedings.neurips.cc/paper/2020/hash/18df51b97ccd68128e994804f3eccc87-Abstract.html)] |
 | FedProto     | FedProto: Federated Prototype Learning across Heterogeneous Clients | AAAI 2022    | [[pub](https://arxiv.org/abs/2105.00243)] [[repository](https://github.com/zza234s/FedProto)] |
-| FedPCL       | [Federated Learning from Pre-Trained Models: A Contrastive Learning Approach](https://arxiv.org/abs/2209.10083) | NeurIPS 2022 | [[pub](https://openreview.net/forum?id=mhQLcMjWw75)] [[repository](https://github.com/yuetan031/FedPCL)] |
+| FedPCL       | Federated Learning from Pre-Trained Models: A Contrastive Learning Approach | NeurIPS 2022 | [[pub](https://openreview.net/forum?id=mhQLcMjWw75)] [[repository](https://github.com/yuetan031/FedPCL)] |
+| FedGH        | FedGH: Heterogeneous Federated Learning with Generalized Global Header | ACM MM 2023  | [[pub](https://arxiv.org/abs/2303.13137)] [[repository](https://github.com/LipingYi/FedGH)] |
 
 
 
@@ -46,7 +47,6 @@ We are grateful for their outstanding work.
 
 | Abbreviation | Title                                                        | Venue                                               | progress bar    |
 | ------------ | ------------------------------------------------------------ | --------------------------------------------------- | --------------- |
-| FedGH        | [FedGH: Heterogeneous Federated Learning with Generalized Global Header](https://arxiv.org/pdf/2303.13137.pdf) | ACM MM 2023                                         | [#----------]0% |
 | DENSE        | [DENSE: Data-Free One-Shot Federated Learning](https://arxiv.org/abs/2112.12371) | NeurIPS 2022                                        | [########--]95% |
 | FedKD        | [Communication-efficient federated learning via knowledge distillation](https://www.nature.com/articles/s41467-022-29763-x) | NC 2022                                             | [----------]0%  |
 | FedDistill   | [Federated Knowledge Distillation](https://www.cambridge.org/core/books/abs/machine-learning-and-wireless-communications/federated-knowledge-distillation/F679266F85493319EB83635D2B17C2BD) | Machine Learning and Wireless Communications (2022) | [----------]0%  |
@@ -54,9 +54,28 @@ We are grateful for their outstanding work.
 
 
 
-## Model and Dataset
 
-Currently, we conduct experiments on three FL benchmark datasets: CIFAR-10, SVHN, and office-10.
+
+
+
+## Models & Dataset
+
+#### Model setting
+
+We hope to test whether the above methods work well under different model heterogeneous setups. To this end, we conduct experiments with the following two settings.
+
+1. **Low model heterogeneity**: We used five CNN models that are a bit different in terms of the number of channels and layers.
+2. **High model heterogeneity:**  We tried five models with large differences, including MLP, CNN, ResNet, and wide ResNet.
+
+
+
+For details of the model architecture, please refer to: MHFL/federatedscope/model_heterogeneity/model_settings
+
+
+
+#### Dataset
+
+Currently, we conduct experiments on three benchmark datasets: CIFAR-10, SVHN, and office-10.
 
 
 
