@@ -32,7 +32,7 @@ class CNN_2layers(Module):
             self.bn2 = BatchNorm2d(n2)
 
         self.fc1 = Linear((h // 2 // 2) * (w // 2 // 2) * n2, hidden)
-        self.fc2 = Linear(hidden, class_num)
+        self.FC = Linear(hidden, class_num)
 
         self.relu = ReLU(inplace=True)
         self.maxpool = MaxPool2d(2)
@@ -50,7 +50,7 @@ class CNN_2layers(Module):
         x = F.dropout(x, p=self.dropout, training=self.training)
         x1 = self.relu(self.fc1(x))
         x = F.dropout(x1, p=self.dropout, training=self.training)
-        x = self.fc2(x)
+        x = self.FC(x)
 
         if self.return_proto:
             return x, x1
@@ -85,7 +85,7 @@ class CNN_3layers(Module):
             self.bn3 = BatchNorm2d(n3)
 
         self.fc1 = Linear((h // 2 // 2) * (w // 2 // 2) * n3, hidden)
-        self.fc2 = Linear(hidden, class_num)
+        self.FC = Linear(hidden, class_num)
 
         self.relu = ReLU(inplace=True)
         self.maxpool = MaxPool2d(2)
@@ -106,7 +106,7 @@ class CNN_3layers(Module):
         x = F.dropout(x, p=self.dropout, training=self.training)
         x1 = self.relu(self.fc1(x))
         x = F.dropout(x1, p=self.dropout, training=self.training)
-        x = self.fc2(x)
+        x = self.FC(x)
 
         if self.return_proto:
             return x, x1
@@ -144,7 +144,7 @@ class CNN_4layers(Module):
             self.bn4 = BatchNorm2d(n4)
 
         self.fc1 = Linear((h // 2 // 2 // 2) * (w // 2 // 2 // 2) * n4, hidden)
-        self.fc2 = Linear(hidden, class_num)
+        self.FC = Linear(hidden, class_num)
 
         self.relu = ReLU(inplace=True)
         self.maxpool = MaxPool2d(2)
@@ -168,7 +168,7 @@ class CNN_4layers(Module):
         x = F.dropout(x, p=self.dropout, training=self.training)
         x1 = self.relu(self.fc1(x))
         x = F.dropout(x1, p=self.dropout, training=self.training)
-        x = self.fc2(x)
+        x = self.FC(x)
 
         if self.return_proto:
             return x, x1

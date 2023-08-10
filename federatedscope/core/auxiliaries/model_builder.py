@@ -1,6 +1,7 @@
 import logging
 import numpy as np
 import federatedscope.register as register
+from federatedscope.contrib.model.warpFC import LocalModelWithFC
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +29,7 @@ def get_shape_from_data(data, model_config, backend='torch'):
         return data['train'].n_col if model_config.type.lower(
         ) == 'vmfnet' else data['train'].n_row
     elif model_config.type.lower() in [
-            'gcn', 'sage', 'gpr', 'gat', 'gin', 'mpnn'
+        'gcn', 'sage', 'gpr', 'gat', 'gin', 'mpnn'
     ] or model_config.type.startswith('gnn_'):
         num_label = data['num_label'] if 'num_label' in data else None
         num_edge_features = data['data'][
@@ -155,7 +156,7 @@ def get_model(model_config, local_data=None, backend='torch'):
     elif model_config.type.lower() == 'mlp':
         from federatedscope.core.mlp import MLP
         model = MLP(channel_list=[input_shape[-1]] + [model_config.hidden] *
-                    (model_config.layer - 1) + [model_config.out_channels],
+                                 (model_config.layer - 1) + [model_config.out_channels],
                     dropout=model_config.dropout)
 
     elif model_config.type.lower() == 'quadratic':
@@ -166,7 +167,7 @@ def get_model(model_config, local_data=None, backend='torch'):
         from federatedscope.cv.model import get_cnn
         model = get_cnn(model_config, input_shape)
     elif model_config.type.lower() in [
-            'simclr', 'simclr_linear', "supervised_local", "supervised_fedavg"
+        'simclr', 'simclr_linear', "supervised_local", "supervised_fedavg"
     ]:
         from federatedscope.cl.model import get_simclr
         model = get_simclr(model_config, input_shape)
@@ -181,7 +182,7 @@ def get_model(model_config, local_data=None, backend='torch'):
         from federatedscope.nlp.model import get_transformer
         model = get_transformer(model_config, input_shape)
     elif model_config.type.lower() in [
-            'gcn', 'sage', 'gpr', 'gat', 'gin', 'mpnn'
+        'gcn', 'sage', 'gpr', 'gat', 'gin', 'mpnn'
     ]:
         from federatedscope.gfl.model import get_gnn
         model = get_gnn(model_config, input_shape)
@@ -189,7 +190,7 @@ def get_model(model_config, local_data=None, backend='torch'):
         from federatedscope.mf.model.model_builder import get_mfnet
         model = get_mfnet(model_config, input_shape)
     elif model_config.type.lower() in [
-            'xgb_tree', 'gbdt_tree', 'random_forest'
+        'xgb_tree', 'gbdt_tree', 'random_forest'
     ]:
         from federatedscope.vertical_fl.tree_based_models.model.model_builder \
             import get_tree_model
@@ -200,7 +201,9 @@ def get_model(model_config, local_data=None, backend='torch'):
     else:
         raise ValueError('Model {} is not provided'.format(model_config.type))
 
-
+    if model_config.warpFC:
+        model = LocalModelWithFC(local_model=model, return_features=model_config.return_proto,
+                                 feature_dim=model_config.feature_dim, out_dim=model_config.out_channels)
 
     return model
 

@@ -24,7 +24,7 @@ class MLP(nn.Module):
             )
             setattr(self, "layer{}".format(i), layer)
 
-        self.classifier = nn.Linear(hidden_size, self.num_classes, bias=False)
+        self.FC = nn.Linear(hidden_size, self.num_classes, bias=True)
 
         self.return_features = return_features
     def _decide_input_feature_size(self):
@@ -39,7 +39,7 @@ class MLP(nn.Module):
         out = x.view(x.size(0), -1)
         for i in range(1, self.num_layers + 1):
             out = getattr(self, "layer{}".format(i))(out)
-        res = self.classifier(out)
+        res = self.FC(out)
         if self.return_features:
             return res, out
         else:
