@@ -24,8 +24,6 @@ def extend_model_heterogeneous_cfg(cfg):
     cfg.MHFL.public_train.optimizer.weight_decay = 0.
     # cfg.MHFL.public_train.optimizer.momentum = 1e-4
 
-    cfg.model.filter_channels = [64, 64, 64]
-
     # Pretrain related option
     cfg.MHFL.pre_training = CN()
     cfg.MHFL.pre_training.public_epochs = 1
@@ -40,16 +38,20 @@ def extend_model_heterogeneous_cfg(cfg):
     cfg.result_floder = 'model_heterogeneity/result/csv'
     cfg.exp_name = 'test'
 
-    # other option
-    cfg.model.return_proto = False # 用来控制是否在前向传播时输出每个输入对应的表征。FedProto,FedPCL,FedheNN等需要用到
-    cfg.train.optimizer.momentum = 0.9
+    # model related option
+    cfg.model.filter_channels = [64, 64, 64]
+
+    cfg.model.warpFC = False  # Whether to add a fully connected layer at the end of the local model
+    cfg.model.feature_dim = -1 # When warpFC is True, the last dimension of each local model output will be mapped to the "feature_dim" dimension by nn.AdaptiveAvgPool1d
+
+    cfg.model.return_proto = False  # 用来控制是否在前向传播时输出每个输入对应的表征。FedProto,FedPCL,FedheNN等需要用到
     cfg.model.num_classes = 10  # FederatedScope中原代码中没有这个变量，但是这个变量在创建模型时很常用，故添加
+
+    # other option
+    cfg.train.optimizer.momentum = 0.9
     cfg.show_label_distribution = False  # 可视化相关参数
     cfg.show_client_best_individual = True
     cfg.MHFL.add_label_index = False
-
-    cfg.model.warpFC = False # Whether to add a fully connected layer at the end of the local model
-
 
     '''benchmark中各方法所需的参数'''
     # ---------------------------------------------------------------------- #
@@ -94,7 +96,7 @@ def extend_model_heterogeneous_cfg(cfg):
     cfg.fedproto.test_shots = 15
 
     # other options
-    cfg.fedproto.show_verbose = False # Weather display verbose loss information
+    cfg.fedproto.show_verbose = False  # Weather display verbose loss information
     # ---------------------------------------------------------------------- #
     # (FedPCL) Federated Learning from Pre-Trained Models: A Contrastive Learning Approach
     # ---------------------------------------------------------------------- #
@@ -196,12 +198,22 @@ def extend_model_heterogeneous_cfg(cfg):
     cfg.DENSE.save_dir = './contrib/synthesis'
     cfg.DENSE.T = 1.0
 
+    # ---------------------------------------------------------------------- #
+    # (FedGH) FedGH: Heterogeneous Federated Learning with Generalized Global Header
+    # ---------------------------------------------------------------------- #
+    cfg.FedGH = CN()
+    cfg.FedGH.server_optimizer =CN()
+    cfg.FedGH.server_optimizer.type = 'Adam'
+    cfg.FedGH.server_optimizer.lr = 0.001
+    cfg.FedGH.server_optimizer.weight_decay = 0.
+    cfg.FedGH.server_optimizer.momentum=0.9
+
     # --------------- register corresponding check function ----------
     cfg.register_cfg_check_fun(assert_mdfh_cfg)
 
-
     # ----------------------------------wait to delete----------------------- #
     # pass
+
 
 def assert_mdfh_cfg(cfg):
     if cfg.model.num_classes != cfg.model.out_channels:
@@ -210,6 +222,9 @@ def assert_mdfh_cfg(cfg):
                        f" Now the cfg.model.num_classes is {cfg.model.num_classes},"
                        f" but cfg.model.out_channels is {cfg.model.out_channels}")
         logger.warning(f"now we set cfg.model.num_classes as cfg.model.out_channels={cfg.model.out_channels}")
+
+    if cfg.model.warpFC and cfg.model.feature_dim==-1:
+        raise ValueError(f"When cfg.model.warpFC is True, the value of cfg.model.feature_dim must be specified.")
 
 
 register_config("model_heterogeneity", extend_model_heterogeneous_cfg)

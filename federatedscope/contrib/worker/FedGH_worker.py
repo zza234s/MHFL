@@ -1,3 +1,5 @@
+import copy
+
 from federatedscope.register import register_worker
 from federatedscope.core.workers import Server, Client
 from federatedscope.core.message import Message
@@ -5,12 +7,37 @@ import logging
 
 from federatedscope.core.auxiliaries.utils import merge_dict_of_results, \
     Timeout, merge_param_dict
+from federatedscope.core.auxiliaries.optimizer_builder import get_optimizer
+from federatedscope.contrib.model.FedGH_FC import FedGH_FC
+
+import torch
+import torch.nn as nn
 logger = logging.getLogger(__name__)
 
 
-# Build your worker here.
 class FedGH_Server(Server):
-    
+    def __init__(self,
+                 ID=-1,
+                 state=0,
+                 config=None,
+                 data=None,
+                 model=None,
+                 client_num=5,
+                 total_round_num=10,
+                 device='cpu',
+                 strategy=None,
+                 **kwargs):
+        super(FedGH_Server, self).__init__(ID, state, config, data, model, client_num,
+                                            total_round_num, device, strategy, **kwargs)
+        self.received_protos_dict = dict()
+        self.device = device
+        self.net_FC = FedGH_FC(config.model.feature_dim, config.model.num_classes).to(device)
+        self.criteria = nn.CrossEntropyLoss()
+        self.models[0] = self.net_FC
+        self.model = self.net_FC
+        #TODO: optimizer 的超参写进yaml/config中
+        self.optimizer = get_optimizer(model=self.net_FC, **config.FedGH.server_optimizer)
+        # self.optimizer = torch.optim.SGD(params=self.net_FC.parameters(), lr=1e-2, momentum=0.9, weight_decay=1e-3)
     def check_and_move_on(self,
                           check_eval_result=False,
                           min_received_num=None):
@@ -31,12 +58,13 @@ class FedGH_Server(Server):
                 # Receiving enough feedback in the training process
                 # update global protos
                 #################################################################
-                local_protos_list = dict()
+                local_protos_dict = dict()
                 msg_list = self.msg_buffer['train'][self.state]
-                aggregated_num = len(msg_list)
-                for key, values in msg_list.items():
-                    local_protos_list[key] = values[1]
-                global_protos = self._proto_aggregation(local_protos_list)
+                for client_id, values in msg_list.items():
+                    local_protos_dict[client_id] = values[1]
+
+                self.global_header_training(local_protos_dict)
+                global_header_para = copy.deepcopy(self.net_FC.state_dict())
                 #################################################################
 
                 self.state += 1
@@ -45,7 +73,8 @@ class FedGH_Server(Server):
                     #  Evaluate
                     logger.info(f'Server: Starting evaluation at the end '
                                 f'of round {self.state - 1}.')
-                    self.eval()
+                    self._broadcast_custom_message(msg_type='evaluate', content=global_header_para, filter_unseen_clients=False)
+                    # self.eval()
 
                 if self.state < self.total_round_num:
                     # Move to next round of training
@@ -57,12 +86,14 @@ class FedGH_Server(Server):
                     self.msg_buffer['train'][self.state] = dict()
                     self.staled_msg_buffer.clear()
                     # Start a new training round
-                    self._start_new_training_round(global_protos)
+                    self._broadcast_custom_message(msg_type='model_para',content=global_header_para)
+
                 else:
                     # Final Evaluate
                     logger.info('Server: Training is finished! Starting '
                                 'evaluation.')
-                    self.eval()
+                    self._broadcast_custom_message(msg_type='evaluate', content=global_header_para, filter_unseen_clients=False)
+                    # self.eval()
 
             else:
                 # Receiving enough feedback in the evaluation process
@@ -75,32 +106,28 @@ class FedGH_Server(Server):
 
         return move_on_flag
 
-    def _proto_aggregation(self, local_protos_list):
-        agg_protos_label = dict()
-        for idx in local_protos_list:
-            local_protos = local_protos_list[idx]
-            for label in local_protos.keys():
-                if label in agg_protos_label:
-                    agg_protos_label[label].append(local_protos[label])
-                else:
-                    agg_protos_label[label] = [local_protos[label]]
+    def global_header_training(self, local_protos_dict):
+        total_loss = 0.0
+        total_samples = 0
 
-        for [label, proto_list] in agg_protos_label.items():
-            if len(proto_list) > 1:
-                proto = 0 * proto_list[0].data
-                for i in proto_list:
-                    proto += i.data
-                agg_protos_label[label] = [proto / len(proto_list)]
-            else:
-                agg_protos_label[label] = [proto_list[0].data]
+        for client_id, local_protos in local_protos_dict.items():
 
-        return agg_protos_label
+            for cls, rep in local_protos.items():
+                self.optimizer.zero_grad()
+                rep=rep.unsqueeze(0)
+                pred_server = self.net_FC(rep)
+                loss = self.criteria(pred_server.view(1, -1), torch.tensor(cls).view(1).to(self.device))
+                loss.backward()
 
-    def _start_new_training_round(self, global_protos):
-        self._broadcast_custom_message(msg_type='global_proto',content=global_protos)
+                total_loss += loss.item()
+                total_samples += 1
 
-    def eval(self):
-        self._broadcast_custom_message(msg_type='evaluate',content=None, filter_unseen_clients=False)
+                torch.nn.utils.clip_grad_norm_(self.net_FC.parameters(), 50)
+                self.optimizer.step()
+
+        if total_samples > 0:
+            mean_loss = total_loss / total_samples
+            logger.info(f"round:{self.state} \t global head mean loss: {mean_loss}")
 
     def _broadcast_custom_message(self, msg_type, content,
                                  sample_client_num=-1,
@@ -132,6 +159,9 @@ class FedGH_Server(Server):
             self.sampler.change_state(self.unseen_clients_id, 'seen')
 
 
+
+
+
 class FedGH_client(Client):
     def __init__(self,
                  ID=-1,
@@ -160,10 +190,9 @@ class FedGH_client(Client):
         timestamp = message.timestamp
         content = message.content
 
-        if message.msg_type == 'global_proto':
-            self.trainer.update(content)
+        self.trainer.update(content,strict=True)
         self.state = round
-        self.trainer.ctx.cur_state = self.state
+        self.trainer.ctx.cur_state = round
         sample_size, model_para, results, agg_protos = self.trainer.train()
 
         train_log_res = self._monitor.format_eval_res(
@@ -177,7 +206,6 @@ class FedGH_client(Client):
             self._monitor.save_formatted_results(train_log_res,
                                                  save_file_name="")
 
-
         self.comm_manager.send(
             Message(msg_type='model_para',
                     sender=self.ID,
@@ -186,9 +214,9 @@ class FedGH_client(Client):
                     content=(sample_size, agg_protos)))
 
 def call_my_worker(method):
-    if method == 'FedGH':
+    if method == 'fedgh':
         worker_builder = {'client': FedGH_client, 'server': FedGH_Server}
         return worker_builder
 
 
-register_worker('FedGH', call_my_worker)
+register_worker('fedgh', call_my_worker)

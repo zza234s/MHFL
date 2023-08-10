@@ -1,0 +1,49 @@
+use_gpu: True
+device: 0
+early_stop:
+  patience: 50
+seed: 0
+federate:
+  mode: standalone
+  method: fedgh
+  client_num: 5
+  total_round_num: 100
+#  sample_client_rate: 1.0
+  make_global_eval: False
+data:
+  root: data/
+  type: 'office_caltech'
+  splitter_args: [{'alpha': 100.0}]
+  local_eval_whole_test_dataset: True
+  drop_last: True
+dataloader:
+  batch_size: 32
+model:
+  dropout: 0.5
+  out_channels: 10
+  return_proto: True # important
+train:
+  local_update_steps: 1
+  batch_or_epoch: epoch
+  optimizer:
+    type: Adam
+    lr: 0.0001
+    weight_decay: 1e-4
+FedGH:
+  server_optimizer:
+    type: Adam
+    lr: 0.001
+    weight_decay: 1e-4
+criterion:
+  type: CrossEntropyLoss
+trainer:
+  type: fedgh_trainer
+grad:
+  grad_clip: 5.0
+eval:
+  freq: 1
+  metrics: ['acc']
+  report : ['weighted_avg', 'avg']
+  best_res_update_round_wise_key: test_acc_based_on_global_prototype
+exp_name: Manual_FedGH_on_office_caltech
+result_floder: model_heterogeneity/result/temp

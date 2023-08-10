@@ -154,7 +154,7 @@ class FedPCL_CV_Trainer(GeneralTorchTrainer):
                         reps_dict[labels[i].item()] = [features[i, :]]
         else:
             #####################################################################################
-            for batch_idx, (images, labels) in enumerate(ctx.data['train']):
+            for batch_idx, (images, labels) in enumerate(ctx.data['train']): #TODO:使用train_loader? 参考trainer基类的_hook_on_epoch_start
                 images, labels = images.to(ctx.device), labels.to(ctx.device)
                 _, features = ctx.model(images)
                 features = F.normalize(features, dim=1)
