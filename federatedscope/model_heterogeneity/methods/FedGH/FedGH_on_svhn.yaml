@@ -33,11 +33,11 @@ train:
     type: Adam
     lr: 0.01
     weight_decay: 1e-4
-FedGH:
-  server_optimizer:
-    type: Adam
-    lr: 0.001
-    weight_decay: 1e-4
+#FedGH:
+#  server_optimizer:
+#    type: Adam
+#    lr: 0.001
+#    weight_decay: 1e-4
 criterion:
   type: CrossEntropyLoss
 trainer:

@@ -33,11 +33,10 @@ class FedGH_Server(Server):
         self.device = device
         self.net_FC = FedGH_FC(config.model.feature_dim, config.model.num_classes).to(device)
         self.criteria = nn.CrossEntropyLoss()
-        self.models[0] = self.net_FC
-        self.model = self.net_FC
-        #TODO: optimizer 的超参写进yaml/config中
-        self.optimizer = get_optimizer(model=self.net_FC, **config.FedGH.server_optimizer)
-        # self.optimizer = torch.optim.SGD(params=self.net_FC.parameters(), lr=1e-2, momentum=0.9, weight_decay=1e-3)
+        self.models[0] = copy.deepcopy(self.net_FC)
+        self.model = copy.deepcopy(self.net_FC)
+        self.optimizer = get_optimizer(model=self.net_FC, **config.train.optimizer)
+        # self.optimizer = get_optimizer(model=self.net_FC, **config.FedGH.server_optimizer)
     def check_and_move_on(self,
                           check_eval_result=False,
                           min_received_num=None):

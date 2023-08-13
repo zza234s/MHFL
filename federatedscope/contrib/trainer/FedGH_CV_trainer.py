@@ -24,8 +24,7 @@ class FedGH_Trainer(GeneralTorchTrainer):
                  monitor=None):
         super(FedGH_Trainer, self).__init__(model, data, device, config,
                                             only_for_eval, monitor)
-        self.loss_mse = nn.MSELoss()
-        self.proto_weight = self.ctx.cfg.fedproto.proto_weight
+
         self.register_hook_in_train(self._hook_on_fit_end_agg_local_proto,
                                     "on_fit_end")
 
@@ -73,28 +72,6 @@ class FedGH_Trainer(GeneralTorchTrainer):
             agg_local_protos[cls] = mean_proto
 
         ctx.agg_local_protos = agg_local_protos
-
-    # def _hook_on_fit_end_agg_local_proto(self, ctx):
-    #     # reset dataloader
-    #     ctx.train_loader.reset()
-    #
-    #     # collect local NN parameters
-    #     reps_dict = defaultdict(list)
-    #     agg_local_protos = dict()
-    #     for batch_idx, (images, labels) in enumerate(ctx.train_loader):
-    #         images, labels = images.to(ctx.device), labels.to(ctx.device)
-    #         _, rep = ctx.model(images)
-    #         owned_classes = labels.unique()
-    #         for cls in owned_classes:
-    #             filted_reps = rep[labels == cls].detach()
-    #             mean_filted_reps = filted_reps.mean(dim=0)
-    #             reps_dict[cls.item()].append(mean_filted_reps)
-    #
-    #     for cls, protos in reps_dict.items():
-    #         mean_proto = torch.stack(protos).mean(dim=0)
-    #         agg_local_protos[cls] = mean_proto
-    #
-    #     ctx.agg_local_protos = agg_local_protos
 
     def train(self, target_data_split_name="train", hooks_set=None):
         hooks_set = hooks_set or self.hooks_in_train
