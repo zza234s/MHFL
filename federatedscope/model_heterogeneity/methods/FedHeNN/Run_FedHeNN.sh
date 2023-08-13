@@ -29,7 +29,21 @@ if [ "$task" = "CV_high" ]; then
     eta=0.001
     ;;
   *)
-    echo "Unknown public_dataset value: $public_dataset"
+    echo "Unknown dataset value: $dataset"
+    exit 1
+    ;;
+  esac
+elif [ "$task" = "CV_low" ]; then
+    case "$dataset" in "cifar10" | "office_caltech")
+    lr=0.001
+    eta=0.001
+    ;;
+  "svhn")
+    lr=0.001
+    eta=0.01
+    ;;
+  *)
+    echo "Unknown dataset value: $dataset"
     exit 1
     ;;
   esac

@@ -5,14 +5,14 @@ cd ../../../ #到federatedscope目录
 gpu=$1
 dataset=$2 #cifar10, svhn, office_caltech
 task=$3    #CV_high, CV_low, NLP_high, NLP_low
-folder_name=$4
-method=FCCL
+result_folder_name=$4
+method=FedMD
 
 # Method setup
 client_file="model_heterogeneity/model_settings/model_setting_"$task"_heterogeneity.yaml"
-result_floder=model_heterogeneity/result/$folder_name
+result_floder=model_heterogeneity/result/${result_folder_name}
 script_floder="model_heterogeneity/methods/"${method}
-main_cfg=${script_floder}"/${method}""_on_"${dataset}".yaml"
+main_cfg=${script_floder}"/${method}""_on_"${dataset}"_label_change.yaml"
 exp_name="RUN_"$method"_on_"$dataset"_"$task
 
 # WandB setup
@@ -22,40 +22,14 @@ wandb_online_track=False
 wandb_client_train_info=True
 wandb_name_project="RUN_"$method"_on_"$dataset"_"$task
 
-# FCCL-specific parameters
+# FedMD-specific parameters
 if [ "$task" = "CV_high" ]; then
-    case "$dataset" in "cifar10" | "office_caltech")
+  case "$dataset" in "cifar10" | "office_caltech" | "svhn")
     lr=0.001
-    off_diag_weight=0.0051
-    public_dataset=cifar100
-    out_channels=100
-    ;;
-  "svhn")
-    lr=0.001
-    off_diag_weight=0.0051
-    public_dataset=cifar100
-    out_channels=100
+    digest_epochs=1
     ;;
   *)
-    echo "Unknown dataset value: $dataset"
-    exit 1
-    ;;
-  esac
-elif [ "$task" = "CV_low" ]; then
-    case "$dataset" in "cifar10" | "office_caltech")
-    lr=0.001
-    off_diag_weight=0.0051
-    public_dataset=cifar100
-    out_channels=100
-    ;;
-  "svhn")
-    lr=0.001
-    off_diag_weight=0.0051
-    public_dataset=cifar100
-    out_channels=100
-    ;;
-  *)
-    echo "Unknown dataset value: $dataset"
+    echo "Unknown public_dataset value: $public_dataset"
     exit 1
     ;;
   esac
@@ -69,8 +43,6 @@ total_round=200
 patience=50
 momentum=0.9
 freq=1
-
-loss_dual_weight=10
 
 # Define function for model training
 train_model() {
@@ -92,11 +64,8 @@ train_model() {
     wandb.online_track ${wandb_online_track} \
     wandb.client_train_info ${wandb_client_train_info} \
     eval.freq ${freq} \
-    fccl.off_diag_weight ${off_diag_weight} \
-    fccl.loss_dual_weight ${loss_dual_weight} \
-    MHFL.public_dataset ${public_dataset} \
-    model.out_channels ${out_channels} \
-    MHFL.task ${task}
+    MHFL.task ${task} \
+    fedmd.digest_epochs ${digest_epochs}
 }
 
 # Training parameters based on the dataset

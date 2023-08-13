@@ -4,8 +4,9 @@ cd ../../../ #到federatedscope目录
 # Configuration
 gpu=$1
 dataset=$2 #cifar10,svhn,office_caltech
+result_floder_name=$3
 client_file=model_heterogeneity/model_settings/model_setting_CV_high_heterogeneity.yaml
-result_floder=model_heterogeneity/result/hpo_0807
+result_floder=model_heterogeneity/result/${result_floder_name}
 task=CV_high_heterogeneity
 # Method setup
 method=FedMD

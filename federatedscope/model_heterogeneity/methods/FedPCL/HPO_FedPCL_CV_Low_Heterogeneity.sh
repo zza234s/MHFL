@@ -4,8 +4,9 @@ cd ../../../ #到federatedscope目录
 # Configuration
 gpu=$1
 dataset=$2 #cifar10,svhn,office_caltech
+folder_name=$3
 client_file=model_heterogeneity/model_settings/model_setting_CV_low_heterogeneity.yaml
-result_floder=model_heterogeneity/result/new_0731
+result_floder=model_heterogeneity/result/$folder_name
 task=CV_low_heterogeneity
 # Method setup
 method=FedPCL
@@ -31,7 +32,7 @@ momentum=0.9
 freq=1
 
 # FedPCL-specific parameters
-dropout=(0.5)
+dropout=(0.0)
 
 # Define function for model training
 train_model() {
@@ -57,7 +58,7 @@ train_model() {
 }
 
 # Training parameters based on the dataset
-declare -A lda_alpha_map=(["femnist"]=100 ["cifar10"]="100 1.0 0.1" ["svhn"]="100 1.0 0.1" ["office_caltech"]="100 1.0 0.1")
+declare -A lda_alpha_map=(["cifar10"]="100" ["svhn"]="100" ["office_caltech"]="100")
 lda_alpha=(${lda_alpha_map[$dataset]})
 
 # Loop over parameters for HPO

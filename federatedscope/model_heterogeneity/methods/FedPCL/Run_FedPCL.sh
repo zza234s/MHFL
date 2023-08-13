@@ -32,7 +32,21 @@ if [ "$task" = "CV_high" ]; then
     local_update_step=5
     ;;
   *)
-    echo "Unknown public_dataset value: $public_dataset"
+    echo "Unknown dataset value: $public_dataset"
+    exit 1
+    ;;
+  esac
+elif [ "$task" = "CV_low" ]; then
+    case "$dataset" in "cifar10")
+    lr=0.001
+    local_update_step=1
+    ;;
+  "office_caltech")
+    lr=0.001
+    local_update_step=5
+    ;;
+  *)
+    echo "Unknown dataset value: $public_dataset"
     exit 1
     ;;
   esac
@@ -73,7 +87,7 @@ train_model() {
 declare -A lda_alpha_map=(
   ["cifar10"]="100 1.0 0.1"
   ["svhn"]="100 1.0 0.1"
-  ["office_caltech"]="100 1.0 0.1"
+  ["office_caltech"]="0.1"
 )
 lda_alpha=(${lda_alpha_map[$dataset]})
 

@@ -133,7 +133,7 @@ class FedMD_client(Client):
         self.task = config.MHFL.task
         self.model_weight_dir = config.MHFL.model_weight_dir
         self.local_update_steps = config.train.local_update_steps
-
+        self.lda_alpha = str(config.data.splitter_args[0]['alpha'])
         # TODO: FedMD的cfg和MHFL的cfg有重叠部分，需要统一
         # Local pretraining related settings
         self.model_name = config.model.type
@@ -182,10 +182,20 @@ class FedMD_client(Client):
         self.state = round
         self.selected_sample_per_epochs = message.content
 
-        model_file = os.path.join(
-            self.model_weight_dir,
-            f'FedMD_{self.task}_{self.model_name}_on_{self.public_dataset_name}_{self.private_dataset_name}_client_{self.ID}.pth'
-        )
+        if not self.cfg_MHFL.add_label_index:
+            model_file = os.path.join(
+                self.model_weight_dir,
+                f'FedMD_{self.task}_{self.model_name}_on_{self.public_dataset_name}'
+                f'_{self.private_dataset_name}_{self.lda_alpha}'
+                f'_client_{self.ID}.pth'
+            )
+        else:
+            model_file = os.path.join(
+                self.model_weight_dir,
+                f'FedMD_{self.task}_{self.model_name}_on_{self.public_dataset_name}'
+                f'_{self.private_dataset_name}_{self.lda_alpha}'
+                f'_client_{self.ID}_label_change.pth'
+            )
         if os.path.exists(model_file) and not self.rePretrain:
             # 如果已经存在预训练好的模型权重并且不要求重新预训练
             self.model.load_state_dict(torch.load(model_file, self.device))

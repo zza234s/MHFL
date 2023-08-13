@@ -30,9 +30,9 @@ Manual_test_FedPCL_femnist
 
 ## office_caltech_for_check
 --cfg
-model_heterogeneity/methods/FedPCL/for_check/FedPCL_on_office_caltech.yaml
+model_heterogeneity/methods/FedPCL/FedPCL_on_office_caltech.yaml
 --client_cfg
-model_heterogeneity/methods/FedPCL/proto_model_setting_5_client_on_cifar10_low_heterogeneity.yaml
+model_heterogeneity/model_settings/model_setting_CV_high_heterogeneity.yaml
 ##################################################################################################
 
 
@@ -160,6 +160,6 @@ D:\ZHL_WORK\Architecture_heterogeneous_FL\FS3\federatedscope\model_heterogeneity
 
 #LOCAL
 --cfg
-D:\ZHL_WORK\Architecture_heterogeneous_FL\FS3\federatedscope\model_heterogeneity\methods\Local\Local_on_cifar10.yaml
+model_heterogeneity/methods/Local/Local_on_office_caltech.yaml
 --client_cfg
 D:\ZHL_WORK\Architecture_heterogeneous_FL\FS3\federatedscope\model_heterogeneity\methods\Local\model_setting_5_client_on_cifar10.yaml

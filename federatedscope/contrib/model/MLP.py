@@ -24,7 +24,7 @@ class MLP(nn.Module):
             )
             setattr(self, "layer{}".format(i), layer)
 
-        self.FC = nn.Linear(hidden_size, self.num_classes, bias=True)
+        self.FC = nn.Linear(hidden_size, self.num_classes, bias=False)
 
         self.return_features = return_features
     def _decide_input_feature_size(self):

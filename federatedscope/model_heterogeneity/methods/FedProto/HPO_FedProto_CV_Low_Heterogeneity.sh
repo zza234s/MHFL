@@ -4,8 +4,9 @@ cd ../../../ #到federatedscope目录
 # Configuration
 gpu=$1
 dataset=$2 #cifar10,svhn,office_caltech
+folder_name=$3
 client_file=model_heterogeneity/model_settings/model_setting_CV_low_heterogeneity.yaml
-result_floder=model_heterogeneity/result/new_0731
+result_floder=model_heterogeneity/result/$folder_name
 task=CV_low_heterogeneity
 # Method setup
 method=FedProto

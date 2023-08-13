@@ -40,6 +40,44 @@ if [ "$task" = "CV_high" ]; then
       ["0.1"]=0.1
     )
     ;;
+  "svhn")
+    lr=0.0001
+    declare -A alpha_proto_weight_map=(
+      ["100"]=1.0
+      ["1.0"]=0.1
+      ["0.1"]=1.0
+    )
+    ;;
+  *)
+    echo "Unknown public_dataset value: $public_dataset"
+    exit 1
+    ;;
+  esac
+elif [ "$task" = "CV_low" ]; then
+  case "$dataset" in "cifar10")
+    lr=0.001
+    declare -A alpha_proto_weight_map=(
+      ["100"]=1.0
+      ["1.0"]=1.0
+      ["0.1"]=1.0
+    )
+    ;;
+  "office_caltech")
+    lr=0.0001
+    declare -A alpha_proto_weight_map=(
+      ["100"]=1.0
+      ["1.0"]=1.0
+      ["0.1"]=0.1
+    )
+    ;;
+  "svhn")
+    lr=0.001
+    declare -A alpha_proto_weight_map=(
+      ["100"]=1.0
+      ["1.0"]=1.0
+      ["0.1"]=1.0
+    )
+    ;;
   *)
     echo "Unknown public_dataset value: $public_dataset"
     exit 1
@@ -95,10 +133,10 @@ for alpha in "${lda_alpha[@]}"; do
   for s in "${seed[@]}"; do
     splitter_args="data.splitter_args ""[{'alpha':${alpha}}]"
     let temp+=1
-    if [ "$temp" -le 3 ]; then
-        continue
-    fi
     echo "$alpha"
+    if [ "$task" = "CV_low" ] && [ "$dataset" = "office_caltech" ] && [ "$alpha" = "0.1" ]; then
+      lr=0.001
+    fi
     proto_weight=${alpha_proto_weight_map[$alpha]}
     train_model "$s" "$proto_weight"
   done

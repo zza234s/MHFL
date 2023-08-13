@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
-def agg_local_proto(protos,num_classes=62):
+def agg_local_proto(protos, num_classes=62):
     """
     Average the protos for each local user
     """
@@ -26,9 +26,10 @@ def agg_local_proto(protos,num_classes=62):
     # 对于未见类，生成全zero tensor上传server
     for label in range(num_classes):
         if label not in agg_protos:
-            agg_protos[label] = torch.zeros(agg_protos[0].shape[0],device=agg_protos[0].device)
+            agg_protos[label] = torch.zeros(list(agg_protos.values())[0].shape[0], device=list(agg_protos.values())[0].device)
 
     return agg_protos
+
 
 class FedPCL_CV_Trainer(GeneralTorchTrainer):
     def __init__(self,
@@ -46,12 +47,13 @@ class FedPCL_CV_Trainer(GeneralTorchTrainer):
         self.num_users = config.federate.client_num
         self.device = device
         self.register_hook_in_train(self._hook_on_fit_end_agg_local_proto,
-                                    "on_fit_end",insert_pos=0)
+                                    "on_fit_end", insert_pos=0)
         self.register_hook_in_train(self._hook_on_fit_start_init_additionaly,
                                     "on_fit_start")
         self.register_hook_in_eval(self._hook_on_fit_start_init_additionaly,
                                    "on_epoch_start")
         self.debug = config.fedpcl.debug
+
     def _hook_on_batch_forward(self, ctx):
         image, labels = [_.to(ctx.device) for _ in ctx.data_batch]
         images = torch.cat([image, image.clone()], dim=0)  # 源代码每次读取样本时，会返回两个相同的image（使用了TwoCropTransform）
@@ -69,7 +71,7 @@ class FedPCL_CV_Trainer(GeneralTorchTrainer):
             bsz = labels.shape[0]
             lp1, lp2 = torch.split(log_probs, [bsz, bsz],
                                    dim=0)  # lp1==lp2 完全相等 ，猜测lp代表log_probs: [batchsize, num_class]
-            loss1=self.nll_loss(lp1, labels)
+            loss1 = self.nll_loss(lp1, labels)
         else:
             # TODO:目前在yaml文件中强制限制了dropout rate为0，如果不为0的话下面的lp1和lp2以及f1和f2会不相等。
             # TODO:原文代码中的local model 不涉及dropout层，不会出现这个问题
@@ -91,7 +93,8 @@ class FedPCL_CV_Trainer(GeneralTorchTrainer):
             for i in range(1, self.num_users + 1):
                 for label in ctx.global_avg_protos.keys():
                     if label not in ctx.global_protos[i].keys():
-                        ctx.global_protos[i][label] = ctx.global_avg_protos[label] #TODO: 原文没有考虑所有客户端的训练数据都没见过某个class样本的情况
+                        ctx.global_protos[i][label] = ctx.global_avg_protos[
+                            label]  # TODO: 原文没有考虑所有客户端的训练数据都没见过某个class样本的情况
                 L_p += self.loss_CL(features, labels, ctx.global_protos[i])
         else:
             f1, f2 = torch.split(features, [bsz, bsz], dim=0)
@@ -112,14 +115,15 @@ class FedPCL_CV_Trainer(GeneralTorchTrainer):
         ####
         ctx.ys_feature.append(f1.detach().cpu())
         ####
+
     def _hook_on_fit_end_agg_local_proto(self, ctx):
         self.get_aggprotos()
         protos = ctx.agg_protos_label
         setattr(ctx, "agg_protos", protos)
 
     def _hook_on_fit_start_init_additionaly(self, ctx):
-        ctx.agg_protos_label = CtxVar(dict(), LIFECYCLE.ROUTINE) # 每次本地训练之前，初始化agg_protos_label为空字典
-        ctx.ys_feature = CtxVar([], LIFECYCLE.ROUTINE) #保存每个样本的representation，基于local prototype 计算acc时会用到
+        ctx.agg_protos_label = CtxVar(dict(), LIFECYCLE.ROUTINE)  # 每次本地训练之前，初始化agg_protos_label为空字典
+        ctx.ys_feature = CtxVar([], LIFECYCLE.ROUTINE)  # 保存每个样本的representation，基于local prototype 计算acc时会用到
 
     def train(self, target_data_split_name="train", hooks_set=None):
         hooks_set = hooks_set or self.hooks_in_train
@@ -154,7 +158,8 @@ class FedPCL_CV_Trainer(GeneralTorchTrainer):
                         reps_dict[labels[i].item()] = [features[i, :]]
         else:
             #####################################################################################
-            for batch_idx, (images, labels) in enumerate(ctx.data['train']): #TODO:使用train_loader? 参考trainer基类的_hook_on_epoch_start
+            for batch_idx, (images, labels) in enumerate(
+                    ctx.data['train']):  # TODO:使用train_loader? 参考trainer基类的_hook_on_epoch_start
                 images, labels = images.to(ctx.device), labels.to(ctx.device)
                 _, features = ctx.model(images)
                 features = F.normalize(features, dim=1)
@@ -164,7 +169,7 @@ class FedPCL_CV_Trainer(GeneralTorchTrainer):
                     else:
                         reps_dict[labels[i].item()] = [features[i, :]]
 
-        ctx.agg_protos_label = agg_local_proto(reps_dict,num_classes=ctx.cfg.model.num_classes)
+        ctx.agg_protos_label = agg_local_proto(reps_dict, num_classes=ctx.cfg.model.num_classes)
 
 
 def call_my_torch_trainer(trainer_type):

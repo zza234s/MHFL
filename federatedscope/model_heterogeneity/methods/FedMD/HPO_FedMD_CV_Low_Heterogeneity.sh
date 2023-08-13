@@ -4,8 +4,9 @@ cd ../../../ #到federatedscope目录
 # Configuration
 gpu=$1
 dataset=$2 #cifar10,svhn,office_caltech
+folder_name=$3
 client_file=model_heterogeneity/model_settings/model_setting_CV_low_heterogeneity.yaml
-result_floder=model_heterogeneity/result/new_0731
+result_floder=model_heterogeneity/result/${folder_name}
 task=CV_low_heterogeneity
 # Method setup
 method=FedMD
@@ -31,8 +32,7 @@ momentum=0.9
 freq=1
 
 # FedMD-specific parameters
-digest_epochs=(1 5 10)
-dropout=(0.5)
+digest_epochs=(1 5)
 
 # Temp
 temp=0
@@ -57,8 +57,7 @@ train_model() {
     wandb.online_track ${wandb_online_track} \
     wandb.client_train_info ${wandb_client_train_info} \
     eval.freq ${freq} \
-    fedmd.digest_epochs ${5} \
-    model.dropout ${6}
+    fedmd.digest_epochs ${5}
 }
 
 # Training parameters based on the dataset
@@ -71,12 +70,12 @@ for alpha in "${lda_alpha[@]}"; do
     for lr in "${lrs[@]}"; do
       for ls in "${local_update_step[@]}"; do
         for de in "${digest_epochs[@]}"; do
-          for dp in "${dropout[@]}"; do
+
             for s in "${seed[@]}"; do
               splitter_args="data.splitter_args ""[{'alpha':${alpha}}]"
-              train_model "$s" "$ls" "$opt" "$lr" "$de" "$dp"
+              train_model "$s" "$ls" "$opt" "$lr" "$de"
             done
-          done
+
         done
       done
     done

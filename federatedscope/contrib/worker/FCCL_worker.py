@@ -186,7 +186,7 @@ class FCCLServer(Server):
                     logger.info(f'Server: Starting evaluation at the end '
                                 f'of round {self.state - 1}.')
                     # self.eval()
-                    self.send_per_client_message(msg_type='evaluate',filter_unseen_clients=False)
+                    self.send_per_client_message(msg_type='evaluate', filter_unseen_clients=False)
 
                 if self.state < self.total_round_num:
                     # Move to next round of training
@@ -311,6 +311,7 @@ class FCCLClient(Client):
         self.public_dataset_name = config.MHFL.public_dataset
         self.prive_dataset_name = config.data.type
         self.task = config.MHFL.task
+        self.lda_alph = str(config.data.splitter_args[0]['alpha'])
 
     def join_in(self):
         """
@@ -360,7 +361,8 @@ class FCCLClient(Client):
         self.pre_model = copy.deepcopy(self.model)
         # print(os.getcwd())
         ckpt_files = os.path.join(self.model_weight_dir,
-                                  'FCCL_' +  self.task + '_' + self.model_name + '_on_' + self.public_dataset_name + '_' + self.prive_dataset_name + '_client_' + str(
+                                  'FCCL_' + self.task + '_' + self.model_name + '_on_' + self.public_dataset_name + '_'
+                                  + str(self.lda_alph) + '_' + self.prive_dataset_name + '_client_' + str(
                                       self.ID) + '.ckpt')
 
         if not os.path.exists(ckpt_files) or self.rePretrain:
@@ -423,6 +425,7 @@ class FCCLClient(Client):
         print('The ' + str(self.ID) + 'participant top1acc:' + str(top1acc) + '_top5acc:' + str(top5acc))
         model.train(status)
         return top1acc
+
     def callback_funcs_for_evaluate(self, message: Message):
         """
         The handling function for receiving the request of evaluating
@@ -432,11 +435,11 @@ class FCCLClient(Client):
         """
         sender, timestamp = message.sender, message.timestamp
         self.state = message.state
-        if message.content is not None and self._cfg.federate.method not in ['fedmd']: #TODO:检查fedmd是否会更新模型
+        if message.content is not None and self._cfg.federate.method not in ['fedmd']:  # TODO:检查fedmd是否会更新模型
             self.trainer.update(message.content,
-                                strict=True) #仅修改此处，将strict指定为True
+                                strict=True)  # 仅修改此处，将strict指定为True
         if self.early_stopper.early_stopped and self._cfg.federate.method in [
-                "local", "global"
+            "local", "global"
         ]:
             metrics = list(self.best_results.values())[0]
         else:
@@ -470,7 +473,7 @@ class FCCLClient(Client):
             self.history_results = merge_dict_of_results(
                 self.history_results, formatted_eval_res['Results_raw'])
             self.early_stopper.track_and_check(self.history_results[
-                self._cfg.eval.best_res_update_round_wise_key])
+                                                   self._cfg.eval.best_res_update_round_wise_key])
 
         self.comm_manager.send(
             Message(msg_type='metrics',
