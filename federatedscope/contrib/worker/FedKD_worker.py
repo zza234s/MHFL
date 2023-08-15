@@ -187,7 +187,7 @@ class FedKD_Server(Server):
                 )
 
 
-class FedKD(Client):
+class FedKD_Client(Client):
     def __init__(self,
                  ID=-1,
                  server_id=None,
@@ -200,7 +200,7 @@ class FedKD(Client):
                  is_unseen_client=False,
                  *args,
                  **kwargs):
-        super(FedKD, self).__init__(ID, server_id, state, config, data, model, device,
+        super(FedKD_Client, self).__init__(ID, server_id, state, config, data, model, device,
                                                 strategy, is_unseen_client, *args, **kwargs)
         self.trainer.ctx.global_protos = []
         self.trainer.ctx.client_ID = self.ID
@@ -240,9 +240,9 @@ class FedKD(Client):
 
 
 def call_my_worker(method):
-    if method == 'feddistill':
-        worker_builder = {'client': FedDistill_Client, 'server': FedDistill_Server}
+    if method == 'fedkd':
+        worker_builder = {'client': FedKD_Client, 'server': FedKD_Server}
         return worker_builder
 
 
-register_worker('feddistill', call_my_worker)
+register_worker('fedkd', call_my_worker)
