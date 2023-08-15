@@ -3,6 +3,7 @@ from federatedscope.register import register_worker
 from federatedscope.core.workers import Server, Client
 from federatedscope.core.message import Message
 import logging
+import time
 from federatedscope.core.auxiliaries.utils import merge_dict_of_results, \
     Timeout, merge_param_dict
 from federatedscope.core.auxiliaries.optimizer_builder import get_optimizer
@@ -10,9 +11,12 @@ from federatedscope.contrib.model.FedGH_FC import FedGH_FC
 
 import torch
 import torch.nn as nn
+from collections import defaultdict
+
 logger = logging.getLogger(__name__)
 
-class FedGH_Server(Server):
+
+class FedKD_Server(Server):
     def __init__(self,
                  ID=-1,
                  state=0,
@@ -24,21 +28,11 @@ class FedGH_Server(Server):
                  device='cpu',
                  strategy=None,
                  **kwargs):
-        super(FedGH_Server, self).__init__(ID, state, config, data, model, client_num,
-                                           total_round_num, device, strategy, **kwargs)
-        self.received_protos_dict = dict()
+        super(FedKD_Server, self).__init__(ID, state, config, data, model, client_num,
+                                                total_round_num, device, strategy, **kwargs)
         self.device = device
         self.task = config.MHFL.task
-        if self.task == "CV_low":
-            feature_dim = 256
-        else:
-            feature_dim = 512
-        self.net_FC = FedGH_FC(feature_dim, config.model.num_classes).to(device)
-        self.criteria = nn.CrossEntropyLoss()
-        self.models[0] = copy.deepcopy(self.net_FC)
-        self.model = copy.deepcopy(self.net_FC)
-        self.optimizer = get_optimizer(model=self.net_FC, **config.train.optimizer)
-        # self.optimizer = get_optimizer(model=self.net_FC, **config.FedGH.server_optimizer)
+        self.global_logit_type = config.FedDistill.global_logit_type
 
     def check_and_move_on(self,
                           check_eval_result=False,
@@ -58,15 +52,12 @@ class FedGH_Server(Server):
         if self.check_buffer(self.state, min_received_num, check_eval_result):
             if not check_eval_result:
                 # Receiving enough feedback in the training process
-                # update global protos
                 #################################################################
-                local_protos_dict = dict()
+                local_logits_dict = dict()
                 msg_list = self.msg_buffer['train'][self.state]
                 for client_id, values in msg_list.items():
-                    local_protos_dict[client_id] = values[1]
-
-                self.global_header_training(local_protos_dict)
-                global_header_para = copy.deepcopy(self.net_FC.state_dict())
+                    local_logits_dict[client_id] = values[1]
+                avg_global_logits = self.logits_aggregation(local_logits_dict)
                 #################################################################
 
                 self.state += 1
@@ -75,9 +66,7 @@ class FedGH_Server(Server):
                     #  Evaluate
                     logger.info(f'Server: Starting evaluation at the end '
                                 f'of round {self.state - 1}.')
-                    self._broadcast_custom_message(msg_type='evaluate', content=global_header_para,
-                                                   filter_unseen_clients=False)
-                    # self.eval()
+                    self.eval(avg_global_logits)
 
                 if self.state < self.total_round_num:
                     # Move to next round of training
@@ -89,15 +78,24 @@ class FedGH_Server(Server):
                     self.msg_buffer['train'][self.state] = dict()
                     self.staled_msg_buffer.clear()
                     # Start a new training round
-                    self._broadcast_custom_message(msg_type='model_para', content=global_header_para)
-
+                    if self.global_logit_type==0:
+                        self._broadcast_custom_message(msg_type='avg_global_logits', content=avg_global_logits)
+                    elif self.global_logit_type==1:
+                        for client_id, logits in avg_global_logits.items():
+                            self.comm_manager.send(
+                                Message(msg_type='avg_global_logits',
+                                        sender=self.ID,
+                                        receiver=client_id,
+                                        state=min(self.state, self.total_round_num),
+                                        timestamp=self.cur_timestamp,
+                                        content=logits
+                                        )
+                            )
                 else:
                     # Final Evaluate
                     logger.info('Server: Training is finished! Starting '
                                 'evaluation.')
-                    self._broadcast_custom_message(msg_type='evaluate', content=global_header_para,
-                                                   filter_unseen_clients=False)
-                    # self.eval()
+                    self.eval(avg_global_logits)
 
             else:
                 # Receiving enough feedback in the evaluation process
@@ -110,28 +108,37 @@ class FedGH_Server(Server):
 
         return move_on_flag
 
-    def global_header_training(self, local_protos_dict):
-        total_loss = 0.0
-        total_samples = 0
+    def logits_aggregation(self, local_logits_list):
+        if self.global_logit_type == 0:
+            agg_logits = defaultdict(list)
+            avg_global_logits = dict()
+            for idx in local_logits_list:
+                local_logits = local_logits_list[idx]
+                for label in local_logits.keys():
+                    agg_logits[label].append(local_logits[label])
+            for [label, logits_list] in agg_logits.items():
+                if len(logits_list) > 1:
+                    logit = 0 * logits_list[0].data
+                    for i in logits_list:
+                        logit += i.data
+                    avg_global_logits[label] = logit / len(logits_list)
+                else:
+                    avg_global_logits[label] = logits_list[0].data
+        elif self.global_logit_type == 1:
+            agg_logits = dict()
+            avg_global_logits = dict()
+            for local_logits in local_logits_list.values():
+                for label, logits in local_logits.items():
+                    agg_logits.setdefault(label, 0 * logits.data)
+                    agg_logits[label] += logits
 
-        for client_id, local_protos in local_protos_dict.items():
-
-            for cls, rep in local_protos.items():
-                self.optimizer.zero_grad()
-                rep = rep.unsqueeze(0)
-                pred_server = self.net_FC(rep)
-                loss = self.criteria(pred_server.view(1, -1), torch.tensor(cls).view(1).to(self.device))
-                loss.backward()
-
-                total_loss += loss.item()
-                total_samples += 1
-
-                torch.nn.utils.clip_grad_norm_(self.net_FC.parameters(), 50)
-                self.optimizer.step()
-
-        if total_samples > 0:
-            mean_loss = total_loss / total_samples
-            logger.info(f"round:{self.state} \t global head mean loss: {mean_loss}")
+            for idx in local_logits_list:
+                avg_global_logits[idx] = dict()
+                local_logits = local_logits_list[idx]
+                for label in agg_logits.keys():
+                    avg_global_logits[idx][label] = agg_logits[label]
+                    avg_global_logits[idx][label] -= local_logits[label]
+        return avg_global_logits
 
     def _broadcast_custom_message(self, msg_type, content,
                                   sample_client_num=-1,
@@ -162,8 +169,25 @@ class FedGH_Server(Server):
             # restore the state of the unseen clients within sampler
             self.sampler.change_state(self.unseen_clients_id, 'seen')
 
+    def eval(self, avg_global_logits):
+        if self.global_logit_type == 0:
+            self._broadcast_custom_message(msg_type='evaluate', content=avg_global_logits,
+                                           filter_unseen_clients=False)
+        elif self.global_logit_type == 1:
+            rnd = self.state - 1
+            for client_id, logits in avg_global_logits.items():
+                self.comm_manager.send(
+                    Message(msg_type='evaluate',
+                            sender=self.ID,
+                            receiver=client_id,
+                            state=rnd,
+                            timestamp=self.cur_timestamp,
+                            content=logits
+                            )
+                )
 
-class FedGH_client(Client):
+
+class FedKD(Client):
     def __init__(self,
                  ID=-1,
                  server_id=None,
@@ -176,20 +200,26 @@ class FedGH_client(Client):
                  is_unseen_client=False,
                  *args,
                  **kwargs):
-        super(FedGH_client, self).__init__(ID, server_id, state, config, data, model, device,
-                                           strategy, is_unseen_client, *args, **kwargs)
+        super(FedKD, self).__init__(ID, server_id, state, config, data, model, device,
+                                                strategy, is_unseen_client, *args, **kwargs)
+        self.trainer.ctx.global_protos = []
         self.trainer.ctx.client_ID = self.ID
+        self.register_handlers('avg_global_logits',
+                               self.callback_funcs_for_model_para,
+                               ['model_para', 'ss_model_para'])
+
     def callback_funcs_for_model_para(self, message: Message):
         round = message.state
         sender = message.sender
         timestamp = message.timestamp
         content = message.content
-
-        self.trainer.update(content, strict=True)
+        if message.msg_type == 'avg_global_logits':
+            self.trainer.update(content, strict=True)
         self.state = round
         self.trainer.ctx.cur_state = round
-        sample_size, model_para, results, agg_protos = self.trainer.train()
-
+        st_time=time.time()
+        sample_size, model_para, results, agg_logits = self.trainer.train()
+        logger.info(f"client#{self.ID},local training时间开销{time.time() - st_time}s")
         train_log_res = self._monitor.format_eval_res(
             results,
             rnd=self.state,
@@ -206,13 +236,13 @@ class FedGH_client(Client):
                     sender=self.ID,
                     receiver=[sender],
                     state=self.state,
-                    content=(sample_size, agg_protos)))
+                    content=(sample_size, agg_logits)))
 
 
 def call_my_worker(method):
-    if method == 'fedgh':
-        worker_builder = {'client': FedGH_client, 'server': FedGH_Server}
+    if method == 'feddistill':
+        worker_builder = {'client': FedDistill_Client, 'server': FedDistill_Server}
         return worker_builder
 
 
-register_worker('fedgh', call_my_worker)
+register_worker('feddistill', call_my_worker)

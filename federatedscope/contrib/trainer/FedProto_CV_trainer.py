@@ -44,13 +44,13 @@ class FedProto_Trainer(GeneralTorchTrainer):
         if len(ctx.global_protos) == 0:
             loss2 = 0 * loss1
         else:
-            proto_new = copy.deepcopy(protos.data)
+            proto_new = copy.deepcopy(protos.data) #TODO: .data会有问题吗，是不是应该用detach()？
             i = 0
             for label in labels:
                 if label.item() in ctx.global_protos.keys():
                     proto_new[i, :] = ctx.global_protos[label.item()][0].data
                 i += 1
-            loss2 = self.loss_mse(proto_new, protos)
+            loss2 = self.loss_mse(proto_new, protos)# TODO:二者的顺序是否有关系？
         loss = loss1 + loss2 * self.proto_weight
 
         if ctx.cfg.fedproto.show_verbose:

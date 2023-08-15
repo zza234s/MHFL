@@ -7,7 +7,7 @@ dataset=$2 #cifar10,svhn,office_caltech
 task=$3    #CV_Low CV_High
 folder_name=$4
 
-client_file=client_file="model_heterogeneity/model_settings/model_setting_"$task"_heterogeneity.yaml"
+client_file="model_heterogeneity/model_settings/model_setting_"$task"_heterogeneity.yaml"
 result_floder=model_heterogeneity/result/$folder_name
 
 # Method setup
@@ -25,13 +25,14 @@ wandb_name_project="HPO_"$method"_on_"$dataset"_for_"$task
 
 # Hyperparameters
 local_update_step=(1 5 10)
-lrs=(0.01 0.001 0.0001)
+lrs=(0.01 0.001)
 optimizer=('Adam' 'SGD')
 seed=(0 1 2)
 total_round=200
 patience=50
 momentum=0.9
 freq=20
+
 
 # Define function for model training
 train_model() {
@@ -52,16 +53,19 @@ train_model() {
     wandb.name_project ${wandb_name_project} \
     wandb.online_track ${wandb_online_track} \
     wandb.client_train_info ${wandb_client_train_info} \
-    eval.freq ${freq}
+    eval.freq ${freq} \
+    MHFL.task ${task}
 }
 
 # Training parameters based on the dataset
 declare -A lda_alpha_map=(
-  ["cifar10"]="100 1.0 0.1"
-  ["svhn"]="100 1.0 0.1"
-  ["office_caltech"]="100 1.0 0.1"
+  ["cifar10"]="100"
+  ["svhn"]="100"
+  ["office_caltech"]="100"
 )
 lda_alpha=(${lda_alpha_map[$dataset]})
+
+
 
 # Loop over parameters for HPO
 for alpha in "${lda_alpha[@]}"; do

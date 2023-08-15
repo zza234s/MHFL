@@ -9,7 +9,12 @@ model_heterogeneity/methods/model_setting_5_client_on_CIFAR10_low_heterogeneity.
 exp_name
 SVHN_test
 
-
+# FedDistill
+# CIFAR10
+--cfg
+model_heterogeneity/methods/FedDistill/FedDistill_on_cifar10.yaml
+--client_cfg
+model_heterogeneity/model_settings/model_setting_CV_low_heterogeneity.yaml
 
 ########################## FedPCL ########################################################
 # CIFAR10
@@ -35,7 +40,6 @@ model_heterogeneity/methods/FedPCL/FedPCL_on_office_caltech.yaml
 model_heterogeneity/model_settings/model_setting_CV_high_heterogeneity.yaml
 ##################################################################################################
 
-
 #---------------------------------------------------FSFL----------------------------------------------
 #--FEMNIST
 --cfg
@@ -45,7 +49,6 @@ model_heterogeneity/methods/model_setting_5_client_on_FEMNIST_low_heterogeneity.
 exp_name
 Manual_test_FSFL_FEMNIST
 
-
 #-- EMNIST for check
 --cfg
 model_heterogeneity/methods/FSFL/for_check/FSFL_on_EMNIST.yaml
@@ -54,9 +57,7 @@ model_heterogeneity/methods/model_setting_5_client_on_FEMNIST_low_heterogeneity.
 exp_name
 Manual_test_FSFL_EMNIST
 
-
 #------------------------------------------------------------------------------------------------------
-
 
 ########################################################################################################
 #FedProto
@@ -82,8 +83,6 @@ model_heterogeneity/methods/fedproto/fedproto_on_cifar10.yaml
 --client_cfg
 model_heterogeneity/model_settings/model_setting_CV_low_heterogeneity.yaml
 
-
-
 # FML
 #--CIFAR10
 --cfg
@@ -93,11 +92,9 @@ model_heterogeneity/methods/FML/model_setting_5_client_on_cifar10_low_heterogene
 exp_name
 Manual_HPO_FML_5_clients_on_cifa10_low_heterogeneity
 
-
-
 #FedHeNN
 python federatedscope/main.py --cfg federatedscope/model_heterogeneity/methods/FedHeNN/fedhenn_on_cifar10.yaml \
---client_cfg federatedscope/model_heterogeneity/methods/FedHeNN/fedhenn_per_client_on_cifar10.yaml
+  --client_cfg federatedscope/model_heterogeneity/methods/FedHeNN/fedhenn_per_client_on_cifar10.yaml
 
 #DENSE
 # --CIFAR10
@@ -136,8 +133,6 @@ manual_fedmd
 D:\ZHL_WORK\Architecture_heterogeneous_FL\FS3\federatedscope\model_heterogeneity\methods\FedHeNN\fedhenn_on_cifar10.yaml
 --client_cfg
 D:\ZHL_WORK\Architecture_heterogeneous_FL\FS3\federatedscope\model_heterogeneity\methods\FedHeNN\fedhenn_per_client_on_cifar10.yaml
-
-
 
 #FCCL
 # office_10

@@ -1,0 +1,42 @@
+use_gpu: True
+device: 0
+early_stop:
+  patience: 50
+seed: 0
+federate:
+  mode: standalone
+  method: feddistill
+  client_num: 5
+  total_round_num: 200
+  sample_client_rate: 1.0
+  make_global_eval: False
+FedDistill:
+  global_logit_type: 0
+data:
+  file_path: data/MNIST
+  type: 'hfl_mnist'
+dataloader:
+  batch_size: 256
+model:
+  dropout: 0.5
+  out_channels: 10
+train:
+  local_update_steps: 1
+  batch_or_epoch: epoch
+  optimizer:
+    type: SGD
+    lr: 0.01
+    weight_decay: 1e-4
+criterion:
+  type: CrossEntropyLoss
+trainer:
+  type: feddistill_trainer
+grad:
+  grad_clip: 5.0
+eval:
+  freq: 1
+  metrics: ['acc']
+  report : ['weighted_avg', 'avg']
+  best_res_update_round_wise_key: test_acc
+exp_name: 'FedDistill_HFL_MNIST'
+result_floder: model_heterogeneity/result/manual

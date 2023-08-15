@@ -44,6 +44,6 @@ eval:
   freq: 1
   metrics: ['acc']
   report : ['weighted_avg', 'avg']
-  best_res_update_round_wise_key: test_acc_based_on_global_prototype
+  best_res_update_round_wise_key: test_acc
 exp_name: Manual_FedGH_on_office_caltech
 result_floder: model_heterogeneity/result/temp

@@ -85,22 +85,6 @@ def load_data_from_file(config, client_cfgs=None):
                            'test': test
                            }
     # TODO: dataloader需要和原文尽可能地统一
-
-    # The shape of data is expected to be:
-    # (1) the data consist of all participants' data:
-    # {
-    #   'client_id': {
-    #       'train/val/test': {
-    #           'x/y': np.ndarray
-    #       }
-    #   }
-    # }
-    # (2) isolated data
-    # {
-    #   'train/val/test': {
-    #       'x/y': np.ndarray
-    #   }
-    # }
     translator = DummyDataTranslator(config, client_cfgs)
     data = translator(data)
 

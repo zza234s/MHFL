@@ -42,7 +42,7 @@ def extend_model_heterogeneous_cfg(cfg):
     cfg.model.filter_channels = [64, 64, 64]
 
     cfg.model.warpFC = False  # Whether to add a fully connected layer at the end of the local model
-    cfg.model.feature_dim = -1 # When warpFC is True, the last dimension of each local model output will be mapped to the "feature_dim" dimension by nn.AdaptiveAvgPool1d
+    cfg.model.feature_dim = -1  # When warpFC is True, the last dimension of each local model output will be mapped to the "feature_dim" dimension by nn.AdaptiveAvgPool1d
 
     cfg.model.return_proto = False  # 用来控制是否在前向传播时输出每个输入对应的表征。FedProto,FedPCL,FedheNN等需要用到
     cfg.model.num_classes = 10  # FederatedScope中原代码中没有这个变量，但是这个变量在创建模型时很常用，故添加
@@ -202,11 +202,23 @@ def extend_model_heterogeneous_cfg(cfg):
     # (FedGH) FedGH: Heterogeneous Federated Learning with Generalized Global Header
     # ---------------------------------------------------------------------- #
     cfg.FedGH = CN()
-    cfg.FedGH.server_optimizer =CN()
+    cfg.FedGH.server_optimizer = CN()
     cfg.FedGH.server_optimizer.type = 'Adam'
     cfg.FedGH.server_optimizer.lr = 0.001
     cfg.FedGH.server_optimizer.weight_decay = 0.
-    cfg.FedGH.server_optimizer.momentum=0.9
+    cfg.FedGH.server_optimizer.momentum = 0.9
+
+    # ---------------------------------------------------------------------- #
+    # (FedDistill) Communication-Efficient On-Device Machine Learning: Federated Distillation and Augmentation under Non-IID Private Data
+    # ---------------------------------------------------------------------- #
+    cfg.FedDistill = CN()
+    cfg.FedDistill.gamma = 1.0
+
+    # global_logit_type=0 or 1.
+    # 如果是0，则返回的某个类的全局logits为这个类的所有上传的本地logits的平均；
+    # 如果是1，则为每一个client生成独特的全局logits，计算方式为排除掉当前client上传的logits求和，然后初一client_num-1。
+    # 1这种方案参考于原文的Algorithm 1
+    cfg.FedDistill.global_logit_type = 0
 
     # --------------- register corresponding check function ----------
     cfg.register_cfg_check_fun(assert_mdfh_cfg)
@@ -223,7 +235,7 @@ def assert_mdfh_cfg(cfg):
                        f" but cfg.model.out_channels is {cfg.model.out_channels}")
         logger.warning(f"now we set cfg.model.num_classes as cfg.model.out_channels={cfg.model.out_channels}")
 
-    if cfg.model.warpFC and cfg.model.feature_dim==-1:
+    if cfg.model.warpFC and cfg.model.feature_dim == -1:
         raise ValueError(f"When cfg.model.warpFC is True, the value of cfg.model.feature_dim must be specified.")
 
 

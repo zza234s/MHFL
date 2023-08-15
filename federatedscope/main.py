@@ -20,13 +20,13 @@ from federatedscope.contrib.common_utils import result_to_csv, plot_num_of_sampl
     show_per_client_best_individual
 
 from federatedscope.model_heterogeneity.model_settings.generate_model_cfg import generate_models_cfg
+
 if os.environ.get('https_proxy'):
     del os.environ['https_proxy']
 if os.environ.get('http_proxy'):
     del os.environ['http_proxy']
 
 if __name__ == '__main__':
-    print(os.getcwd())
     init_cfg = global_cfg.clone()
     args = parse_args()
     if args.cfg_file:
@@ -49,7 +49,7 @@ if __name__ == '__main__':
         if args.client_cfg_file:
             raise Exception("Error: --client_cfg 与 --models_cfg不应该同时被设置")
         models_cfgs = CfgNode.load_cfg(open(args.models_cfg_file, 'r'))
-        client_cfgs=generate_models_cfg(init_cfg,models_cfgs,ratios=[0.2,0.2,0.2,0.2,0.2]) #TODO: ratio写进配置文件
+        client_cfgs = generate_models_cfg(init_cfg, models_cfgs, ratios=[0.2, 0.2, 0.2, 0.2, 0.2])  # TODO: ratio写进配置文件
 
     # federated dataset might change the number of clients
     # thus, we allow the creation procedure of dataset to modify the global
@@ -62,6 +62,13 @@ if __name__ == '__main__':
         plot_num_of_samples_per_classes(data, modified_cfg)  # 是否可视化train/test dataset的标签分布
 
     init_cfg.freeze(inform=False)  # TODO:添加是否显示主cfg详细配置的变量
+    import torch
+    for i in range(1, init_cfg.federate.client_num + 1):
+        train_data = data[i].train_data
+        test_data = data[i].test_data
+        torch.save(train_data, f'temp/train/{i}.pt')
+        torch.save(test_data, f'temp/test/{i}.pt')
+
     runner = get_runner(data=data,
                         server_class=get_server_cls(init_cfg),
                         client_class=get_client_cls(init_cfg),
@@ -75,5 +82,4 @@ if __name__ == '__main__':
     print(f'client_summarized_avg_test_acc:{client_summarized_test_acc}')  # acc求平均
     print(f'client_summarized_weighted_avg_test_acc:{client_summarized_weighted_avg}')  # 加权平均acc
     best_round = runner.server.best_round
-    result_to_csv(_, init_cfg, best_round,runner)
-
+    result_to_csv(_, init_cfg, best_round, runner)
