@@ -49,7 +49,7 @@ We are grateful for their outstanding work.
 | ------------ | ------------------------------------------------------------ | --------------------------------------------------- | --------------- |
 | DENSE        | [DENSE: Data-Free One-Shot Federated Learning](https://arxiv.org/abs/2112.12371) | NeurIPS 2022                                        | [########--]95% |
 | FedKD        | [Communication-efficient federated learning via knowledge distillation](https://www.nature.com/articles/s41467-022-29763-x) | NC 2022                                             | [----------]0%  |
-| FedDistill   | [Federated Knowledge Distillation](https://www.cambridge.org/core/books/abs/machine-learning-and-wireless-communications/federated-knowledge-distillation/F679266F85493319EB83635D2B17C2BD) | Machine Learning and Wireless Communications (2022) | [----------]0%  |
+| FedDistill   | [Federated Knowledge Distillation](https://www.cambridge.org/core/books/abs/machine-learning-and-wireless-communications/federated-knowledge-distillation/F679266F85493319EB83635D2B17C2BD) | Machine Learning and Wireless Communications (2022) | [########--]95%  |
 | TBD          | ...                                                          | ...                                                 | ...             |
 
 
