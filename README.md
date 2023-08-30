@@ -98,16 +98,24 @@ cd MHFL
 conda create -n fs python=3.9
 conda activate fs
 
-# Install pytorch
+# install pytorch
 conda install -y pytorch=1.10.1 torchvision=0.11.2 torchaudio=0.10.1 torchtext=0.11.1 cudatoolkit=11.3 -c pytorch -c conda-forge
+
+# install some extra dependencies
+conda install -y pyg -c pyg
+conda install -y nltk
+pip install rdkit
+pip install ipdb
+pip install kornia
+pip install timm
 ```
+
 
 - Next, after the required packages is installed, you can install FederatedScope from `source`:
 
 ```python
 pip install -e .[dev]
 ```
-
 
 
 ### Step 2. Run Algorithm (Take running FedProto as an example)
